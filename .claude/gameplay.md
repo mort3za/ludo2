@@ -1,14 +1,12 @@
 # Ludo — Gameplay & Rules
 
-> Living document. We start with the **big picture** here. Details (exact board coordinates, turn-timer values, edge-case resolution order, etc.) come in later passes.
->
-> Each numbered item is a **proposal** — accept (✅), reject (❌), or modify. Marked `[OPEN]` where a decision is still pending.
+> Each numbered item is a **proposal**. Marked `[OPEN]` where a decision is still pending.
 
 ---
 
 ## 1. Game Overview
 
-A real-time, server-authoritative multiplayer Ludo. 2–4 human players (or bots filling empty seats) race to bring all four of their tokens from their starting yard, around a shared cross-shaped track, and into their home column.
+A real-time, server-authoritative multiplayer Ludo. 2–8 players (any mix of humans and bots) race to bring all four of their tokens from their starting yard, around a shared track, and into their home column.
 
 - **Authority:** server is the single source of truth. Client is a renderer + input device.
 - **Determinism:** given the same game state + same roll, the engine produces exactly one legal-move set. No client-side randomness.
@@ -18,22 +16,20 @@ A real-time, server-authoritative multiplayer Ludo. 2–4 human players (or bots
 
 ## 2. Players, Tokens, Colors
 
-1. **Seats:** exactly 4 seats per board — `red`, `green`, `yellow`, `blue` (fixed clockwise order, in that sequence).
-2. **Player count:** 2 to 4 players total. Any mix of humans and bots is allowed — there is no minimum human count, so bot-only games (e.g. 2 bots) are valid (useful for testing).
+1. **Seats:** `S` seats per board (board arms), where `S ∈ 4..8` (see §10.3). Seats are indexed `1..S` in clockwise order; each seat is assigned a unique color at game start.
+2. **Player count:** 2 to 8 players total. Any mix of humans and bots is allowed — there is no minimum human count, so bot-only games (e.g. 2 bots) are valid (useful for testing).
 3. **Tokens per player:** 4 tokens. All 4 start in their color's **yard**.
 4. **Colors are seats, not players:** a player's identity (account) is separate from the color they're assigned for that game.
 
-**Color assignment is never selectable by players.** The server assigns colors at game start. For 2-player matches, the two players are always placed on **opposing seats** (diagonally across the board) for symmetry.
+**Color assignment is never selectable by players.** At game start the server draws a unique color per seat at random from the palette in §10.8 — no fixed seat→color order, no per-game default. The only constraint is that all `S` colors are distinct on the board.
 
 ---
 
 ## 3. Objective & Win Condition
 
 1. A player wins when their **4 tokens simultaneously occupy all 4 squares of their color's home column** (one token per square — see §5.7). There is no separate center / triangle goal square.
-2. The game continues for remaining players to determine 2nd, 3rd, 4th place — *unless* the room is configured `winnerOnlyMode: true`, in which case the game ends immediately on first win.
+2. The game always continues for remaining players to determine all subsequent placements (2nd … `S`th).
 3. Final standings are recorded for stats/ELO.
-
-**Default for `winnerOnlyMode`:** `false` (play out to full standings) for **ranked** games, `true` (end on first win) for **casual** games.
 
 ---
 
@@ -59,7 +55,7 @@ Detailed timing/timeouts are in §8.
 
 ### 5.2 Movement
 - Tokens move **clockwise** around the shared outer track.
-- A roll of N moves the chosen token exactly N squares forward (no partial / no splitting between tokens).
+- A roll of `r` moves the chosen token exactly `r` squares forward (no partial / no splitting between tokens).
 - A token must have a legal landing square; if no token can legally consume the roll, the turn ends with no move.
 
 ### 5.3 Extra turn on six
@@ -84,7 +80,7 @@ Detailed timing/timeouts are in §8.
 
 ### 5.7 Home column
 - Each color has a private **home column** of exactly **4 squares**. There is no separate center home / home triangle — the 4 squares *are* the goal.
-- A token enters its home column only after completing a full lap and reaching its color's **entry point**.
+- A token enters its home column from its seat's **entry square** `T/((i−1) × K)` — with the special case that for **seat 1**, where the formula gives `T/0`, the entry is the wraparound square `T/(S × K)` (see §10.5). The entry sits one square before the seat's start, so a token traverses exactly `S × K − 1` track squares from `T/((i−1) × K + 1)` (start) to `T/((i−1) × K)` (entry); the next forward step lands on `H/i/1`.
 - Home column squares are private — only that color can occupy them. No captures possible inside.
 - Each home column square has a **capacity of 1**: at most one token may occupy a given home column square at a time. (No stacking, no blocks inside the home column.)
 - A color wins when **all 4 of its home column squares are simultaneously occupied** by its 4 tokens (one token per square).
@@ -108,10 +104,13 @@ Detailed timing/timeouts are in §8.
 
 ## 7. Game Start
 
-1. Room fills (2–4 humans + optional bots).
-2. All players mark **ready**.
-3. Server rolls a tiebreaker die for each seat to determine **first turn**. (Highest roll starts; ties re-roll.)
-4. Play proceeds clockwise from the first seat.
+1. **Room creation:** any user can create a room and becomes its **owner**. The owner sets the room configuration: seat count `S ∈ 2..8` (the **cap**), how many of those seats are pre-allocated to bots, and the per-room rules (§14). The owner is the only player who can start the game, trigger a rematch (§11.6), or close the room.
+2. **Joining:** every room has a **unique shareable link**. Any user with the link can join, claiming an open seat in clockwise order, until the room reaches its cap of `S` (humans + pre-allocated bots). Distribution is link-only — there is no public room browser.
+3. All players mark **ready**, then the **owner** triggers the start.
+4. Server rolls a tiebreaker die for each seat to determine **first turn**. (Highest roll starts; ties re-roll.)
+5. Play proceeds clockwise from the first seat.
+
+`[OPEN]` Owner succession when the owner disconnects or quits — proposal: ownership passes to the longest-connected remaining human; if none, the room closes.
 
 
 ---
@@ -134,13 +133,13 @@ These are intentionally **not** proposed yet. Listed here so we don't lose them.
 
 - §12 **Edge cases & resolution order** — what happens when one roll could capture *and* enter home; tie-breaking when multiple legal moves exist for auto-play; behavior when last token on the board cannot move at all.
 - §13 **Bot AI behavior** — heuristic priorities for filling empty seats / replacing AFK players.
-- §14 **Game variants & room options** — `winnerOnlyMode`, `mustRollSixToStart`, `allowBlocks`, `extraTurnOnCapture`, `turnTimerSeconds`, etc. — the room-config schema.
+- §14 **Game variants & room options** — `mustRollSixToStart`, `allowBlocks`, `extraTurnOnCapture`, `turnTimerSeconds`, etc. — the room-config schema.
 
 ---
 
 ## 10. Board map & coordinate system
 
-> First-pass structural definition. The system is **parametric in the seat count `N`** so the same engine can run a 4-seat plus-shape board, a 6-seat hexagonal star, an 8-seat octagonal star, etc. There is **no mathematical cap on `N`** — the practical product cap is **8 seats** (UI/balance), but the engine code never assumes a specific value.
+> First-pass structural definition. The system is **parametric in the seat count `S`** so the same engine can run a 4-seat plus-shape board, a 6-seat hexagonal star, an 8-seat octagonal star, etc. There is **no mathematical cap on `S`** — the practical product cap is **8 seats** (UI/balance), but the engine code never assumes a specific value.
 
 ### 10.1 Cell kinds
 
@@ -154,74 +153,66 @@ Every position on the board is exactly **one** of three kinds:
 
 A token's lifecycle traverses: `Y/…` → `T/…` (clockwise lap) → `H/…` (home column).
 
-### 10.2 Cell IDs (notation — Option B, slash-delimited)
+### 10.2 Cell IDs (slash-delimited)
 
-Cell IDs are **strings**, parseable, with `/` as the delimiter. Seat indices are integers (`0..N-1`), so the system imposes no upper bound on seat count.
+Cell IDs are **strings**, parseable, with `/` as the delimiter. Seat indices are integers (`1..S`), so the system imposes no upper bound on seat count.
 
 | Cell | Pattern | Examples | Notes |
 |------|---------|----------|-------|
-| Yard slot | `Y/<seat>/<slot>` | `Y/0/1`, `Y/0/4`, `Y/3/2` | `seat` ∈ `0..N-1`. `slot` ∈ `1..M` (`M=4`, see §10.3). The 4 yard slots are gameplay-equivalent — a token may deploy from any. Slot indices exist for rendering/persistence. |
-| Track square | `T/<index>` | `T/1`, `T/27`, `T/52`, `T/78` | 1-based. No zero padding. Index range is `1..(N×K)`. |
-| Home column square | `H/<seat>/<i>` | `H/0/1`, `H/3/4` | `seat` ∈ `0..N-1`. `i` ∈ `1..L` (`L=4`). `H/<seat>/1` is the entry-adjacent square (just past the entry); `H/<seat>/L` is the deepest, "winning" square for that token. |
+| Yard slot | `Y/<seat>/<slot>` | `Y/1/1`, `Y/1/4`, `Y/4/2` | `seat` ∈ `1..S`. `slot` ∈ `1..M` (`M=4`, see §10.3). The 4 yard slots are gameplay-equivalent — a token may deploy from any. Slot indices exist for rendering/persistence. |
+| Track square | `T/<index>` | `T/1`, `T/27`, `T/52`, `T/78` | 1-based. No zero padding. Index range is `1..(S×K)`. |
+| Home column square | `H/<seat>/<i>` | `H/1/1`, `H/4/4` | `seat` ∈ `1..S`. `i` ∈ `1..L` (`L=4`). `H/<seat>/1` is the entry-adjacent square (just past the entry); `H/<seat>/L` is the deepest, "winning" square for that token. |
 
 ### 10.3 Structural constants
 
 | Constant | Symbol | Value | Notes |
 |----------|--------|-------|-------|
-| Arc length (squares per arm of the cross/star) | `K` | **13** | Locked. Each seat's start sits at the same offset within its arm regardless of `N`. |
+| Arc length (squares per arm of the cross/star) | `K` | **13** | Locked. Each seat's start sits at the same offset within its arm regardless of `S`. |
 | Home column length | `L` | **4** | §5.7 / §10.7. |
 | Yard size (slots per yard) | `M` | **4** | One slot per token. |
 | Practical max seats | — | **8** | Cap enforced by room config (§14); engine has no hard cap. |
-| Minimum seats | — | **2** | Below 2 there is no game. |
+| Minimum seats | — | **4** | Ludo boards must have at least 4 arms for geometric symmetry. Even a 2-player game uses a 4-armed board (players occupy 2 of the 4 seats; the other 2 remain vacant or are filled with bots). |
 
 ### 10.4 Seat numbering and origin
 
-- Seats are integers `0, 1, ..., N-1` in **clockwise** order.
-- **Seat 0 is anchored at the top-left** of the board (matches the reference image's blue yard for the standard 4-seat board).
-- The compass rotation (where seat 1, 2, … land geometrically) follows naturally from clockwise traversal:
-
-| N | Seat 0 | Seat 1 | Seat 2 | Seat 3 | … |
-|---|--------|--------|--------|--------|---|
-| 4 | top-left | top-right | bottom-right | bottom-left | — |
-| 6 | top-left | top | top-right | bottom-right | bottom, bottom-left (clockwise) |
-| 8 | top-left | top | top-right | right | bottom-right, bottom, bottom-left, left |
-
-(For higher `N`, geometric placement is "evenly spaced clockwise around the star, starting from top-left.")
+- Seats are integers `1, 2, ..., S` in **clockwise** order.
+- **Seat 1 is anchored at the top-left** of the board.
+- For any `S ∈ 4..8`, the remaining seats are placed **evenly spaced clockwise** around the board from seat 1 (i.e. `360°/S` apart). For `S=4` this resolves to top-left, top-right, bottom-right, bottom-left.
 
 ### 10.5 Track length and per-seat indices
 
-- **Total track length:** `N × K` squares.
-- **Seat `i`'s start square:** `T/(i × K + 1)`.
-- **Seat `i`'s entry square** (last track square before turning into the home column): `T/(i × K)` — with the special case that for **seat 0**, where the formula gives `T/0`, the entry is the wraparound square `T/(N × K)`.
+- **Total track length:** `S × K` squares.
+- **Seat `i`'s start square:** `T/((i−1) × K + 1)`.
+- **Seat `i`'s entry square** (last track square before turning into the home column): `T/((i−1) × K)` — with the special case that for **seat 1**, where the formula gives `T/0`, the entry is the wraparound square `T/(S × K)`.
 
-| `N` | Track length | Seat 0 start / entry | Seat 1 start / entry | Seat 2 start / entry | Seat 3 start / entry |
+| `S` | Track length | Seat 1 start / entry | Seat 2 start / entry | Seat 3 start / entry | Seat 4 start / entry |
 |-----|--------------|----------------------|----------------------|----------------------|----------------------|
 | 4   | 52  | `T/1` / `T/52`  | `T/14` / `T/13` | `T/27` / `T/26` | `T/40` / `T/39` |
 | 6   | 78  | `T/1` / `T/78`  | `T/14` / `T/13` | `T/27` / `T/26` | `T/40` / `T/39` |
 | 8   | 104 | `T/1` / `T/104` | `T/14` / `T/13` | `T/27` / `T/26` | `T/40` / `T/39` |
 
-(Same general pattern for any `N` — only seat 0's `entry` and the wrap-back length differ as `N` scales.)
+(Same general pattern for any `S` — only seat 1's `entry` and the wrap-back length differ as `S` scales.)
 
-**Safe squares** (§5.5): every seat's start square is safe. There are exactly `N` safe squares, all of the form `T/(i × K + 1)` for `i ∈ 0..N-1`.
+**Safe squares** (§5.5): every seat's start square is safe. There are exactly `S` safe squares, all of the form `T/((i−1) × K + 1)` for `i ∈ 1..S`.
 
 ### 10.6 Token path (worked example)
 
-For a token belonging to seat `i` in an `N`-seat game, the full forward path from yard to winning square:
+For a token belonging to seat `i` in an `S`-seat game, the full forward path from yard to winning square:
 
 ```
 Y/i/<slot>
    → (deploy on roll of 6) →
-T/(i × K + 1)            // start, safe
+T/((i−1) × K + 1)       // start, safe
    → T/(...) clockwise around the loop ...
-T/(i × K)                // entry (wrapping)
+T/((i−1) × K)           // entry (wrapping for seat 1)
    →
 H/i/1 → H/i/2 → H/i/3 → H/i/4   // L = 4, last is winning
 ```
 
 Total dice-pip-equivalent moves to bring one token home:
-**`1 (deploy) + (N × K − 1) (lap) + L (home column)` = `N × K + L − 0` — equals `N × 13 + 4`.**
+**`1 (deploy) + (S × K − 1) (lap) + L (home column)` = `S × K + L` — equals `S × 13 + 4`.**
 
-| `N` | Moves to bring one token home |
+| `S` | Moves to bring one token home |
 |-----|-------------------------------|
 | 4   | 56 |
 | 6   | 82 |
@@ -229,44 +220,35 @@ Total dice-pip-equivalent moves to bring one token home:
 
 ### 10.7 Yards and home columns
 
-- Each seat has exactly **one yard** of `M = 4` slots: `Y/<seat>/1..Y/<seat>/4`.
+- Each seat has exactly **one yard** of `M = 4` slots: `Y/<seat>/1..Y/<seat>/4` (where `<seat>` ∈ `1..S`).
 - Each seat has exactly **one home column** of `L = 4` capacity-1 squares: `H/<seat>/1..H/<seat>/4`.
 - All home columns and yards are **private** to their seat — no opponent can occupy or interact with them.
 - Movement inside a home column is forward-only (`H/<seat>/i → H/<seat>/i+1`); a token never goes back to the track once it has entered.
 
-### 10.8 Default seat → color mapping
+### 10.8 Seat → color assignment
 
-Color is a **per-game attribute** of a seat, not part of any cell ID. The defaults below apply when the room config does not override them. All colors are visually distinct (chosen for accessibility):
+Color is a **per-game attribute** of a seat, not part of any cell ID. There is **no fixed seat→color mapping** — at game start the server draws a unique color for each seat uniformly at random from the palette below.
 
-| Seat | N=2 | N=3 | N=4 | N=5 | N=6 | N=7 | N=8 |
-|------|-----|-----|-----|-----|-----|-----|-----|
-| 0 | blue   | blue   | blue   | blue   | blue   | blue   | blue   |
-| 1 | red    | red    | red    | red    | red    | red    | red    |
-| 2 | —      | yellow | green  | green  | green  | green  | green  |
-| 3 | —      | —      | yellow | yellow | yellow | yellow | yellow |
-| 4 | —      | —      | —      | purple | purple | purple | purple |
-| 5 | —      | —      | —      | —      | orange | orange | orange |
-| 6 | —      | —      | —      | —      | —      | cyan   | cyan   |
-| 7 | —      | —      | —      | —      | —      | —      | pink   |
-
-(Seat 0 = blue / top-left matches the reference 4-seat board. For 2-seat games, seats 0 and 1 are geometrically opposite by construction — no separate "diagonal placement" rule is needed beyond what §2 already states for 4-seat games with two humans.)
+- **Palette (8 colors, all visually distinct, chosen for accessibility):** `blue`, `red`, `green`, `yellow`, `purple`, `orange`, `cyan`, `pink`.
+- For an `S`-seat game, exactly `S` of the 8 palette colors are drawn (without replacement) and assigned to seats `1..S`.
+- Any combination is valid; no order or pairing constraint applies.
 
 ### 10.9 TypeScript sketch (preview, non-binding)
 
 Sketch only — concrete types live in `packages/shared/types/game.ts` and will be refined when the engine is implemented.
 
 ```ts
-type Seat = number;          // 0..N-1
+type Seat = number;          // 1..S
 type Slot = 1 | 2 | 3 | 4;   // M = 4
 type Home = 1 | 2 | 3 | 4;   // L = 4
 
 type CellId =
   | `Y/${Seat}/${Slot}`
-  | `T/${number}`            // 1..N*K
+  | `T/${number}`            // 1..S*K
   | `H/${Seat}/${Home}`;
 
 interface BoardConfig {
-  seatCount: number;         // N, ≥ 2
+  seatCount: number;         // S, ≥ 2
   arcLength: 13;             // K, locked
   homeColumnLength: 4;       // L, locked
   yardSize: 4;               // M, locked
@@ -275,9 +257,9 @@ interface BoardConfig {
 
 ### 10.10 Deferred to a sub-pass
 
-- A full enumerated table of every cell with its **2D grid coordinate** for rendering (proposed: chess-style file/rank, `a1..o15` for `N=4`, growing for higher `N`).
+- A full enumerated table of every cell with its **2D grid coordinate** for rendering (proposed: chess-style file/rank, `a1..o15` for `S=4`, growing for higher `S`).
 - Per-cell adjacency precomputed for the engine (the "next cell" given a forward step from any cell).
-- Visual layout rules for `N ≥ 5` (where the board is a star, not a cross) — exact arm angles, where each arm's three columns sit relative to the central polygon, etc.
+- Visual layout rules for `S ≥ 5` (where the board is a star, not a cross) — exact arm angles, where each arm's three columns sit relative to the central polygon, etc.
 
 ---
 
@@ -321,15 +303,16 @@ Once a game has started it does **not** idle-expire by clock. Each seat is eithe
 
 Game continues until one of these terminal conditions:
 
-- **Normal completion:** standings are decided per §3 (either all 4 placements filled, or first win in `winnerOnlyMode`).
+- **Normal completion:** standings are decided per §3 — all `S` placements filled.
 - **Sole survivor:** if exactly **one active seat** remains (all others vacant or already finished), that seat **wins immediately** — the game does not play out alone.
 - **Total abandonment:** if **zero active seats** remain (e.g. all-human game where everyone gets kicked or quits), the game is **aborted**. No winner recorded; all departed players keep the forfeit/loss recorded under §8.4.
 
 ### 11.6 Post-game window
 
-- After a game ends (either by first-win in `winnerOnlyMode` or by all standings being decided), the room remains open for **60 seconds**.
-- During this window: chat is open, players can request **rematch** / **play again**, final standings and stats are displayed.
-- After 60 seconds the room is closed automatically.
+- After a game ends (all standings decided, or game aborted per §11.5), the room remains open for **60 seconds**.
+- During this window: chat is open, final standings and stats are displayed, and the **owner** (§7) may trigger a **rematch** — a new game with the **same room configuration** (same `S`, same rules); colors are re-drawn per §10.8. Currently-seated players are auto-seated; players who quit during the previous game are not re-included.
+- A rematch immediately replaces the post-game window with a fresh game.
+- After 60 seconds with no rematch, the room is closed automatically. The owner may also close the room manually at any time.
 
 ### 11.7 Game-state retention
 
@@ -347,12 +330,19 @@ Game continues until one of these terminal conditions:
 - **Extra turns:** granted only on rolling a 6 (not on capture or bringing a token home). Three consecutive sixes in one turn forfeit the third roll and end the turn. _(2026-05-01)_
 - **Safe squares:** only the 4 start squares (one per color). No star or additional safe squares — the board has none. _(2026-05-01)_
 - **Color assignment:** server-assigned, never player-selectable. 2-player matches are placed on opposing (diagonal) seats. _(2026-05-01)_
-- **`winnerOnlyMode` default:** `false` for ranked games (play out to full standings), `true` for casual games (end on first win). _(2026-05-01)_
+- **Game end (§3):** every game plays out to full standings — `winnerOnlyMode` and the ranked/casual distinction are dropped. Sole-survivor and zero-active-seats terminal conditions in §11.5 still apply. _(2026-05-02)_
 - **Blocks (§5.6):** immune — cannot be captured, even by another block. Size cap: up to 4 (any number of same-color tokens on a square forms a block). _(2026-05-01)_
 - **Home column (§5.7):** exactly 4 squares, no separate center/triangle goal. Each square has capacity 1 (no stacking inside the column). Win = all 4 home column squares simultaneously occupied by that color's tokens. _(2026-05-01)_
 - **First turn (§7):** decided by a per-seat tiebreaker roll at game start (highest wins; ties re-roll). _(2026-05-01)_
 - **Disconnect / timeout (§8.2):** missed turns are auto-played by bot logic on the player's behalf (tokens stay on the board); the player can reclaim control by reconnecting/acting. After **3 consecutive** missed turns (counter resets when the player acts on their own), the player is removed from the game — **all their tokens are wiped from the board**, the seat becomes empty, and they continue as a spectator only. _(2026-05-01)_
 - **Forfeit recording (§8.4):** both voluntary quit and 3-strike kick record a forfeit/loss in stats. _(2026-05-01)_
 - **Timing (§11):** turn timer **30s** (with a 5s soft warning); on expiry the server auto-rolls and/or auto-picks (lowest-numbered legal token) and the turn counts as missed. Reconnection is passive (no separate grace timer). Pre-game lobby idle expiry **10 minutes**; in-game has no idle expiry (bots play it out). Post-game window **60s** for chat / rematch. Game-state retention **24 hours**. Sole-survivor → instant win. _(2026-05-02)_
-- **Board map & coordinates (§10):** parametric in seat count `N` (engine has no max; product cap **8**). Cell IDs use **slash-delimited Option B** (`Y/<seat>/<slot>`, `T/<index>`, `H/<seat>/<i>`). Constants: `K=13` (arc length, locked), `L=4` (home column), `M=4` (yard). Seats numbered `0..N-1` clockwise, **seat 0 anchored at top-left**. Default 4-seat color mapping: `0=blue, 1=red, 2=green, 3=yellow`. Color palette extends with `purple, orange, cyan, pink` for `N=5..8`. Per-seat indices: `start = T/(i×13+1)`, `entry = T/(i×13)` (with seat-0 wrap to `T/(N×13)`). _(2026-05-02)_
+- **Board map & coordinates (§10):** parametric in seat count `S` (engine has no max; product cap **8**). Cell IDs use **slash-delimited Option B** (`Y/<seat>/<slot>`, `T/<index>`, `H/<seat>/<i>`). Constants: `K=13` (arc length, locked), `L=4` (home column), `M=4` (yard). Seats numbered `1..S` clockwise, **seat 1 anchored at top-left**. Color palette: `blue, red, green, yellow, purple, orange, cyan, pink` (randomly assigned per game). Per-seat indices: `start = T/((i−1)×13+1)`, `entry = T/((i−1)×13)` (with seat-1 wrap to `T/(S×13)`). _(2026-05-02)_
 - **Active vs. vacant seats (§8.4 / §11.5):** kicked (§8.2) and voluntarily-quit (§8.4) seats are unified — both become **vacant** with tokens removed from the board, and the seat is skipped from then on. **Bots never replace a vacated seat** — they only play single turns during the 3-turn grace window of a missed-turn streak. Game-end: normal standings, **sole-survivor → instant win**, or **zero active seats → game aborts** with all departed players keeping a forfeit/loss. _(2026-05-02)_
+- **Player count unified to S=2..8 (§1 / §2 / §3 / §10):** one consistent range across the doc; `S=4` is no longer special-cased. Earlier "2–4 players" wording is superseded. _(2026-05-02)_
+- **Color assignment (§2 / §10.8):** colors are drawn uniformly at random from the palette `blue, red, green, yellow, purple, orange, cyan, pink` at game start; each seat gets a unique color. **No fixed seat→color default and no order constraint.** Supersedes the 2026-05-02 "default 4-seat color mapping" line above. _(2026-05-02)_
+- **Home column entry (§5.7):** specified by cell-ID — entry square is `T/((i−1) × K)` (with seat-1 wrap to `T/(S × K)`); a token traverses `S × K − 1` track squares from start to entry, then steps to `H/i/1`. Replaces the earlier "completing a full lap" wording. _(2026-05-02)_
+- **Room owner & rematch (§7 / §11.6):** the room creator is the **owner** — the only player who can start the game, trigger a rematch, or close the room. A rematch re-uses the same room configuration (same `S`, same rules); colors are re-drawn. Owner-succession on disconnect/quit is `[OPEN]`. _(2026-05-02)_
+- **Room creation & joining (§7):** any user can create a room and becomes its owner. Each room has a **unique shareable link**; any user with the link can join (claiming an open seat in clockwise order) until the room reaches its **cap** of `S` seats (set by the owner). Link-only distribution; no public room browser. _(2026-05-02)_
+- **Notation cleanup (§2 / §5.2 / §10):** seat count symbol renamed from `N` to `S` (avoids clash with dice-value `N` in §5.2). Seats are now **1-indexed** (`1..S`) instead of `0..N-1`. §5.2 dice value rewritten as `r`. Formulas updated: `start = T/((i−1)×K+1)`, `entry = T/((i−1)×K)` with seat-1 wraparound. _(2026-05-02)_
+- **Board minimum arms = 4 (§10.3):** `S ∈ 4..8` (not 2..8). Ludo boards require at least 4 geometric arms for symmetry; even 2–3 player games use a 4-armed board with vacant or bot-filled seats. Minimum track length = 4×K = 52 squares. _(2026-05-02)_

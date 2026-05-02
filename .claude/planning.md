@@ -16,6 +16,7 @@
 > - **Tailwind CSS v4** (using the new CSS-first config, no `tailwind.config.js`)
 > - **TanStack Query** (`@tanstack/vue-query`) for REST API calls
 > - **Vue Router 4** for page routing
+> - **SQlite, Drizzle** for DB
 > - Path alias: `@` → `src/`
 >
 > ### `apps/server` setup
