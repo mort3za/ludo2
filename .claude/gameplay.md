@@ -59,8 +59,8 @@ Detailed timing/timeouts are in §8.
 - A token must have a legal landing square; if no token can legally consume the roll, the turn ends with no move.
 
 ### 5.3 Extra turn on six
-- Rolling a **6** grants another roll after the current move resolves.
-- **Three consecutive sixes** in one turn → the turn ends and the *third* six is forfeited (no move applied for it). This prevents stalling/abuse.
+- Rolling a **6** grants another roll after the current move resolves. The bonus roll is granted **regardless of whether a legal move existed** — even if the 6 produced no move (all tokens blocked), the player still rolls again.
+- **Three consecutive sixes** in one turn → the turn ends and the *third* six is forfeited (no move applied for it). This prevents stalling/abuse. A six that produced no legal move still counts toward the consecutive-six counter.
 
 ### 5.4 Captures
 - Landing on a square occupied by exactly **one opponent token** sends that token back to its yard.
@@ -68,14 +68,15 @@ Detailed timing/timeouts are in §8.
 - Captures do **not** apply to your own tokens — instead, see §5.6 (stacking).
 
 ### 5.5 Safe squares
-- The only safe squares are the **4 start squares** (one per color). Tokens standing on a start square cannot be captured.
+- The only safe squares are the **`S` start squares** (one per seat). Tokens standing on a start square cannot be captured.
+- Multiple tokens of different colors **may co-occupy** a safe square (no captures occur). `[NOTE: co-occupation will be a room-config option in §14.]`
 - No star squares or other extra safe spots exist on this board.
 
 (Exact square indices are deferred to the board-map pass — §10.)
 
 ### 5.6 Stacking / blocks
-- Two tokens of the **same color** on the same square form a **block**.
-- A block **cannot be passed through or captured** by opposing tokens of any single roll.
+- Two or more tokens of the **same color** on the same square form a **block** (up to the cell cap of 4 — i.e. all of a player's tokens).
+- A block **cannot be landed on, passed through, or captured** by opposing tokens. Any move whose path crosses or terminates at a blocked square is illegal for opponents. `[NOTE: block rules will be a room-config option in §14.]`
 - A block can be broken voluntarily (one token moves on its next turn).
 
 ### 5.7 Home column
@@ -104,9 +105,9 @@ Detailed timing/timeouts are in §8.
 
 ## 7. Game Start
 
-1. **Room creation:** any user can create a room and becomes its **owner**. The owner sets the room configuration: seat count `S ∈ 2..8` (the **cap**), how many of those seats are pre-allocated to bots, and the per-room rules (§14). The owner is the only player who can start the game, trigger a rematch (§11.6), or close the room.
+1. **Room creation:** any user can create a room and becomes its **owner**. The owner sets the room configuration: seat count `S ∈ 4..8` (the **cap**), how many of those seats are pre-allocated to bots, and the per-room rules (§14). The owner is the only player who can start the game, trigger a rematch (§11.6), or close the room.
 2. **Joining:** every room has a **unique shareable link**. Any user with the link can join, claiming an open seat in clockwise order, until the room reaches its cap of `S` (humans + pre-allocated bots). Distribution is link-only — there is no public room browser.
-3. All players mark **ready**, then the **owner** triggers the start.
+3. All human players mark **ready** (bots are implicitly ready), then the **owner** triggers the start.
 4. Server rolls a tiebreaker die for each seat to determine **first turn**. (Highest roll starts; ties re-roll.)
 5. Play proceeds clockwise from the first seat.
 
@@ -117,11 +118,20 @@ Detailed timing/timeouts are in §8.
 
 ## 8. Multiplayer Concerns (high-level only — details later)
 
-1. **Turn timer:** each turn has a soft deadline. On expiry, server auto-plays a move (auto-pick rule TBD in detail pass).
-2. **Disconnect / timeout handling:** when a human player misses a turn (turn timer expires, whether they're disconnected or just idle), the server plays that turn for them using **bot logic** — their tokens stay on the board and play continues normally. If the player reconnects / acts before being kicked, control returns to them seamlessly. After **3 consecutive missed turns** (the counter resets the moment the player acts on their own again), the player is **removed from the game**: their seat becomes empty and **all of their tokens are removed from the board** (yard, track, and home column alike). The kicked player remains connected as a **spectator** and can watch the game finish, but their color is no longer in play.
-3. **Reconnect:** on reconnect, server resyncs full state from the move log.
-4. **Forfeit / leave:** a player who quits voluntarily is treated identically to a 3-strike kick (§8.2): their tokens are immediately removed from the board and the seat becomes **vacant** for the rest of the game. **No bot is parachuted in to replace them** — vacant seats are simply skipped on every subsequent turn rotation. Both voluntary quit and 3-strike kick record a **forfeit / loss** in the player's stats. Bots only ever act *during* the 3-turn grace window of a missed-turn streak (§8.2), playing single turns on the player's behalf while the tokens are still on the board.
-5. **Spectators:** read-only joiners receive state updates but cannot input moves.
+### 8.1 Turn timer
+Each turn has a soft deadline. On expiry, server auto-plays a move (auto-pick rule TBD in detail pass).
+
+### 8.2 Disconnect / timeout handling
+When a human player misses a turn (turn timer expires, whether they're disconnected or just idle), the server plays that turn for them using **bot logic** — their tokens stay on the board and play continues normally. If the player reconnects / acts before being kicked, control returns to them seamlessly. After **3 consecutive missed turns** (the counter resets the moment the player acts on their own again), the player is **removed from the game**: their seat becomes vacant and **all of their tokens are removed from the board** (yard, track, and home column alike). The kicked player remains connected as a **spectator** and can watch the game finish, but their color is no longer in play.
+
+### 8.3 Reconnect
+On reconnect, server resyncs full state from the move log.
+
+### 8.4 Forfeit / leave
+A player who quits voluntarily is treated identically to a 3-strike kick (§8.2): their tokens are immediately removed from the board and the seat becomes **vacant** for the rest of the game. **No bot is parachuted in to replace them** — vacant seats are simply skipped on every subsequent turn rotation. Both voluntary quit and 3-strike kick record a **forfeit / loss** in the player's stats. Bots only ever act *during* the 3-turn grace window of a missed-turn streak (§8.2), playing single turns on the player's behalf while the tokens are still on the board.
+
+### 8.5 Spectators
+Read-only joiners receive state updates but cannot input moves.
 
 Concrete values for the turn timer, reconnect, idle expiry, and post-game window are defined in **§11**.
 
@@ -176,8 +186,9 @@ Cell IDs are **strings**, parseable, with `/` as the delimiter. Seat indices are
 ### 10.4 Seat numbering and origin
 
 - Seats are integers `1, 2, ..., S` in **clockwise** order.
-- **Seat 1 is anchored at the top-left** of the board.
-- For any `S ∈ 4..8`, the remaining seats are placed **evenly spaced clockwise** around the board from seat 1 (i.e. `360°/S` apart). For `S=4` this resolves to top-left, top-right, bottom-right, bottom-left.
+- **Seat 1 is anchored at the bottom-left** of the board.
+- For any `S ∈ 4..8`, the remaining seats are placed **evenly spaced clockwise** around the board from seat 1 (i.e. `360°/S` apart). For `S=4` this resolves to bottom-left, top-left, top-right, bottom-right.
+- **Client-side rotation:** each player's client rotates the board so that **their own seat always appears at the bottom-left** — analogous to chess, where you always see your own pieces on "your side." The underlying coordinates are unaffected; rotation is purely a rendering concern.
 
 ### 10.5 Track length and per-seat indices
 
@@ -248,7 +259,7 @@ type CellId =
   | `H/${Seat}/${Home}`;
 
 interface BoardConfig {
-  seatCount: number;         // S, ≥ 2
+  seatCount: number;         // S, ≥ 4
   arcLength: 13;             // K, locked
   homeColumnLength: 4;       // L, locked
   yardSize: 4;               // M, locked
@@ -278,7 +289,7 @@ interface BoardConfig {
 When the 30-second turn timer expires before the human player has acted:
 
 1. **If they have not yet rolled:** server auto-rolls.
-2. **If they rolled but did not pick a move:** server auto-picks the move. Selection heuristic: the **first legal move from the player's lowest-numbered token** (`Y<seat>1` first, then `Y<seat>2`, …; for tokens already on the track or in the home column, ordered by their current cell-ID). This is a deterministic placeholder — once §13 (bot AI) is filled in, the same heuristic the bot uses for full takeover can be used here too.
+2. **If they rolled but did not pick a move:** server auto-picks the move. Selection heuristic: the **first legal move from the player's lowest-numbered token** (`Y/<seat>/1` first, then `Y/<seat>/2`, …; for tokens already on the track or in the home column, ordered by their current cell-ID). This is a deterministic placeholder — once §13 (bot AI) is filled in, the same heuristic the bot uses for full takeover can be used here too.
 3. The turn counts as **one missed turn** for the kick threshold (§8.2).
 
 Note: §11.2 deliberately does **not** treat "rolled but no legal move" as a missed turn — that's a normal pass (the player wouldn't have anything to do regardless). The missed-turn counter only increments when *human input* was required and didn't arrive.
@@ -296,15 +307,16 @@ Note: §11.2 deliberately does **not** treat "rolled but no legal move" as a mis
 
 ### 11.5 Active / vacant seats and game-end conditions
 
-Once a game has started it does **not** idle-expire by clock. Each seat is either **active** or **vacant**:
+Once a game has started it does **not** idle-expire by clock. Each seat is in exactly one of three states:
 
 - **Active seat** = a human still in the game (possibly mid-grace-window, with 0–2 missed consecutive turns) **or** a bot that was configured into the seat at game creation.
 - **Vacant seat** = a human who has been kicked (§8.2) or has voluntarily quit (§8.4). Their tokens are removed from the board; the seat is **skipped** on every subsequent turn rotation. **No bot is ever parachuted in** to take over a vacant seat — bots are only first-class participants when they were configured at game creation, and they only play *single turns* during a human's grace window.
+- **Empty seat** = a seat that was **never filled** at game start (no human joined, no bot pre-allocated). Empty seats have no tokens and are permanently skipped in turn rotation. They do not participate in tiebreaker rolls (§7) or standings.
 
 Game continues until one of these terminal conditions:
 
-- **Normal completion:** standings are decided per §3 — all `S` placements filled.
-- **Sole survivor:** if exactly **one active seat** remains (all others vacant or already finished), that seat **wins immediately** — the game does not play out alone.
+- **Normal completion:** standings are decided per §3 — all initially-active placements filled.
+- **Sole survivor:** if exactly **one active seat** remains (all others vacant, empty, or already finished), that seat **wins immediately** — the game does not play out alone.
 - **Total abandonment:** if **zero active seats** remain (e.g. all-human game where everyone gets kicked or quits), the game is **aborted**. No winner recorded; all departed players keep the forfeit/loss recorded under §8.4.
 
 ### 11.6 Post-game window
@@ -324,25 +336,21 @@ Game continues until one of these terminal conditions:
 
 > Append accepted decisions here as we go, so the proposals above stay clean.
 
-- **Player count:** 2–4 total players, any mix of humans and bots, no minimum humans (bot-only games allowed for testing). _(2026-05-01)_
 - **Roll trigger:** human players must trigger their own roll via UI; the server performs the RNG and broadcasts the result. Bots roll automatically server-side. _(2026-05-01)_
 - **Leaving the yard:** only a roll of **6** deploys a token from the yard. _(2026-05-01)_
-- **Extra turns:** granted only on rolling a 6 (not on capture or bringing a token home). Three consecutive sixes in one turn forfeit the third roll and end the turn. _(2026-05-01)_
-- **Safe squares:** only the 4 start squares (one per color). No star or additional safe squares — the board has none. _(2026-05-01)_
-- **Color assignment:** server-assigned, never player-selectable. 2-player matches are placed on opposing (diagonal) seats. _(2026-05-01)_
-- **Game end (§3):** every game plays out to full standings — `winnerOnlyMode` and the ranked/casual distinction are dropped. Sole-survivor and zero-active-seats terminal conditions in §11.5 still apply. _(2026-05-02)_
-- **Blocks (§5.6):** immune — cannot be captured, even by another block. Size cap: up to 4 (any number of same-color tokens on a square forms a block). _(2026-05-01)_
+- **Extra turns (§5.3):** granted only on rolling a 6 (not on capture or bringing a token home). Bonus roll fires **regardless of whether a legal move existed**. Three consecutive sixes in one turn forfeit the third roll and end the turn; empty-move sixes count toward the streak. _(2026-05-02)_
+- **Safe squares (§5.5):** only the `S` start squares (one per seat). Multiple opponents may co-occupy a safe square (configurable in §14). _(2026-05-02)_
+- **Blocks (§5.6):** ≥2 same-color tokens on a square form a block (cell cap: 4). Blocks cannot be landed on, passed through, or captured by opponents — any move whose path crosses a block is illegal. Block rules are a room-config option (§14). _(2026-05-02)_
+- **Game end (§3):** every game plays out to full standings. Sole-survivor and zero-active-seats terminal conditions in §11.5 still apply. _(2026-05-02)_
 - **Home column (§5.7):** exactly 4 squares, no separate center/triangle goal. Each square has capacity 1 (no stacking inside the column). Win = all 4 home column squares simultaneously occupied by that color's tokens. _(2026-05-01)_
-- **First turn (§7):** decided by a per-seat tiebreaker roll at game start (highest wins; ties re-roll). _(2026-05-01)_
-- **Disconnect / timeout (§8.2):** missed turns are auto-played by bot logic on the player's behalf (tokens stay on the board); the player can reclaim control by reconnecting/acting. After **3 consecutive** missed turns (counter resets when the player acts on their own), the player is removed from the game — **all their tokens are wiped from the board**, the seat becomes empty, and they continue as a spectator only. _(2026-05-01)_
+- **First turn (§7):** decided by a per-seat tiebreaker roll at game start (highest wins; ties re-roll). Only active (occupied) seats roll. _(2026-05-02)_
+- **Disconnect / timeout (§8.2):** missed turns are auto-played by bot logic on the player's behalf (tokens stay on the board); the player can reclaim control by reconnecting/acting. After **3 consecutive** missed turns (counter resets when the player acts on their own), the player is removed — all tokens wiped, seat becomes **vacant**, player is spectator-only. _(2026-05-01)_
 - **Forfeit recording (§8.4):** both voluntary quit and 3-strike kick record a forfeit/loss in stats. _(2026-05-01)_
-- **Timing (§11):** turn timer **30s** (with a 5s soft warning); on expiry the server auto-rolls and/or auto-picks (lowest-numbered legal token) and the turn counts as missed. Reconnection is passive (no separate grace timer). Pre-game lobby idle expiry **10 minutes**; in-game has no idle expiry (bots play it out). Post-game window **60s** for chat / rematch. Game-state retention **24 hours**. Sole-survivor → instant win. _(2026-05-02)_
-- **Board map & coordinates (§10):** parametric in seat count `S` (engine has no max; product cap **8**). Cell IDs use **slash-delimited Option B** (`Y/<seat>/<slot>`, `T/<index>`, `H/<seat>/<i>`). Constants: `K=13` (arc length, locked), `L=4` (home column), `M=4` (yard). Seats numbered `1..S` clockwise, **seat 1 anchored at top-left**. Color palette: `blue, red, green, yellow, purple, orange, cyan, pink` (randomly assigned per game). Per-seat indices: `start = T/((i−1)×13+1)`, `entry = T/((i−1)×13)` (with seat-1 wrap to `T/(S×13)`). _(2026-05-02)_
-- **Active vs. vacant seats (§8.4 / §11.5):** kicked (§8.2) and voluntarily-quit (§8.4) seats are unified — both become **vacant** with tokens removed from the board, and the seat is skipped from then on. **Bots never replace a vacated seat** — they only play single turns during the 3-turn grace window of a missed-turn streak. Game-end: normal standings, **sole-survivor → instant win**, or **zero active seats → game aborts** with all departed players keeping a forfeit/loss. _(2026-05-02)_
-- **Player count unified to S=2..8 (§1 / §2 / §3 / §10):** one consistent range across the doc; `S=4` is no longer special-cased. Earlier "2–4 players" wording is superseded. _(2026-05-02)_
-- **Color assignment (§2 / §10.8):** colors are drawn uniformly at random from the palette `blue, red, green, yellow, purple, orange, cyan, pink` at game start; each seat gets a unique color. **No fixed seat→color default and no order constraint.** Supersedes the 2026-05-02 "default 4-seat color mapping" line above. _(2026-05-02)_
-- **Home column entry (§5.7):** specified by cell-ID — entry square is `T/((i−1) × K)` (with seat-1 wrap to `T/(S × K)`); a token traverses `S × K − 1` track squares from start to entry, then steps to `H/i/1`. Replaces the earlier "completing a full lap" wording. _(2026-05-02)_
-- **Room owner & rematch (§7 / §11.6):** the room creator is the **owner** — the only player who can start the game, trigger a rematch, or close the room. A rematch re-uses the same room configuration (same `S`, same rules); colors are re-drawn. Owner-succession on disconnect/quit is `[OPEN]`. _(2026-05-02)_
-- **Room creation & joining (§7):** any user can create a room and becomes its owner. Each room has a **unique shareable link**; any user with the link can join (claiming an open seat in clockwise order) until the room reaches its **cap** of `S` seats (set by the owner). Link-only distribution; no public room browser. _(2026-05-02)_
-- **Notation cleanup (§2 / §5.2 / §10):** seat count symbol renamed from `N` to `S` (avoids clash with dice-value `N` in §5.2). Seats are now **1-indexed** (`1..S`) instead of `0..N-1`. §5.2 dice value rewritten as `r`. Formulas updated: `start = T/((i−1)×K+1)`, `entry = T/((i−1)×K)` with seat-1 wraparound. _(2026-05-02)_
-- **Board minimum arms = 4 (§10.3):** `S ∈ 4..8` (not 2..8). Ludo boards require at least 4 geometric arms for symmetry; even 2–3 player games use a 4-armed board with vacant or bot-filled seats. Minimum track length = 4×K = 52 squares. _(2026-05-02)_
+- **Timing (§11):** turn timer **30s**; on expiry the server auto-rolls and/or auto-picks (lowest-numbered legal token) and the turn counts as missed. Reconnection is passive (no separate grace timer). Pre-game lobby idle expiry **15 minutes**; in-game has no idle expiry (bots play it out). Post-game window **60s** for chat / rematch. Game-state retention **24 hours**. Sole-survivor → instant win. _(2026-05-02)_
+- **Board map & coordinates (§10):** parametric in seat count `S` (engine has no max; product cap **8**). Cell IDs slash-delimited (`Y/<seat>/<slot>`, `T/<index>`, `H/<seat>/<i>`). Constants: `K=13`, `L=4`, `M=4`. Seats `1..S` clockwise, **seat 1 anchored at bottom-left**. Client rotates so the player's own seat is always at bottom-left. Per-seat indices: `start = T/((i−1)×13+1)`, `entry = T/((i−1)×13)` (with seat-1 wrap to `T/(S×13)`). _(2026-05-02)_
+- **Seat states (§11.5):** three states — **active** (human or bot in play), **vacant** (kicked/quit mid-game; tokens removed, seat skipped), **empty** (never filled at game start; permanently skipped, no tokens, no standings). _(2026-05-02)_
+- **Color assignment (§10.8):** colors drawn uniformly at random from palette `blue, red, green, yellow, purple, orange, cyan, pink`; each seat gets a unique color. No fixed mapping, no order constraint. _(2026-05-02)_
+- **Home column entry (§5.7):** entry square is `T/((i−1) × K)` (with seat-1 wrap to `T/(S × K)`); token traverses `S × K − 1` track squares from start to entry, then steps to `H/i/1`. _(2026-05-02)_
+- **Room owner & rematch (§7 / §11.6):** the room creator is the **owner** — starts game, triggers rematch, closes room. Rematch re-uses same config; colors re-drawn. Owner-succession on disconnect/quit is `[OPEN]`. _(2026-05-02)_
+- **Room creation & joining (§7):** any user can create a room (link-only, no public browser). Users join via link until cap `S` is reached. All human players mark ready; bots are always ready; owner triggers start. _(2026-05-02)_
+- **Notation (§2 / §5.2 / §10):** seat count = `S` (not `N`). Seats are **1-indexed** (`1..S`). Dice value = `r`. Board minimum `S = 4` (geometric symmetry). _(2026-05-02)_
