@@ -188,145 +188,82 @@
 
 ## Todo
 
-- [ ] Scaffold the Bun workspace monorepo with `apps/client`, `apps/server`, `packages/shared`, and root config files.
-- [ ] Configure strict TypeScript project references, shared scripts, `oxlint`, Vitest, and Playwright at the workspace root.
-- [ ] Create the shared package exports for board constants, rule constants, player/game/websocket types, and deterministic helpers.
-- [ ] Encode the documented board model in shared code: `S=4..8`, `K=13`, `L=4`, `M=4`, slash-delimited cell IDs, start squares, entry squares, and home-column metadata.
-- [ ] Implement the server bootstrap with `Bun.serve()`, HTTP entrypoints, WebSocket upgrade flow, connection registry, and message routing.
-- [ ] Build room and presence management for owner-controlled lobby creation, link-based joins, ready state, bots, spectators, rematch, and room closure.
-- [ ] Implement the server-authoritative rules engine for roll resolution, legal move generation, movement, captures, safe squares, blocks, home-column movement, extra turns, and placement tracking.
-- [ ] Add move logging and snapshot/rebuild support so game state is reconstructible from the log for replay and reconnect.
-- [ ] Add SQLite + Drizzle on the server for rooms, players, game history, and retained move logs.
-- [ ] Build the Vue client shell with router, Pinia, Tailwind v4, Duna design tokens, and app pages for lobby, room, and match views.
-- [ ] Implement the real-time match UI: board rendering, seat rotation, token animation, turn timer, roll/move controls, reconnect resync, and spectator mode.
-- [ ] Add automated coverage for deterministic rules, protocol contracts, room flow, reconnect behavior, and end-to-end lobby-to-match scenarios.
+> **Process:** TDD throughout. After Phase 0 (scaffold), every implementation item is preceded by a `tests:` item written first, watched fail, then made green. Phases are ordered so each layer can be tested in isolation before the next layer is built on top.
 
-## Step-by-Step Implementation Plan
+### Phase 0 — Scaffold & tooling (no game logic yet)
 
-### 1. Scaffold the monorepo foundation
+- [ ] Initialize Bun workspace at root with `apps/client`, `apps/server`, `packages/shared`, plus `bunfig.toml`, root `package.json`, root `.oxlintrc.json`
+- [ ] Root `tsconfig.json` with project references for all three workspaces; `strict: true`, `noUncheckedIndexedAccess: true`
+- [ ] Wire root scripts: `dev`, `build`, `lint`, `typecheck`, `test`, `test:e2e`
+- [ ] Set up Vitest in workspace mode so `apps/client`, `apps/server`, `packages/shared` share runner config; verify empty suites run green in each
+- [ ] Set up Playwright at the root pointing at the client preview server; one trivial spec must pass
+- [ ] Stub `scripts/deploy.sh` (single script that will later build + ship both server and client) so the deploy path exists from day one
+- [ ] Cold-start gate: `bun install && bun run typecheck && bun run lint && bun run test` all pass on the empty scaffold
 
-Create the Bun workspace structure exactly as specified in this prompt. Add the root `package.json`, `bunfig.toml`, `tsconfig.json`, and `.oxlintrc.json`, then create package manifests and local `tsconfig.json` files for `apps/client`, `apps/server`, and `packages/shared`.
+### Phase 1 — Shared domain primitives (TDD)
 
-### 2. Lock shared domain primitives first
+- [ ] Define type contracts in `packages/shared`: `Player`, `PlayerColor`, seat-state union (`active` | `vacant` | `empty`), `GameState`, `GameStatus`, `Token`, `Cell`, and `ClientMessage` / `ServerMessage` discriminated unions keyed by `type`
+- [ ] Encode locked constants and defaults: `S ∈ 4..8`, `K=13`, `L=4`, `M=4`; palette of 8 colors; rule flags (`extraTurnOnSix`, `captureSendsHome`, `mustRollSixToStart`); timings (turn 30s, kick at 3 misses, post-game 60s, idle 15min, retention 24h)
+- [ ] tests → impl: cell-ID parse/serialize for `Y/<seat>/<slot>`, `T/<index>`, `H/<seat>/<i>` with 1-indexed bounds and rejection of malformed IDs
+- [ ] tests → impl: per-seat `start = T/((si−1)×K+1)` and `entry = T/((si−1)×K)` with seat-1 wrap to `T/(S×K)` for every `S ∈ 4..8`
+- [ ] tests → impl: clockwise track stepping with wraparound; transition from entry square into `H/<si>/1`
+- [ ] tests → impl: safe-square detection (exactly the `S` start squares) and home-column overshoot rejection (no bounce-back)
+- [ ] tests → impl: deterministic palette draw — `S` unique colors from the 8-color palette under an injected RNG
 
-Before building transport or UI, define the shared types and constants from the gameplay docs so both apps depend on one canonical model.
+### Phase 2 — Server-authoritative game engine (TDD)
 
-Required outputs:
-- `Player`, `PlayerColor`, seat state, room config, and ownership concepts.
-- `GameState`, `GameStatus`, token/cell types, and discriminated WebSocket message unions.
-- Board constants for seat count bounds, `K=13`, `L=4`, `M=4`, start squares, entry squares, and safe-square detection.
-- Rule constants for deploy-on-6, extra-turn-on-6, three-consecutive-sixes forfeit, exact-roll home logic, capture behavior, and timeout defaults.
+- [ ] Wrap a seedable CSPRNG so every engine test is reproducible from a seed; expose only the seam, not the raw generator
+- [ ] tests → impl: tiebreaker first-roll (highest wins; ties re-roll; only active seats roll; empty/vacant skipped)
+- [ ] tests → impl: roll resolution — `drv ∈ 1..6`, extra turn on 6 granted **regardless of whether a legal move existed**, three-consecutive-six forfeit ends the turn
+- [ ] tests → impl: legal-move generation — deploy requires 6, no overshoot, opponent cannot land on or pass through a same-color block
+- [ ] tests → impl: movement reducer — deploy from yard, track step with wraparound, capture (single opponent token only; never on safe; never own color)
+- [ ] tests → impl: same-color blocks (≥2 tokens form a block, opponents cannot land/pass/capture, voluntary break)
+- [ ] tests → impl: home-column entry, capacity-1 occupancy, no captures inside, exact-roll required to land
+- [ ] tests → impl: terminal conditions — 4 home squares occupied = win, sole-survivor instant win, zero-active-seats abort
+- [ ] tests → impl: full standings (placements 1..#initially-active; game continues after each finish until standings filled)
+- [ ] tests → impl: missed-turn handling — auto-roll, deterministic auto-pick (lowest-numbered legal token starting at `Y/<seat>/1`), kick after 3 consecutive misses (tokens wiped, seat → `vacant`, player → spectator); counter resets when the player acts on their own
+- [ ] tests → impl: append-only move log + state reconstruction — replaying the log from any seed reproduces the exact canonical snapshot
 
-### 3. Implement deterministic board/rules helpers in `packages/shared`
+### Phase 3 — Transport, room services, persistence (TDD)
 
-Add pure helpers for pathing and legality checks that can be unit-tested independently of sockets or persistence.
+- [ ] tests → impl: room lifecycle — link-only create, owner authority, join until cap `S`, ready gating, owner-only start, rematch with re-drawn colors and currently-seated players auto-seated, 60s post-game window, 15min pre-game idle expiry
+- [ ] tests → impl: WebSocket protocol routing — validate every incoming `ClientMessage`, reject malformed, dispatch to room/engine, broadcast `ServerMessage` to all subscribers and spectators
+- [ ] tests → impl: reconnect — passive resync via move-log replay; reconnect alone never resets the missed-turn counter
+- [ ] Boot `Bun.serve()` with HTTP + WS upgrade, connection registry, session→seat binding
+- [ ] tests → impl: Drizzle repositories on in-memory SQLite for rooms, players, games, and the move log; 24h retention policy on completed games
+- [ ] HTTP endpoints: health, room create, game-history fetch (read-only)
 
-Sequence:
-1. Parse and validate cell IDs.
-2. Resolve per-seat start and entry squares for any `S` in `4..8`.
-3. Compute clockwise track stepping with wraparound.
-4. Model home-column entry and exact-roll validation.
-5. Encode safe-square and block-related legality helpers.
+### Phase 4 — Client shell & Duna design system
 
-### 4. Stand up the backend shell
+- [ ] Boot Vite 8 + Vue 3 (`<script setup>`) + Vue Router 4 + Pinia + `@tanstack/vue-query` in `apps/client`; `@` → `src/`
+- [ ] Tailwind v4 CSS-first `@theme` block populated from `design.md` (palette, type scale, spacing, radii, surfaces, subtle inset shadow) — no `tailwind.config.js`
+- [ ] Build shared UI primitives per `design.md`: Primary Filled Button, Ghost Button, Simple Card, Elevated Card, Text Input, Announcement Pill
+- [ ] Routes: home, room (lobby), match, post-game; session store; TanStack Query client confined to non-realtime flows (room creation, history, profile)
+- [ ] WS client wrapper with auto-reconnect; on resync the client replaces local state from the server snapshot — never reconciles locally
 
-Create the Bun server entrypoint and wire HTTP plus WebSocket transport. Keep this layer thin: it should accept connections, authenticate sessions later, and hand commands to room/game services.
+### Phase 5 — Match UI (parametric board)
 
-Sequence:
-1. `src/index.ts` boots config and server.
-2. `ws/server.ts` handles upgrades and broadcasts.
-3. `ws/connections.ts` tracks connected clients and seat bindings.
-4. `ws/router.ts` dispatches validated client messages.
-5. `http/` exposes health and future room/history endpoints.
+- [ ] Render parametric board for any `S ∈ 4..8` — cross shape for `S=4`, star for `S≥5` — arms evenly spaced clockwise (`360°/S`)
+- [ ] Apply client-side rotation so the **local** seat appears at bottom-left (chess-style); underlying coordinates are unchanged
+- [ ] Draw yards (`M=4` slots), track (`1..S×K`), home columns (`L=4`); render safe markers, blocks, and per-seat colors from server state
+- [ ] Roll CTA gated on `activeSeat == me`; render legal moves; forced-pick and auto-pass flows handled
+- [ ] Animate deploy, track movement, capture, and home entry **only** from server events — no client-side simulation
+- [ ] Render server-authoritative turn timer (deadline broadcast), missed-turn warnings, reconnect banner, spectator mode
+- [ ] Post-game standings + rematch CTA (owner-only) within the 60s window
 
-### 5. Build lobby, room, and presence services
+### Phase 6 — End-to-end coverage & deployment
 
-Implement the pre-game lifecycle described in the docs before match logic is exposed in the client.
+- [ ] Playwright: create room → share link → second client joins → owner starts → first roll
+- [ ] Playwright: full turn — roll, pick, capture, extra-turn-on-six, three-consecutive-six forfeit
+- [ ] Playwright: timeout auto-roll + kick after 3 missed turns + spectator downgrade
+- [ ] Playwright: reconnect mid-game restores the authoritative state from the move log
+- [ ] Playwright: rematch re-draws colors and re-seats currently-connected players
+- [ ] Finalize `scripts/deploy.sh`: build server (Bun bundle), build client (`vite build`), upload both artifacts to the target host over SSH, run DB migrations, restart service — runnable as a single `./scripts/deploy.sh`
+- [ ] Smoke-run `deploy.sh` against a staging host
 
-Scope:
-- Owner-created rooms with unique shareable links.
-- Configurable seat cap `S`, bot allocation, and room rules.
-- Join, leave, ready, spectator, owner-only start, and post-game rematch flow.
-- Seat states: active, vacant, and empty.
-- Idle-room expiry before game start and close behavior after the post-game window.
+### Deferred (kept behind explicit config / rule boundaries — never hard-coded)
 
-### 6. Implement the server-authoritative game engine
-
-This is the core slice and should remain fully deterministic. The engine should consume game state plus a command and produce the next state plus emitted events.
-
-Implementation order:
-1. Turn state, active-seat rotation, and initial tiebreaker roll.
-2. Die rolling with server-side RNG and consecutive-six tracking.
-3. Legal move generation for all four tokens.
-4. Deploy, track movement, and wraparound.
-5. Captures and safe-square exceptions.
-6. Same-color stacking and opponent block traversal restrictions.
-7. Home-column entry, occupancy limits, and overshoot rejection.
-8. Extra-turn resolution, pass turns, and automatic next-player selection.
-9. Finish detection, standings, sole-survivor win, and zero-active-seat abort.
-
-### 7. Add timeout, AFK, and reconnect behavior
-
-Layer the multiplayer timing rules on top of the engine after base legality works.
-
-Scope:
-- 30-second authoritative turn timer.
-- Auto-roll and deterministic auto-pick on timeout.
-- Consecutive missed-turn tracking.
-- Temporary bot-controlled turns during the grace window.
-- Kick after 3 consecutive misses, token removal, and spectator downgrade.
-- Full state resync from move log on reconnect.
-
-### 8. Persist rooms and completed games on the server
-
-After the in-memory flow works, add Drizzle + SQLite for local persistence.
-
-Persist at minimum:
-- Room metadata and configuration.
-- Player/session to seat mappings.
-- Game headers and current lifecycle status.
-- Append-only move log sufficient to rebuild state.
-- Final standings and retained replay metadata.
-
-### 9. Build the client shell and information architecture
-
-Create the Vue app structure around routing and reusable UI primitives before drawing the full board.
-
-Scope:
-- App boot, router, query client, and Pinia stores.
-- Pages for home/lobby, room, match, and post-game results.
-- Shared UI primitives styled with the Duna tokens from `design.md`.
-- Tailwind v4 CSS-first theme variables matching the documented palette, typography, spacing, surfaces, and shape system.
-
-### 10. Implement the match UI
-
-Only after the server protocol is stable should the interactive board be added.
-
-Sequence:
-1. Render the parametric board using the shared board metadata.
-2. Rotate the board so the local player's seat appears at bottom-left.
-3. Render yards, track cells, home columns, tokens, and safe/block states.
-4. Add roll CTA, legal-move highlighting, and forced-move/autopass handling.
-5. Animate movement and captures from authoritative server events.
-6. Show turn timer, reconnect state, missed-turn warnings, and spectator mode.
-
-### 11. Cover the critical paths with tests
-
-Testing should follow the implementation order rather than wait until the end.
-
-Minimum coverage targets:
-1. Shared helper tests for cell parsing, stepping, entry, overshoot, and safe-square logic.
-2. Engine tests for deploy, capture, blocks, extra turns, consecutive sixes, home-column rules, and win conditions.
-3. Room service tests for join/ready/start/rematch and owner-only permissions.
-4. WebSocket protocol tests for message validation and reconnect resync.
-5. Playwright flows for create room, join room, start game, take turns, timeout autopick, reconnect, and post-game rematch.
-
-### 12. Leave deferred decisions isolated
-
-The docs still mark some items as open or deferred. Keep them behind explicit rule/config boundaries rather than hard-coding assumptions into the engine.
-
-Current deferred surfaces:
-- Owner succession when the owner disconnects or quits.
-- Bot heuristic policy beyond the deterministic timeout placeholder.
-- Full room-config variants in the future `§14` pass.
-- Detailed 2D board coordinate generation for `S >= 5` rendering refinement.
+- Owner succession when the owner disconnects or quits (§7 `[OPEN]`)
+- Bot AI heuristics beyond the deterministic timeout auto-pick (§13)
+- Room-config variant matrix (§14)
+- 2D coordinate generation refinement for `S ≥ 5` rendering (§10.10)
