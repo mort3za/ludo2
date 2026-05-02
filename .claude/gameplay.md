@@ -72,7 +72,7 @@ Detailed timing/timeouts are in §8.
 - Captures do **not** apply to your own tokens — instead, see §5.6 (stacking).
 
 ### 5.5 Safe squares
-- The only safe squares are the **4 start squares** (one per color, marked with a small arrow on the reference board). Tokens standing on a start square cannot be captured.
+- The only safe squares are the **4 start squares** (one per color). Tokens standing on a start square cannot be captured.
 - No star squares or other extra safe spots exist on this board.
 
 (Exact square indices are deferred to the board-map pass — §10.)
@@ -93,7 +93,6 @@ Detailed timing/timeouts are in §8.
 - A token in the home column may stop on **any unoccupied square** of that column (subject to the cap of 1 per square — §5.7).
 - A token may **not overshoot** the last (4th) home column square. Any move that would land past it is illegal.
 - A token may also **not land on** an already-occupied home column square (cap of 1).
-- If, on a given roll, no legal move exists for any of the player's tokens (yard / track / home column), the turn ends with no move.
 
 `[OPEN]` Variant: allow "bounce-back" instead of forfeit on overshoot? **Proposal: no — exact roll required (classic).**
 
