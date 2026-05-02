@@ -30,8 +30,8 @@ Canonical definitions for terms used across the codebase and design docs. When c
 | Term | Definition |
 |------|-----------|
 | **Yard** | A seat's off-board holding area with `M=4` slots (`Y/<seat>/1..4`). Tokens start here and return here when captured. |
-| **Start square** | The track square where a token deploys from the yard: `T/((i−1)×K+1)` for seat `i`. Also a safe square. |
-| **Entry square** | The last track square before a token turns into its home column: `T/((i−1)×K)` (seat 1 wraps to `T/(S×K)`). |
+| **Start square** | The track square where a token deploys from the yard: `T/((si−1)×K+1)` for seat `si`. Also a safe square. |
+| **Entry square** | The last track square before a token turns into its home column: `T/((si−1)×K)` (seat 1 wraps to `T/(S×K)`). |
 | **Home column** | A seat's private column of `L=4` capacity-1 squares (`H/<seat>/1..4`). Forward-only, no captures, no stacking. A token enters from the entry square. |
 | **Safe square** | A start square. Tokens on safe squares cannot be captured. Multiple colors may co-occupy a safe square. |
 
@@ -41,6 +41,8 @@ Canonical definitions for terms used across the codebase and design docs. When c
 |------|-----------|
 | **Player** | A human user or bot occupying a seat. Identity (account) is separate from color. |
 | **Bot** | A server-controlled player that acts immediately using heuristic AI (§13, deferred). Pre-allocated at room creation. |
+| **Color** | A per-game visual attribute of a seat, drawn at random from the palette. Not tied to player identity or seat number. |
+| **Palette** | The fixed set of 8 visually distinct colors available for assignment: `blue`, `red`, `green`, `yellow`, `purple`, `orange`, `cyan`, `pink`. |
 | **Owner** | The human who created the room. Has exclusive authority to start the game, trigger rematch, and close the room. |
 | **Room** | A lobby instance identified by a unique shareable link. Contains room config, player list, and game state. |
 | **Room config** | Owner-set parameters: seat count `S`, bot allocation, and per-room rules (§14). |
@@ -59,7 +61,7 @@ Canonical definitions for terms used across the codebase and design docs. When c
 | Term | Definition |
 |------|-----------|
 | **Turn** | One cycle of: roll → resolve legal moves → player input → apply move → decide next. |
-| **Roll** | The act of generating a die value (`r ∈ 1..6`) via server-side CSPRNG. Human players trigger; bots auto-trigger. |
+| **Roll** | The act of generating a die value (`drv ∈ 1..6`) via server-side CSPRNG. Human players trigger; bots auto-trigger. |
 | **Legal move** | A token + destination pair that the current roll value permits, given board state (no overshoot, no blocks in path, etc.). |
 | **Extra turn** | A bonus roll granted after rolling a 6 (regardless of whether a legal move existed). |
 | **Missed turn** | A turn where the human's input did not arrive before the timer expired. Counts toward the 3-strike kick threshold. |
@@ -70,6 +72,7 @@ Canonical definitions for terms used across the codebase and design docs. When c
 | Term | Definition |
 |------|-----------|
 | **Game** | A single match from first roll to final standings. Identified by `gameId`. Fully reconstructible from the move log. |
+| **Move log** | The append-only, ordered record of every roll and move in a game. Serves as the single source for replay, reconnect resync, and audit. |
 | **Standings** | The ordered list of placements (1st, 2nd, … up to the number of initially-active seats). |
 | **Rematch** | A new game in the same room with the same config. Colors are re-drawn; currently-seated players are auto-seated. |
 | **Sole survivor** | Terminal condition: when exactly one active seat remains, it wins immediately. |
@@ -82,5 +85,5 @@ Canonical definitions for terms used across the codebase and design docs. When c
 | `K` | Arc length (track squares per arm) | `13` (locked) |
 | `L` | Home column length | `4` (locked) |
 | `M` | Yard size (slots per yard) | `4` (locked) |
-| `r` | Dice roll value | `1..6` |
-| `i` | Seat index variable | `1..S` |
+| `drv` | Dice roll value | `1..6` |
+| `si` | Seat index variable | `1..S` |

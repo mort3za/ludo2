@@ -55,7 +55,7 @@ Detailed timing/timeouts are in §8.
 
 ### 5.2 Movement
 - Tokens move **clockwise** around the shared outer track.
-- A roll of `r` moves the chosen token exactly `r` squares forward (no partial / no splitting between tokens).
+- A roll of `drv` moves the chosen token exactly `drv` squares forward (no partial / no splitting between tokens).
 - A token must have a legal landing square; if no token can legally consume the roll, the turn ends with no move.
 
 ### 5.3 Extra turn on six
@@ -81,7 +81,7 @@ Detailed timing/timeouts are in §8.
 
 ### 5.7 Home column
 - Each color has a private **home column** of exactly **4 squares**. There is no separate center home / home triangle — the 4 squares *are* the goal.
-- A token enters its home column from its seat's **entry square** `T/((i−1) × K)` — with the special case that for **seat 1**, where the formula gives `T/0`, the entry is the wraparound square `T/(S × K)` (see §10.5). The entry sits one square before the seat's start, so a token traverses exactly `S × K − 1` track squares from `T/((i−1) × K + 1)` (start) to `T/((i−1) × K)` (entry); the next forward step lands on `H/i/1`.
+- A token enters its home column from its seat's **entry square** `T/((si−1) × K)` — with the special case that for **seat 1**, where the formula gives `T/0`, the entry is the wraparound square `T/(S × K)` (see §10.5). The entry sits one square before the seat's start, so a token traverses exactly `S × K − 1` track squares from `T/((si−1) × K + 1)` (start) to `T/((si−1) × K)` (entry); the next forward step lands on `H/si/1`.
 - Home column squares are private — only that color can occupy them. No captures possible inside.
 - Each home column square has a **capacity of 1**: at most one token may occupy a given home column square at a time. (No stacking, no blocks inside the home column.)
 - A color wins when **all 4 of its home column squares are simultaneously occupied** by its 4 tokens (one token per square).
@@ -193,8 +193,8 @@ Cell IDs are **strings**, parseable, with `/` as the delimiter. Seat indices are
 ### 10.5 Track length and per-seat indices
 
 - **Total track length:** `S × K` squares.
-- **Seat `i`'s start square:** `T/((i−1) × K + 1)`.
-- **Seat `i`'s entry square** (last track square before turning into the home column): `T/((i−1) × K)` — with the special case that for **seat 1**, where the formula gives `T/0`, the entry is the wraparound square `T/(S × K)`.
+- **Seat `si`'s start square:** `T/((si−1) × K + 1)`.
+- **Seat `si`'s entry square** (last track square before turning into the home column): `T/((si−1) × K)` — with the special case that for **seat 1**, where the formula gives `T/0`, the entry is the wraparound square `T/(S × K)`.
 
 | `S` | Track length | Seat 1 start / entry | Seat 2 start / entry | Seat 3 start / entry | Seat 4 start / entry |
 |-----|--------------|----------------------|----------------------|----------------------|----------------------|
@@ -204,20 +204,20 @@ Cell IDs are **strings**, parseable, with `/` as the delimiter. Seat indices are
 
 (Same general pattern for any `S` — only seat 1's `entry` and the wrap-back length differ as `S` scales.)
 
-**Safe squares** (§5.5): every seat's start square is safe. There are exactly `S` safe squares, all of the form `T/((i−1) × K + 1)` for `i ∈ 1..S`.
+**Safe squares** (§5.5): every seat's start square is safe. There are exactly `S` safe squares, all of the form `T/((si−1) × K + 1)` for `si ∈ 1..S`.
 
 ### 10.6 Token path (worked example)
 
-For a token belonging to seat `i` in an `S`-seat game, the full forward path from yard to winning square:
+For a token belonging to seat `si` in an `S`-seat game, the full forward path from yard to winning square:
 
 ```
-Y/i/<slot>
+Y/si/<slot>
    → (deploy on roll of 6) →
-T/((i−1) × K + 1)       // start, safe
+T/((si−1) × K + 1)       // start, safe
    → T/(...) clockwise around the loop ...
-T/((i−1) × K)           // entry (wrapping for seat 1)
+T/((si−1) × K)           // entry (wrapping for seat 1)
    →
-H/i/1 → H/i/2 → H/i/3 → H/i/4   // L = 4, last is winning
+H/si/1 → H/si/2 → H/si/3 → H/si/4   // L = 4, last is winning
 ```
 
 Total dice-pip-equivalent moves to bring one token home:
@@ -347,10 +347,10 @@ Game continues until one of these terminal conditions:
 - **Disconnect / timeout (§8.2):** missed turns are auto-played by bot logic on the player's behalf (tokens stay on the board); the player can reclaim control by reconnecting/acting. After **3 consecutive** missed turns (counter resets when the player acts on their own), the player is removed — all tokens wiped, seat becomes **vacant**, player is spectator-only. _(2026-05-01)_
 - **Forfeit recording (§8.4):** both voluntary quit and 3-strike kick record a forfeit/loss in stats. _(2026-05-01)_
 - **Timing (§11):** turn timer **30s**; on expiry the server auto-rolls and/or auto-picks (lowest-numbered legal token) and the turn counts as missed. Reconnection is passive (no separate grace timer). Pre-game lobby idle expiry **15 minutes**; in-game has no idle expiry (bots play it out). Post-game window **60s** for chat / rematch. Game-state retention **24 hours**. Sole-survivor → instant win. _(2026-05-02)_
-- **Board map & coordinates (§10):** parametric in seat count `S` (engine has no max; product cap **8**). Cell IDs slash-delimited (`Y/<seat>/<slot>`, `T/<index>`, `H/<seat>/<i>`). Constants: `K=13`, `L=4`, `M=4`. Seats `1..S` clockwise, **seat 1 anchored at bottom-left**. Client rotates so the player's own seat is always at bottom-left. Per-seat indices: `start = T/((i−1)×13+1)`, `entry = T/((i−1)×13)` (with seat-1 wrap to `T/(S×13)`). _(2026-05-02)_
+- **Board map & coordinates (§10):** parametric in seat count `S` (engine has no max; product cap **8**). Cell IDs slash-delimited (`Y/<seat>/<slot>`, `T/<index>`, `H/<seat>/<i>`). Constants: `K=13`, `L=4`, `M=4`. Seats `1..S` clockwise, **seat 1 anchored at bottom-left**. Client rotates so the player's own seat is always at bottom-left. Per-seat indices: `start = T/((si−1)×13+1)`, `entry = T/((si−1)×13)` (with seat-1 wrap to `T/(S×13)`). _(2026-05-02)_
 - **Seat states (§11.5):** three states — **active** (human or bot in play), **vacant** (kicked/quit mid-game; tokens removed, seat skipped), **empty** (never filled at game start; permanently skipped, no tokens, no standings). _(2026-05-02)_
 - **Color assignment (§10.8):** colors drawn uniformly at random from palette `blue, red, green, yellow, purple, orange, cyan, pink`; each seat gets a unique color. No fixed mapping, no order constraint. _(2026-05-02)_
-- **Home column entry (§5.7):** entry square is `T/((i−1) × K)` (with seat-1 wrap to `T/(S × K)`); token traverses `S × K − 1` track squares from start to entry, then steps to `H/i/1`. _(2026-05-02)_
+- **Home column entry (§5.7):** entry square is `T/((si−1) × K)` (with seat-1 wrap to `T/(S × K)`); token traverses `S × K − 1` track squares from start to entry, then steps to `H/si/1`. _(2026-05-02)_
 - **Room owner & rematch (§7 / §11.6):** the room creator is the **owner** — starts game, triggers rematch, closes room. Rematch re-uses same config; colors re-drawn. Owner-succession on disconnect/quit is `[OPEN]`. _(2026-05-02)_
 - **Room creation & joining (§7):** any user can create a room (link-only, no public browser). Users join via link until cap `S` is reached. All human players mark ready; bots are always ready; owner triggers start. _(2026-05-02)_
-- **Notation (§2 / §5.2 / §10):** seat count = `S` (not `N`). Seats are **1-indexed** (`1..S`). Dice value = `r`. Board minimum `S = 4` (geometric symmetry). _(2026-05-02)_
+- **Notation (§2 / §5.2 / §10):** seat count = `S` (not `N`). Seats are **1-indexed** (`1..S`). Dice value = `drv`. Seat index = `si`. Board minimum `S = 4` (geometric symmetry). _(2026-05-02)_
