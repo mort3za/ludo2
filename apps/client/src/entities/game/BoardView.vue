@@ -4,15 +4,23 @@ import { computeBoardLayout, seatColor } from "./board-geometry";
 
 const props = defineProps<{
   boardSize: number;
+  localSeat?: number;
 }>();
 
 const layout = computed(() => computeBoardLayout(props.boardSize));
+
+/** Rotation (degrees) so the local seat arm points to the bottom. */
+const rotation = computed(() => {
+  if (!props.localSeat) return 0;
+  return 180 - (props.localSeat - 1) * (360 / props.boardSize);
+});
 </script>
 
 <template>
   <svg
     :viewBox="layout.viewBox"
-    class="w-full h-full"
+    :style="{ transform: `rotate(${rotation}deg)` }"
+    class="w-full h-full transition-transform duration-500"
     xmlns="http://www.w3.org/2000/svg"
   >
     <!-- Track cells -->
