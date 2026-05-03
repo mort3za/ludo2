@@ -38,7 +38,7 @@ describe("joinRoom", () => {
     expect(result.room.ownerId).toBe("p1");
     expect(result.room.members.size).toBe(1);
     expect(result.room.members.get("p1")?.name).toBe("Alice");
-    expect(result.room.members.get("p1")?.ready).toBe(false);
+    expect(result.room.members.get("p1")?.ready).toBe(true);
   });
 
   it("subsequent players join without becoming owner", () => {
@@ -173,7 +173,7 @@ describe("canStart", () => {
     let room = createRoom("room-1", S, 1000);
     room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
     room = (joinRoom(room, "p2", "Bob") as { ok: true; room: Room }).room;
-    room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
+    room = (setReady(room, "p2", false) as { ok: true; room: Room }).room;
     expect(canStart(room, "p1")).toBe(false);
   });
 

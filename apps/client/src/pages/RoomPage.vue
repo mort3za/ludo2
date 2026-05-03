@@ -46,11 +46,6 @@ function connectWs() {
   ws = createWsConnection(props.roomId, session.token!);
   ws.onMessage(handleMessage);
   joined.value = true;
-
-  // Auto-ready in dev mode for faster testing
-  if (import.meta.env.DEV) {
-    setTimeout(() => ws?.send({ type: "ready" }), 100);
-  }
 }
 
 onMounted(() => {

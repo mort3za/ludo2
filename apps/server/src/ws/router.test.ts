@@ -28,7 +28,9 @@ describe("WS router", () => {
 
   describe("dispatch", () => {
     it("dispatches ready message to room", () => {
-      const room = makeLobbyRoom(["p1", "p2"]);
+      let room = makeLobbyRoom(["p1", "p2"]);
+      // Ensure p1 starts unready so the toggle sets it to true
+      room = (setReady(room, "p1", false) as { ok: true; room: Room }).room;
       rooms.set("room-1", room);
       const client = makeMockClient("p1");
       const router = createRouter(rooms);
