@@ -1,9 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import {
-  handleReconnect,
-  type GameSession,
-  type ReconnectResult,
-} from "./reconnect.js";
+import { handleReconnect, type GameSession, type ReconnectResult } from "./reconnect.js";
 import {
   createGameLog,
   appendEntry,
@@ -15,8 +11,20 @@ import type { PlayerColor, Token } from "@ludo/shared";
 function makeSnapshot(overrides: Partial<GameSnapshot> = {}): GameSnapshot {
   return {
     seats: [
-      { index: 1, state: "active", color: "blue" as PlayerColor, playerId: "p1", consecutiveMisses: 0 },
-      { index: 2, state: "active", color: "red" as PlayerColor, playerId: "p2", consecutiveMisses: 0 },
+      {
+        index: 1,
+        state: "active",
+        color: "blue" as PlayerColor,
+        playerId: "p1",
+        consecutiveMisses: 0,
+      },
+      {
+        index: 2,
+        state: "active",
+        color: "red" as PlayerColor,
+        playerId: "p2",
+        consecutiveMisses: 0,
+      },
     ],
     tokens: [
       { id: "b1", color: "blue" as PlayerColor, cell: "Y/1/1" },

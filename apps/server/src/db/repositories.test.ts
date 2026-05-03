@@ -114,7 +114,13 @@ describe("repositories", () => {
   describe("move log", () => {
     it("appends and retrieves log entries in order", () => {
       appendLogEntry(db, "game-1", 0, { type: "roll", seat: 1, value: 3 }).run();
-      appendLogEntry(db, "game-1", 1, { type: "move", seat: 1, tokenId: "t1", from: "Y/1/1", to: "T/1" }).run();
+      appendLogEntry(db, "game-1", 1, {
+        type: "move",
+        seat: 1,
+        tokenId: "t1",
+        from: "Y/1/1",
+        to: "T/1",
+      }).run();
 
       const entries = getGameLog(db, "game-1");
       expect(entries).toHaveLength(2);

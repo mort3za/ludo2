@@ -15,12 +15,7 @@ export function getPlayer(db: Db, id: string) {
 
 // --- Rooms ---
 
-export function insertRoom(
-  db: Db,
-  id: string,
-  boardSize: number,
-  now: Date,
-) {
+export function insertRoom(db: Db, id: string, boardSize: number, now: Date) {
   return db.insert(rooms).values({
     id,
     ownerId: null,

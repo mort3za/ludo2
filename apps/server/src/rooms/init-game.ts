@@ -8,11 +8,7 @@ import type { Room } from "../rooms/room.js";
  * Create the initial GameState from a room's members.
  * Assigns seats, draws colors, creates tokens in yards.
  */
-export function initGame(
-  room: Room,
-  gameId: string,
-  rng: Rng,
-): GameState {
+export function initGame(room: Room, gameId: string, rng: Rng): GameState {
   const S = room.boardSize;
   const colors = drawPalette(S, () => rng.random()) as PlayerColor[];
 

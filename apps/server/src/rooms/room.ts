@@ -44,11 +44,7 @@ export function createRoom(id: string, boardSize: number, now: number): Room {
   };
 }
 
-export function joinRoom(
-  room: Room,
-  playerId: string,
-  name: string,
-): Result<{ room: Room }> {
+export function joinRoom(room: Room, playerId: string, name: string): Result<{ room: Room }> {
   if (room.phase !== "lobby") {
     return { ok: false, error: "not-in-lobby" };
   }
@@ -92,11 +88,7 @@ export function leaveRoom(room: Room, playerId: string): Result<{ room: Room }> 
   };
 }
 
-export function setReady(
-  room: Room,
-  playerId: string,
-  ready: boolean,
-): Result<{ room: Room }> {
+export function setReady(room: Room, playerId: string, ready: boolean): Result<{ room: Room }> {
   const existing = room.members.get(playerId);
   if (!existing) {
     return { ok: false, error: "not-in-room" };
@@ -120,11 +112,7 @@ export function canStart(room: Room, requesterId: string): boolean {
   return true;
 }
 
-export function startGame(
-  room: Room,
-  requesterId: string,
-  gameId: string,
-): Result<{ room: Room }> {
+export function startGame(room: Room, requesterId: string, gameId: string): Result<{ room: Room }> {
   if (!canStart(room, requesterId)) {
     return { ok: false, error: "cannot-start" };
   }
@@ -139,10 +127,7 @@ export function endGame(room: Room, now: number): Room {
   return { ...room, phase: "post-game", gameEndedAt: now };
 }
 
-export function requestRematch(
-  room: Room,
-  requesterId: string,
-): Result<{ room: Room }> {
+export function requestRematch(room: Room, requesterId: string): Result<{ room: Room }> {
   if (room.phase !== "post-game") {
     return { ok: false, error: "not-in-post-game" };
   }

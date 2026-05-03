@@ -34,7 +34,7 @@ export function computeBoardLayout(S: number): BoardLayout {
   for (let a = 0; a < S; a++) {
     const seat = a + 1;
     // Arm angle: seat 1 points up (-π/2), clockwise
-    const θ = -Math.PI / 2 + a * (2 * Math.PI) / S;
+    const θ = -Math.PI / 2 + (a * (2 * Math.PI)) / S;
     const dx = Math.cos(θ);
     const dy = Math.sin(θ);
     // Perpendicular: visual-right when facing outward (in SVG y-down)
@@ -90,7 +90,7 @@ export function computeBoardLayout(S: number): BoardLayout {
     const yardR = R + 2.5;
     const yardCells: CellPos[] = [];
     for (let j = 0; j < TOKENS_PER_PLAYER; j++) {
-      const col = (j % 2 - 0.5) * 1.2;
+      const col = ((j % 2) - 0.5) * 1.2;
       const row = (Math.floor(j / 2) - 0.5) * 1.2;
       yardCells.push({
         x: yardR * ydx + col * ypx + row * ydx,

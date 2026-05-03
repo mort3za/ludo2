@@ -19,13 +19,10 @@ async function registerGuest(page: Page, name: string) {
     data: { name },
   });
   const body = (await res.json()) as { token: string; playerId: string };
-  await page.evaluate(
-    ({ token, playerId }) => {
-      localStorage.setItem("ludo_token", token);
-      localStorage.setItem("ludo_player", playerId);
-    },
-    body,
-  );
+  await page.evaluate(({ token, playerId }) => {
+    localStorage.setItem("ludo_token", token);
+    localStorage.setItem("ludo_player", playerId);
+  }, body);
   return body;
 }
 

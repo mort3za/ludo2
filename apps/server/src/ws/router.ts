@@ -78,9 +78,7 @@ export function createRouter(rooms: RoomStore): Router {
           break;
         }
         // Verify it's this player's turn
-        const rollSeat = session.state.seats.find(
-          (s) => s.playerId === client.playerId,
-        );
+        const rollSeat = session.state.seats.find((s) => s.playerId === client.playerId);
         if (!rollSeat || rollSeat.index !== session.state.activeSeat) {
           client.send({ type: "error", message: "not-your-turn" });
           break;
@@ -96,9 +94,7 @@ export function createRouter(rooms: RoomStore): Router {
           client.send({ type: "error", message: "no-game" });
           break;
         }
-        const moveSeat = session.state.seats.find(
-          (s) => s.playerId === client.playerId,
-        );
+        const moveSeat = session.state.seats.find((s) => s.playerId === client.playerId);
         if (!moveSeat || moveSeat.index !== session.state.activeSeat) {
           client.send({ type: "error", message: "not-your-turn" });
           break;

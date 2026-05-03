@@ -3,12 +3,7 @@ import { createHttpHandler, type HttpDeps } from "./routes.js";
 import { createGuestAuth, type GuestAuth } from "../auth/guest-auth.js";
 import { createDb, type Db } from "../db/connection.js";
 import { sql } from "drizzle-orm";
-import {
-  insertGame,
-  completeGame,
-  appendLogEntry,
-  insertRoom,
-} from "../db/repositories.js";
+import { insertGame, completeGame, appendLogEntry, insertRoom } from "../db/repositories.js";
 
 function applySchema(db: Db) {
   db.run(sql`CREATE TABLE IF NOT EXISTS players (
@@ -136,9 +131,7 @@ describe("HTTP routes", () => {
     });
 
     it("rejects missing auth", async () => {
-      const res = await handler(
-        new Request("http://localhost/rooms", { method: "POST" }),
-      );
+      const res = await handler(new Request("http://localhost/rooms", { method: "POST" }));
       expect(res.status).toBe(401);
     });
   });
@@ -148,7 +141,13 @@ describe("HTTP routes", () => {
     it("returns the move log for a game", async () => {
       insertGame(db, "g1", "room-1", new Date(1000)).run();
       appendLogEntry(db, "g1", 0, { type: "roll", seat: 1, value: 3 }).run();
-      appendLogEntry(db, "g1", 1, { type: "move", seat: 1, tokenId: "t1", from: "Y/1/1", to: "T/1" }).run();
+      appendLogEntry(db, "g1", 1, {
+        type: "move",
+        seat: 1,
+        tokenId: "t1",
+        from: "Y/1/1",
+        to: "T/1",
+      }).run();
 
       const token = await auth.issue("p1", "Alice");
       const res = await handler(
@@ -172,9 +171,7 @@ describe("HTTP routes", () => {
     });
 
     it("rejects missing auth", async () => {
-      const res = await handler(
-        new Request("http://localhost/games/g1/history"),
-      );
+      const res = await handler(new Request("http://localhost/games/g1/history"));
       expect(res.status).toBe(401);
     });
   });

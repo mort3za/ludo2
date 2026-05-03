@@ -10,19 +10,14 @@ async function guestLogin(page: Page, name: string) {
   });
   const body = (await res.json()) as { token: string; playerId: string };
   // Store in localStorage so the client picks it up
-  await page.evaluate(
-    ({ token, playerId }) => {
-      localStorage.setItem("ludo_token", token);
-      localStorage.setItem("ludo_player", playerId);
-    },
-    body,
-  );
+  await page.evaluate(({ token, playerId }) => {
+    localStorage.setItem("ludo_token", token);
+    localStorage.setItem("ludo_player", playerId);
+  }, body);
   return body;
 }
 
-test("create room → second player joins → both ready → game starts", async ({
-  browser,
-}) => {
+test("create room → second player joins → both ready → game starts", async ({ browser }) => {
   // Create two isolated browser contexts (two "players")
   const ctx1 = await browser.newContext();
   const ctx2 = await browser.newContext();

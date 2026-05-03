@@ -59,9 +59,7 @@ describe("WS router", () => {
 
       router.dispatch(client, { type: "ready" });
 
-      expect(client.send).toHaveBeenCalledWith(
-        expect.objectContaining({ type: "error" }),
-      );
+      expect(client.send).toHaveBeenCalledWith(expect.objectContaining({ type: "error" }));
     });
   });
 

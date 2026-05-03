@@ -39,10 +39,14 @@ export function handleRoll(session: GameSession): ServerMessage[] {
   }
 
   // Check legal moves
-  const seatTokens = state.tokens.filter(
-    (t) => session.colorToSeat[t.color] === state.activeSeat,
+  const seatTokens = state.tokens.filter((t) => session.colorToSeat[t.color] === state.activeSeat);
+  const moves = legalMoves(
+    seatTokens,
+    outcome.value,
+    state.activeSeat,
+    state.seats.length,
+    state.tokens,
   );
-  const moves = legalMoves(seatTokens, outcome.value, state.activeSeat, state.seats.length, state.tokens);
 
   if (moves.length === 0) {
     // No legal moves — auto-pass
@@ -73,9 +77,7 @@ export function handleMove(session: GameSession, tokenId: string): ServerMessage
     return [{ type: "error", message: "not-moving" }];
   }
 
-  const seatTokens = state.tokens.filter(
-    (t) => session.colorToSeat[t.color] === state.activeSeat,
-  );
+  const seatTokens = state.tokens.filter((t) => session.colorToSeat[t.color] === state.activeSeat);
   const moves = legalMoves(
     seatTokens,
     state.diceValue ?? 0,
