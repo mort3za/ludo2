@@ -71,7 +71,7 @@ export function createHttpHandler(deps: HttpDeps) {
         return Response.json({ error: "not-found" }, { status: 404 });
       }
       const rows = getGameLog(db, gameId);
-      const entries = rows.map((r) => r.entry);
+      const entries = rows.map((r: { entry: unknown }) => r.entry);
       return Response.json({ entries });
     }
 

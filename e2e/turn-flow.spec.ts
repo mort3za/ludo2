@@ -41,6 +41,7 @@ test.describe("full turn flow", () => {
 
     // Player 1 creates room from home page, navigates
     await p1.goto("/");
+    await p1.getByTestId("play-btn").click();
     await p1.getByTestId("name-input").fill("Alice");
     await p1.getByTestId("create-room-btn").click();
     await p1.waitForURL(/\/room\/.+/);

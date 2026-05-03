@@ -27,6 +27,7 @@ test("create room → second player joins → both ready → game starts", async
   // --- Player 1: Create room from home page ---
   await player1.goto("/");
   await expect(player1.locator("h1")).toHaveText("Ludo");
+  await player1.getByTestId("play-btn").click();
 
   await player1.getByTestId("name-input").fill("Alice");
   await player1.getByTestId("create-room-btn").click();
