@@ -17,9 +17,16 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  webServer: {
-    command: "bun run --filter @ludo/client dev",
-    url: "http://localhost:5173",
-    reuseExistingServer: !process.env["CI"],
-  },
+  webServer: [
+    {
+      command: "bun run --cwd apps/server src/index.ts",
+      url: "http://localhost:3000/health",
+      reuseExistingServer: !process.env["CI"],
+    },
+    {
+      command: "bun run --filter @ludo/client dev",
+      url: "http://localhost:5173",
+      reuseExistingServer: !process.env["CI"],
+    },
+  ],
 });

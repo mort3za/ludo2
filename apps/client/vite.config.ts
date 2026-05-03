@@ -11,5 +11,15 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    proxy: {
+      "/auth": "http://localhost:3000",
+      "/rooms": "http://localhost:3000",
+      "/games": "http://localhost:3000",
+      "/health": "http://localhost:3000",
+      "/ws": {
+        target: "ws://localhost:3000",
+        ws: true,
+      },
+    },
   },
 });

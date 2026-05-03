@@ -22,7 +22,8 @@ export function createWsConnection(roomId: string, token: string): WsConnection 
   let messageHandler: ((msg: ServerMessage) => void) | null = null;
 
   function connect() {
-    const wsBase = apiConfig.baseUrl.replace(/^http/, "ws");
+    const base = apiConfig.baseUrl || globalThis.location.origin;
+    const wsBase = base.replace(/^http/, "ws");
     ws = new WebSocket(`${wsBase}/ws/${roomId}?token=${encodeURIComponent(token)}`);
     status.value = "connecting";
 

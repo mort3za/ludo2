@@ -1,5 +1,7 @@
 import type { ClientMessage, ServerMessage } from "@ludo/shared";
-import { setReady, type Room } from "../rooms/room.js";
+import { setReady, canStart, startGame, type Room } from "../rooms/room.js";
+import { initGame } from "../rooms/init-game.js";
+import { createCryptoRng } from "../game/rng/rng.js";
 
 export interface WsClient {
   playerId: string;
@@ -36,6 +38,18 @@ export function createRouter(rooms: RoomStore): Router {
         const result = setReady(room, client.playerId, true);
         if (result.ok) {
           rooms.set(client.roomId, result.room);
+
+          // Auto-start when all members are ready and requester is owner
+          if (canStart(result.room, result.room.ownerId ?? "")) {
+            const gameId = crypto.randomUUID();
+            const startResult = startGame(result.room, result.room.ownerId!, gameId);
+            if (startResult.ok) {
+              rooms.set(client.roomId, startResult.room);
+              const rng = createCryptoRng();
+              const state = initGame(startResult.room, gameId, rng);
+              broadcast(client.roomId, { type: "state", state });
+            }
+          }
         } else {
           client.send({ type: "error", message: result.error });
         }
