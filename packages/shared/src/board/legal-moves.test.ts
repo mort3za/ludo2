@@ -26,7 +26,7 @@ describe("legalMoves (shared)", () => {
     it("deploys to start square of the seat", () => {
       const tokens = [makeToken("t1", "Y/2/1")];
       const moves = legalMoves(tokens, 6, 2, S, []);
-      expect(moves[0]!.to).toBe("T/14");
+      expect(moves[0]!.to).toBe("T/12");
     });
   });
 
@@ -38,7 +38,7 @@ describe("legalMoves (shared)", () => {
     });
 
     it("wraps around track end into home column", () => {
-      const tokens = [makeToken("t1", "T/51")];
+      const tokens = [makeToken("t1", "T/43")];
       const moves = legalMoves(tokens, 3, 1, S, []);
       expect(moves[0]!.to).toBe("H/1/2");
     });

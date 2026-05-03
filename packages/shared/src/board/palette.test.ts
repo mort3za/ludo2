@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { drawPalette } from "./palette.js";
-import { COLOR_PALETTE, MIN_SEATS, MAX_SEATS } from "../constants/board.js";
+import { COLOR_PALETTE, COLOR_PRIORITY, MIN_SEATS, MAX_SEATS } from "../constants/board.js";
 
 describe("drawPalette", () => {
   it("returns exactly S colors for each valid seat count", () => {
@@ -36,16 +36,16 @@ describe("drawPalette", () => {
     expect(a).toEqual(b);
   });
 
-  it("rng() returning 0 always picks first remaining element", () => {
-    // With rng() = 0, Fisher-Yates picks index 0 each time → first S colors in order
+  it("rng() returning 0 always picks first remaining element (priority order)", () => {
+    // With rng() = 0, backward Fisher-Yates rotates: first element ends up last
     const colors = drawPalette(4, () => 0);
-    expect(colors).toEqual(["blue", "red", "green", "yellow"]);
+    expect(colors).toEqual(["blue", "green", "yellow", "red"]);
   });
 
   it("with S=8, returns all palette colors (shuffled)", () => {
     const colors = drawPalette(8, () => 0);
     expect(colors).toHaveLength(8);
-    expect(new Set(colors)).toEqual(new Set(COLOR_PALETTE));
+    expect(new Set(colors)).toEqual(new Set(COLOR_PRIORITY));
   });
 
   it("throws for S < MIN_SEATS", () => {

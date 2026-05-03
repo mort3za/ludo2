@@ -82,8 +82,8 @@ function startSquareColor(cellId: string): string | null {
         :cy="cell.y"
         :r="layout.cellSize"
         :fill="startSquareColor(cell.id) ?? '#edece7'"
-        :opacity="startSquareColor(cell.id) ? 0.4 : 1"
-        stroke="#b2afae"
+        :opacity="startSquareColor(cell.id) ? 0.35 : 1"
+        :stroke="startSquareColor(cell.id) ?? '#b2afae'"
         :stroke-width="layout.cellSize * 0.15"
       />
       <!-- Safe marker (star) -->
@@ -94,7 +94,8 @@ function startSquareColor(cellId: string): string | null {
         text-anchor="middle"
         dominant-baseline="central"
         :font-size="layout.cellSize * 0.8"
-        fill="#898683"
+        :fill="startSquareColor(cell.id) ?? '#898683'"
+        :opacity="startSquareColor(cell.id) ? 0.7 : 1"
         :style="{
           transform: `rotate(${-rotation}deg)`,
           transformOrigin: `${cell.x}px ${cell.y}px`,
@@ -113,9 +114,10 @@ function startSquareColor(cellId: string): string | null {
         :cy="cell.y"
         :r="layout.cellSize"
         :fill="resolvedSeatColor(si + 1)"
-        :opacity="0.35"
-        stroke="#b2afae"
+        :opacity="0.3"
+        :stroke="resolvedSeatColor(si + 1)"
         :stroke-width="layout.cellSize * 0.15"
+        stroke-opacity="0.5"
       />
     </template>
 
@@ -129,8 +131,9 @@ function startSquareColor(cellId: string): string | null {
         :r="layout.cellSize"
         :fill="resolvedSeatColor(si + 1)"
         :opacity="0.25"
-        stroke="#b2afae"
+        :stroke="resolvedSeatColor(si + 1)"
         :stroke-width="layout.cellSize * 0.15"
+        stroke-opacity="0.4"
       />
     </template>
 

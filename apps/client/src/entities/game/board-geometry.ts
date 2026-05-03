@@ -25,7 +25,7 @@ export interface BoardLayout {
 export function computeBoardLayout(S: number): BoardLayout {
   // Inner radius: circumradius of a regular S-gon with side 3
   const R = 1.5 / Math.sin(Math.PI / S);
-  const ARM_ROWS = CELLS_PER_ARM === 13 ? 6 : Math.floor(CELLS_PER_ARM / 2);
+  const ARM_ROWS = Math.floor(CELLS_PER_ARM / 2);
 
   const track: CellPos[] = [];
   const homes: CellPos[][] = [];

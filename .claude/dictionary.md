@@ -9,7 +9,7 @@ Canonical definitions for terms used across the codebase and design docs. When c
 | Term | Definition |
 |------|-----------|
 | **Board** | The complete playing surface: `S` arms arranged in a cross (S=4) or star (S≥5), plus yards and home columns. |
-| **Arm** | One of the `S` symmetric extensions radiating from the board center. Each arm contains `K=13` track squares plus its seat's yard and home column. |
+| **Arm** | One of the `S` symmetric extensions radiating from the board center. Each arm contains `K=11` track squares plus its seat's yard and home column. |
 | **Seat** | A numbered position on the board (`1..S`). Each seat has one yard, one start square, one entry square, and one home column. A seat may be active, vacant, or empty. |
 | **Track** | The shared outer loop of `S × K` squares that all tokens traverse clockwise. Indexed `T/1..T/(S×K)`. |
 | **Cell** | Any discrete position on the board — a yard slot, a track square, or a home column square. Identified by a Cell ID. |
@@ -82,7 +82,7 @@ Canonical definitions for terms used across the codebase and design docs. When c
 | Symbol | Meaning | Value |
 |--------|---------|-------|
 | `S` | Seat count (board arms) | `4..8` |
-| `K` | Arc length (track squares per arm) | `13` (locked) |
+| `K` | Arc length (track squares per arm) | `11` (locked) |
 | `L` | Home column length | `4` (locked) |
 | `M` | Yard size (slots per yard) | `4` (locked) |
 | `drv` | Dice roll value | `1..6` |

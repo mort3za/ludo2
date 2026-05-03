@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { legalMoves, type LegalMove } from "./legal-moves.js";
 import type { Token, PlayerColor } from "@ludo/shared";
 
-// Helper: 4-seat game (S=4, trackLen=52)
+// Helper: 4-seat game (S=4, trackLen=44)
 const S = 4;
 
 function makeToken(id: string, cell: string, color: PlayerColor = "blue"): Token {
@@ -26,7 +26,7 @@ describe("legalMoves", () => {
     it("deploys to start square of the seat", () => {
       const tokens = [makeToken("t1", "Y/2/1")];
       const moves = legalMoves(tokens, 6, 2, S, []);
-      expect(moves[0]!.to).toBe("T/14"); // seat 2 start = T/14
+      expect(moves[0]!.to).toBe("T/12"); // seat 2 start = T/12
     });
   });
 
@@ -38,10 +38,10 @@ describe("legalMoves", () => {
     });
 
     it("wraps around track end", () => {
-      const tokens = [makeToken("t1", "T/51")];
-      // seat 1 entry is T/52, so from T/51 stepping 3 should go: T/52(entry) → H/1/1, H/1/2
-      // Actually: seat 1 entry = T/52 (=(1-1)*13=0, wrap to 4*13=52)
-      // From T/51, step 1 → T/52 (entry!), step 2 → H/1/1, step 3 → H/1/2
+      const tokens = [makeToken("t1", "T/43")];
+      // seat 1 entry is T/44, so from T/43 stepping 3 should go: T/44(entry) → H/1/1, H/1/2
+      // Actually: seat 1 entry = T/44 (=(1-1)*11=0, wrap to 4*11=44)
+      // From T/43, step 1 → T/44 (entry!), step 2 → H/1/1, step 3 → H/1/2
       const moves = legalMoves(tokens, 3, 1, S, []);
       expect(moves[0]!.to).toBe("H/1/2");
     });

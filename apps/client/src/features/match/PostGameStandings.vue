@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { DButton, DCard } from "@/shared/ui";
-import { seatColor } from "@/entities/game/board-geometry";
+import { playerColorHex } from "@/entities/game/board-geometry";
 import type { GameState, Seat } from "@ludo/shared";
 import { TIMINGS } from "@ludo/shared";
 
@@ -52,19 +52,13 @@ const ordinalSuffix = (n: number) => {
         <span class="w-8 text-right text-subtle-gray">{{ rank }}{{ ordinalSuffix(rank) }}</span>
         <span
           class="w-4 h-4 rounded-full inline-block"
-          :style="{ backgroundColor: seatColor(seat.index) }"
+          :style="{ backgroundColor: playerColorHex(seat.color) }"
         />
         <span class="text-deep-charcoal">Seat {{ seat.index }}</span>
       </li>
     </ol>
 
-    <DButton
-      v-if="rematchAvailable"
-      class="w-full"
-      @click="emit('rematch')"
-    >
-      Rematch
-    </DButton>
+    <DButton v-if="rematchAvailable" class="w-full" @click="emit('rematch')"> Rematch </DButton>
     <p v-else-if="isOwner" class="text-caption text-subtle-gray text-center font-sans">
       Rematch window expired
     </p>

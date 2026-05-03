@@ -55,7 +55,7 @@ describe("applyMove", () => {
 
     it("does not capture on safe square", () => {
       // T/1 is seat 1's start square → safe
-      const tokens = [makeToken("t1", "T/50", "blue"), makeToken("e1", "T/1", "red")];
+      const tokens = [makeToken("t1", "T/42", "blue"), makeToken("e1", "T/1", "red")];
       const result = applyMove(tokens, "t1", "T/1", 1, S, colorToSeat);
       expect(result.tokens.find((t) => t.id === "t1")!.cell).toBe("T/1");
       expect(result.tokens.find((t) => t.id === "e1")!.cell).toBe("T/1");
@@ -77,12 +77,12 @@ describe("applyMove", () => {
     });
 
     it("captures opponent on non-safe square during deploy", () => {
-      // seat 2 start = T/14. If an opponent is on T/14 (non-safe for seat 2? No, T/14 is seat 2's start = safe)
+      // seat 2 start = T/12. If an opponent is on T/12 (non-safe for seat 2? No, T/12 is seat 2's start = safe)
       // Use a different scenario: seat 1 deploys to T/1 (safe).
       // Actually start squares are always safe, so deploy never captures. Let's verify.
-      const tokens = [makeToken("t1", "Y/2/1", "red"), makeToken("e1", "T/14", "blue")];
-      // T/14 is seat 2's start → safe
-      const result = applyMove(tokens, "t1", "T/14", 2, S, colorToSeat);
+      const tokens = [makeToken("t1", "Y/2/1", "red"), makeToken("e1", "T/12", "blue")];
+      // T/12 is seat 2's start → safe
+      const result = applyMove(tokens, "t1", "T/12", 2, S, colorToSeat);
       expect(result.captured).toBeNull();
     });
   });

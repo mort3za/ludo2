@@ -177,7 +177,7 @@ Cell IDs are **strings**, parseable, with `/` as the delimiter. Seat indices are
 
 | Constant | Symbol | Value | Notes |
 |----------|--------|-------|-------|
-| Arc length (squares per arm of the cross/star) | `K` | **13** | Locked. Each seat's start sits at the same offset within its arm regardless of `S`. |
+| Arc length (squares per arm of the cross/star) | `K` | **11** | Locked. Each seat's start sits at the same offset within its arm regardless of `S`. |
 | Home column length | `L` | **4** | §5.7 / §10.7. |
 | Yard size (slots per yard) | `M` | **4** | One slot per token. |
 | Practical max seats | — | **8** | Cap enforced by room config (§14); engine has no hard cap. |
@@ -221,13 +221,13 @@ H/si/1 → H/si/2 → H/si/3 → H/si/4   // L = 4, last is winning
 ```
 
 Total dice-pip-equivalent moves to bring one token home:
-**`1 (deploy) + (S × K − 1) (lap) + L (home column)` = `S × K + L` — equals `S × 13 + 4`.**
+**`1 (deploy) + (S × K − 1) (lap) + L (home column)` = `S × K + L` — equals `S × 11 + 4`.**
 
 | `S` | Moves to bring one token home |
 |-----|-------------------------------|
-| 4   | 56 |
-| 6   | 82 |
-| 8   | 108 |
+| 4   | 48 |
+| 6   | 70 |
+| 8   | 92 |
 
 ### 10.7 Yards and home columns
 
@@ -260,7 +260,7 @@ type CellId =
 
 interface BoardConfig {
   seatCount: number;         // S, ≥ 4
-  arcLength: 13;             // K, locked
+  arcLength: 11;             // K, locked
   homeColumnLength: 4;       // L, locked
   yardSize: 4;               // M, locked
 }
@@ -347,7 +347,7 @@ Game continues until one of these terminal conditions:
 - **Disconnect / timeout (§8.2):** missed turns are auto-played by bot logic on the player's behalf (tokens stay on the board); the player can reclaim control by reconnecting/acting. After **3 consecutive** missed turns (counter resets when the player acts on their own), the player is removed — all tokens wiped, seat becomes **vacant**, player is spectator-only. _(2026-05-01)_
 - **Forfeit recording (§8.4):** both voluntary quit and 3-strike kick record a forfeit/loss in stats. _(2026-05-01)_
 - **Timing (§11):** turn timer **30s**; on expiry the server auto-rolls and/or auto-picks (lowest-numbered legal token) and the turn counts as missed. Reconnection is passive (no separate grace timer). Pre-game lobby idle expiry **15 minutes**; in-game has no idle expiry (bots play it out). Post-game window **60s** for chat / rematch. Game-state retention **24 hours**. Sole-survivor → instant win. _(2026-05-02)_
-- **Board map & coordinates (§10):** parametric in seat count `S` (engine has no max; product cap **8**). Cell IDs slash-delimited (`Y/<seat>/<slot>`, `T/<index>`, `H/<seat>/<i>`). Constants: `K=13`, `L=4`, `M=4`. Seats `1..S` clockwise, **seat 1 anchored at bottom-left**. Client rotates so the player's own seat is always at bottom-left. Per-seat indices: `start = T/((si−1)×13+1)`, `entry = T/((si−1)×13)` (with seat-1 wrap to `T/(S×13)`). _(2026-05-02)_
+- **Board map & coordinates (§10):** parametric in seat count `S` (engine has no max; product cap **8**). Cell IDs slash-delimited (`Y/<seat>/<slot>`, `T/<index>`, `H/<seat>/<i>`). Constants: `K=11`, `L=4`, `M=4`. Seats `1..S` clockwise, **seat 1 anchored at bottom-left**. Client rotates so the player's own seat is always at bottom-left. Per-seat indices: `start = T/((si−1)×11+1)`, `entry = T/((si−1)×11)` (with seat-1 wrap to `T/(S×11)`). _(2026-05-02)_
 - **Seat states (§11.5):** three states — **active** (human or bot in play), **vacant** (kicked/quit mid-game; tokens removed, seat skipped), **empty** (never filled at game start; permanently skipped, no tokens, no standings). _(2026-05-02)_
 - **Color assignment (§10.8):** colors drawn uniformly at random from palette `blue, red, green, yellow, purple, orange, cyan, pink`; each seat gets a unique color. No fixed mapping, no order constraint. _(2026-05-02)_
 - **Home column entry (§5.7):** entry square is `T/((si−1) × K)` (with seat-1 wrap to `T/(S × K)`); token traverses `S × K − 1` track squares from start to entry, then steps to `H/si/1`. _(2026-05-02)_

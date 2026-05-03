@@ -54,18 +54,18 @@ describe("home-column rules", () => {
 
   describe("entry from track to home", () => {
     it("enters home column when passing through entry square", () => {
-      // Seat 1 entry = T/52. From T/51, step 3: T/52(entry)→H/1/1, H/1/2
-      const seatTokens = [makeToken("t1", "T/51", "blue")];
+      // Seat 1 entry = T/44. From T/43, step 3: T/44(entry)→H/1/1, H/1/2
+      const seatTokens = [makeToken("t1", "T/43", "blue")];
       const moves = legalMoves(seatTokens, 3, 1, S, seatTokens);
       expect(moves[0]!.to).toBe("H/1/2");
     });
 
     it("cannot enter home if first home cell is occupied", () => {
       const seatTokens = [
-        makeToken("t1", "T/51", "blue"),
+        makeToken("t1", "T/43", "blue"),
         makeToken("t2", "H/1/1", "blue"), // occupies H/1/1
       ];
-      // From T/51, step 2: T/52(entry)→H/1/1(occupied!)
+      // From T/43, step 2: T/44(entry)→H/1/1(occupied!)
       const moves = legalMoves(seatTokens, 2, 1, S, seatTokens);
       const t1Move = moves.find((m) => m.tokenId === "t1");
       expect(t1Move).toBeUndefined();
