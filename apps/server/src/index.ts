@@ -92,6 +92,8 @@ const server = Bun.serve<WsData>({
 
       if (!joinResult.ok) {
         client.send({ type: "error", message: joinResult.error });
+      } else {
+        router.broadcastLobby(roomId, joinResult.room);
       }
     },
     message(ws, message) {

@@ -20,6 +20,7 @@ export type RoomStore = Map<string, Room>;
 export interface Router {
   dispatch: (client: WsClient, message: ClientMessage) => void;
   broadcast: (roomId: string, msg: ServerMessage) => void;
+  broadcastLobby: (roomId: string, room: Room) => void;
   addClient: (client: WsClient) => void;
   removeClient: (client: WsClient) => void;
 }
@@ -27,6 +28,15 @@ export interface Router {
 export function createRouter(rooms: RoomStore): Router {
   const clients = new Set<WsClient>();
   const gameSessions = new Map<string, GameSession>();
+
+  function broadcastLobby(roomId: string, room: Room): void {
+    const players = [...room.members.values()].map((m) => ({
+      playerId: m.playerId,
+      name: m.name,
+      ready: m.ready,
+    }));
+    broadcast(roomId, { type: "lobby", players, ownerId: room.ownerId ?? "" });
+  }
 
   function dispatch(client: WsClient, message: ClientMessage): void {
     const room = rooms.get(client.roomId);
@@ -42,31 +52,38 @@ export function createRouter(rooms: RoomStore): Router {
 
     switch (message.type) {
       case "ready": {
-        const result = setReady(room, client.playerId, true);
+        const current = room.members.get(client.playerId);
+        const result = setReady(room, client.playerId, !(current?.ready ?? false));
         if (result.ok) {
           rooms.set(client.roomId, result.room);
-
-          // Auto-start when all members are ready and requester is owner
-          if (canStart(result.room, result.room.ownerId ?? "")) {
-            const gameId = crypto.randomUUID();
-            const startResult = startGame(result.room, result.room.ownerId!, gameId);
-            if (startResult.ok) {
-              rooms.set(client.roomId, startResult.room);
-              const rng = createCryptoRng();
-              const state = initGame(startResult.room, gameId, rng);
-              const session = createGameSession(state);
-              gameSessions.set(client.roomId, session);
-              broadcast(client.roomId, { type: "state", state });
-              // Send initial turn
-              broadcast(client.roomId, {
-                type: "turn",
-                seat: state.activeSeat,
-                deadline: Date.now() + 30000,
-              });
-            }
-          }
+          broadcastLobby(client.roomId, result.room);
         } else {
           client.send({ type: "error", message: result.error });
+        }
+        break;
+      }
+
+      case "start": {
+        if (!canStart(room, client.playerId)) {
+          client.send({ type: "error", message: "cannot-start" });
+          break;
+        }
+        const gameId = crypto.randomUUID();
+        const startResult = startGame(room, client.playerId, gameId);
+        if (startResult.ok) {
+          rooms.set(client.roomId, startResult.room);
+          const rng = createCryptoRng();
+          const state = initGame(startResult.room, gameId, rng);
+          const session = createGameSession(state);
+          gameSessions.set(client.roomId, session);
+          broadcast(client.roomId, { type: "state", state });
+          broadcast(client.roomId, {
+            type: "turn",
+            seat: state.activeSeat,
+            deadline: Date.now() + 30000,
+          });
+        } else {
+          client.send({ type: "error", message: startResult.error });
         }
         break;
       }
@@ -126,5 +143,5 @@ export function createRouter(rooms: RoomStore): Router {
     clients.delete(client);
   }
 
-  return { dispatch, broadcast, addClient, removeClient };
+  return { dispatch, broadcast, broadcastLobby, addClient, removeClient };
 }
