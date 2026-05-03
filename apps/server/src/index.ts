@@ -2,6 +2,8 @@ import { createGuestAuth } from "./auth/guest-auth.js";
 import { createRoom, joinRoom } from "./rooms/room.js";
 import { createRouter, type WsClient, type RoomStore } from "./ws/router.js";
 import { parseClientMessage } from "./ws/protocol.js";
+import { createHttpHandler } from "./http/routes.js";
+import { createDb } from "./db/connection.js";
 import type { ServerMessage } from "@ludo/shared";
 
 // --- Configuration ---
@@ -11,8 +13,10 @@ const BOARD_SIZE = 4;
 
 // --- Singletons ---
 const auth = createGuestAuth(JWT_SECRET);
+const db = createDb(); // in-memory SQLite
 const rooms: RoomStore = new Map();
 const router = createRouter(rooms);
+const httpHandler = createHttpHandler({ auth, db, boardSize: BOARD_SIZE });
 
 // Map Bun WebSocket → WsClient for lifecycle management
 const wsClients = new WeakMap<object, WsClient>();
@@ -27,18 +31,6 @@ const server = Bun.serve<WsData>({
   port: PORT,
   async fetch(req, server) {
     const url = new URL(req.url);
-
-    // --- Guest token endpoint ---
-    if (url.pathname === "/auth/guest" && req.method === "POST") {
-      const body = (await req.json()) as Record<string, unknown>;
-      const name = typeof body["name"] === "string" ? body["name"].trim() : "";
-      if (!name || name.length > 30) {
-        return Response.json({ error: "invalid-name" }, { status: 400 });
-      }
-      const playerId = crypto.randomUUID();
-      const token = await auth.issue(playerId, name);
-      return Response.json({ token, playerId });
-    }
 
     // --- WebSocket upgrade ---
     if (url.pathname.startsWith("/ws/")) {
@@ -67,12 +59,8 @@ const server = Bun.serve<WsData>({
       return undefined;
     }
 
-    // --- Health check ---
-    if (url.pathname === "/health") {
-      return Response.json({ status: "ok" });
-    }
-
-    return new Response("Not Found", { status: 404 });
+    // Delegate all other HTTP requests to the handler
+    return httpHandler(req);
   },
   websocket: {
     open(ws) {
