@@ -10,3 +10,4 @@ export * from "./constants/rules.js";
 
 // Board helpers
 export { parseCell, yard, track, home } from "./board/cell.js";
+export { startSquare, entrySquare } from "./board/seats.js";
