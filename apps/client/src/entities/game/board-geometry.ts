@@ -138,3 +138,19 @@ const SEAT_COLORS = [
 export function seatColor(seatIndex: number): string {
   return SEAT_COLORS[(seatIndex - 1) % SEAT_COLORS.length] ?? "#888";
 }
+
+/** Map PlayerColor name to a CSS hex color. */
+const PLAYER_COLORS: Record<string, string> = {
+  blue: "#3b82f6",
+  red: "#ef4444",
+  green: "#22c55e",
+  yellow: "#eab308",
+  purple: "#a855f7",
+  orange: "#f97316",
+  cyan: "#06b6d4",
+  pink: "#ec4899",
+};
+
+export function playerColorHex(color: string): string {
+  return PLAYER_COLORS[color] ?? "#888";
+}
