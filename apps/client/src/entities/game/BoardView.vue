@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { computeBoardLayout, seatColor, playerColorHex, type CellPos } from "./board-geometry";
-import { isSafeSquare, startSquare } from "@ludo/shared";
-import type { Token } from "@ludo/shared";
+import { computeBoardLayout, playerColorHex, type CellPos } from "./board-geometry";
+import { startSquare } from "@ludo/shared";
+import type { Token, Seat } from "@ludo/shared";
 
 const props = defineProps<{
   boardSize: number;
   localSeat?: number;
   tokens?: Token[];
   legalTokenIds?: string[];
+  seats?: Seat[];
 }>();
 
 const emit = defineEmits<{
@@ -43,10 +44,25 @@ const cellPositions = computed(() => {
   return map;
 });
 
+/** Map seat index (1-based) → CSS hex color from actual seat data. */
+const seatColorMap = computed(() => {
+  const map = new Map<number, string>();
+  if (props.seats) {
+    for (const seat of props.seats) {
+      map.set(seat.index, playerColorHex(seat.color));
+    }
+  }
+  return map;
+});
+
+function resolvedSeatColor(seatIndex: number): string {
+  return seatColorMap.value.get(seatIndex) ?? "#888";
+}
+
 /** Color each start square to its seat color. */
 function startSquareColor(cellId: string): string | null {
   for (let si = 1; si <= props.boardSize; si++) {
-    if (cellId === startSquare(si, props.boardSize)) return seatColor(si);
+    if (cellId === startSquare(si, props.boardSize)) return resolvedSeatColor(si);
   }
   return null;
 }
@@ -96,7 +112,7 @@ function startSquareColor(cellId: string): string | null {
         :cx="cell.x"
         :cy="cell.y"
         :r="layout.cellSize"
-        :fill="seatColor(si + 1)"
+        :fill="resolvedSeatColor(si + 1)"
         :opacity="0.35"
         stroke="#b2afae"
         :stroke-width="layout.cellSize * 0.15"
@@ -111,7 +127,7 @@ function startSquareColor(cellId: string): string | null {
         :cx="cell.x"
         :cy="cell.y"
         :r="layout.cellSize"
-        :fill="seatColor(si + 1)"
+        :fill="resolvedSeatColor(si + 1)"
         :opacity="0.25"
         stroke="#b2afae"
         :stroke-width="layout.cellSize * 0.15"

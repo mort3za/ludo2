@@ -113,6 +113,7 @@ onUnmounted(() => {
         :local-seat="mySeat ?? undefined"
         :tokens="gameState.tokens"
         :legal-token-ids="legalTokenIds"
+        :seats="gameState.seats"
         @move="onMove"
       />
 
