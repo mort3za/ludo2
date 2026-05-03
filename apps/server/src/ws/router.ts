@@ -2,6 +2,12 @@ import type { ClientMessage, ServerMessage } from "@ludo/shared";
 import { setReady, canStart, startGame, type Room } from "../rooms/room.js";
 import { initGame } from "../rooms/init-game.js";
 import { createCryptoRng } from "../game/rng/rng.js";
+import {
+  createGameSession,
+  handleRoll,
+  handleMove,
+  type GameSession,
+} from "../rooms/game-session.js";
 
 export interface WsClient {
   playerId: string;
@@ -20,6 +26,7 @@ export interface Router {
 
 export function createRouter(rooms: RoomStore): Router {
   const clients = new Set<WsClient>();
+  const gameSessions = new Map<string, GameSession>();
 
   function dispatch(client: WsClient, message: ClientMessage): void {
     const room = rooms.get(client.roomId);
@@ -47,7 +54,15 @@ export function createRouter(rooms: RoomStore): Router {
               rooms.set(client.roomId, startResult.room);
               const rng = createCryptoRng();
               const state = initGame(startResult.room, gameId, rng);
+              const session = createGameSession(state);
+              gameSessions.set(client.roomId, session);
               broadcast(client.roomId, { type: "state", state });
+              // Send initial turn
+              broadcast(client.roomId, {
+                type: "turn",
+                seat: state.activeSeat,
+                deadline: Date.now() + 30000,
+              });
             }
           }
         } else {
@@ -55,10 +70,46 @@ export function createRouter(rooms: RoomStore): Router {
         }
         break;
       }
-      case "roll":
-      case "move":
+
+      case "roll": {
+        const session = gameSessions.get(client.roomId);
+        if (!session) {
+          client.send({ type: "error", message: "no-game" });
+          break;
+        }
+        // Verify it's this player's turn
+        const rollSeat = session.state.seats.find(
+          (s) => s.playerId === client.playerId,
+        );
+        if (!rollSeat || rollSeat.index !== session.state.activeSeat) {
+          client.send({ type: "error", message: "not-your-turn" });
+          break;
+        }
+        const rollMsgs = handleRoll(session);
+        for (const msg of rollMsgs) broadcast(client.roomId, msg);
+        break;
+      }
+
+      case "move": {
+        const session = gameSessions.get(client.roomId);
+        if (!session) {
+          client.send({ type: "error", message: "no-game" });
+          break;
+        }
+        const moveSeat = session.state.seats.find(
+          (s) => s.playerId === client.playerId,
+        );
+        if (!moveSeat || moveSeat.index !== session.state.activeSeat) {
+          client.send({ type: "error", message: "not-your-turn" });
+          break;
+        }
+        const moveMsgs = handleMove(session, message.tokenId);
+        for (const msg of moveMsgs) broadcast(client.roomId, msg);
+        break;
+      }
+
       case "rematch":
-        // These will be dispatched to the game engine in later phases
+        // Rematch will be implemented when needed
         break;
     }
   }
