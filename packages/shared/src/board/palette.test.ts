@@ -42,6 +42,15 @@ describe("drawPalette", () => {
     expect(colors).toEqual(["blue", "green", "yellow", "red"]);
   });
 
+  it("with S=4, only classic colors are used", () => {
+    for (let trial = 0; trial < 20; trial++) {
+      const colors = drawPalette(4, Math.random);
+      for (const c of colors) {
+        expect(["red", "blue", "green", "yellow"]).toContain(c);
+      }
+    }
+  });
+
   it("with S=8, returns all palette colors (shuffled)", () => {
     const colors = drawPalette(8, () => 0);
     expect(colors).toHaveLength(8);
