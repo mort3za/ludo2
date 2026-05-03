@@ -12,7 +12,7 @@
   "dependencies": {
     "@ludo/shared": "workspace:*",
     "drizzle-orm": "^0.44.0",
-    "jose": "^6.0.0"
+    "jose": "^6.2.3"
   },
   "devDependencies": {
     "@types/bun": "^1.2.0",
