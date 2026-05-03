@@ -28,6 +28,8 @@ export function initGame(room: Room, gameId: string, rng: Rng): GameState {
       playerId: member ? member[0] : null,
     });
 
+    if (!member) continue;
+
     // Create tokens in yard
     for (let t = 1; t <= TOKENS_PER_PLAYER; t++) {
       tokens.push({

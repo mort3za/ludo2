@@ -48,18 +48,10 @@ const statusText = computed(() => {
     <p class="text-body-sm text-subtle-gray font-sans">{{ statusText }}</p>
 
     <!-- Roll button -->
-    <DButton
-      v-if="phase === 'roll'"
-      @click="emit('roll')"
-    >
-      Roll
-    </DButton>
+    <DButton v-if="phase === 'roll'" @click="emit('roll')"> Roll </DButton>
 
     <!-- Dice result -->
-    <div
-      v-if="state.diceValue && (phase === 'pick' || phase === 'forced' || phase === 'no-moves')"
-      class="text-display font-sans text-midnight-ink"
-    >
+    <div v-if="state.diceValue" class="text-display font-sans text-midnight-ink">
       {{ state.diceValue }}
     </div>
 
