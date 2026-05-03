@@ -29,6 +29,13 @@ const canStart = computed(
 );
 
 const shareLink = computed(() => `${globalThis.location.origin}/room/${props.roomId}`);
+const copied = ref(false);
+
+function copyLink() {
+  navigator.clipboard.writeText(shareLink.value);
+  copied.value = true;
+  setTimeout(() => (copied.value = false), 2000);
+}
 
 let ws: WsConnection | null = null;
 
@@ -115,12 +122,17 @@ function startGame() {
         <p class="text-caption text-subtle-gray font-sans mb-2">
           Share this link to invite players:
         </p>
-        <code
-          class="block p-2 bg-near-white rounded-sm text-body-sm font-sans break-all"
-          data-testid="share-link"
-        >
-          {{ shareLink }}
-        </code>
+        <div class="flex items-center gap-2">
+          <code
+            class="flex-1 p-2 bg-near-white rounded-sm text-body-sm font-sans text-midnight-ink break-all"
+            data-testid="share-link"
+          >
+            {{ shareLink }}
+          </code>
+          <DButton variant="ghost" @click="copyLink">
+            {{ copied ? "Copied!" : "Copy" }}
+          </DButton>
+        </div>
       </div>
 
       <!-- Player list -->
