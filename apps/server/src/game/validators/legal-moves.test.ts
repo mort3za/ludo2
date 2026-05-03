@@ -75,11 +75,7 @@ describe("legalMoves", () => {
 
   describe("multiple tokens", () => {
     it("returns moves for all movable tokens", () => {
-      const tokens = [
-        makeToken("t1", "T/5"),
-        makeToken("t2", "Y/1/2"),
-        makeToken("t3", "T/10"),
-      ];
+      const tokens = [makeToken("t1", "T/5"), makeToken("t2", "Y/1/2"), makeToken("t3", "T/10")];
       const moves = legalMoves(tokens, 6, 1, S, []);
       expect(moves.length).toBe(3); // t1 can move, t2 can deploy, t3 can move
     });
@@ -124,9 +120,7 @@ describe("legalMoves", () => {
     it("filters only tokens belonging to the active seat's tokens array", () => {
       // The function receives only the active seat's tokens
       const tokens = [makeToken("t1", "T/5", "blue")];
-      const allTokens: Token[] = [
-        makeToken("enemy", "T/8", "red"),
-      ];
+      const allTokens: Token[] = [makeToken("enemy", "T/8", "red")];
       const moves = legalMoves(tokens, 3, 1, S, allTokens);
       // Should only generate moves for the seat's tokens, not enemy
       expect(moves.length).toBe(1);
@@ -138,10 +132,7 @@ describe("legalMoves", () => {
     it("cannot move through an opponent block", () => {
       const seatTokens = [makeToken("t1", "T/3", "blue")];
       // Red block at T/5
-      const allTokens: Token[] = [
-        makeToken("r1", "T/5", "red"),
-        makeToken("r2", "T/5", "red"),
-      ];
+      const allTokens: Token[] = [makeToken("r1", "T/5", "red"), makeToken("r2", "T/5", "red")];
       // Moving 4 steps: T/4, T/5(blocked!), T/6, T/7
       const moves = legalMoves(seatTokens, 4, 1, S, allTokens);
       expect(moves).toEqual([]);
@@ -149,10 +140,7 @@ describe("legalMoves", () => {
 
     it("cannot land on an opponent block", () => {
       const seatTokens = [makeToken("t1", "T/3", "blue")];
-      const allTokens: Token[] = [
-        makeToken("r1", "T/5", "red"),
-        makeToken("r2", "T/5", "red"),
-      ];
+      const allTokens: Token[] = [makeToken("r1", "T/5", "red"), makeToken("r2", "T/5", "red")];
       // Moving 2 steps: T/4, T/5(blocked!)
       const moves = legalMoves(seatTokens, 2, 1, S, allTokens);
       expect(moves).toEqual([]);
@@ -175,10 +163,7 @@ describe("legalMoves", () => {
     it("cannot deploy when opponent block is on start square", () => {
       const seatTokens = [makeToken("t1", "Y/1/1", "blue")];
       // Red block on T/1 (seat 1 start)
-      const allTokens: Token[] = [
-        makeToken("r1", "T/1", "red"),
-        makeToken("r2", "T/1", "red"),
-      ];
+      const allTokens: Token[] = [makeToken("r1", "T/1", "red"), makeToken("r2", "T/1", "red")];
       const moves = legalMoves(seatTokens, 6, 1, S, allTokens);
       expect(moves).toEqual([]);
     });

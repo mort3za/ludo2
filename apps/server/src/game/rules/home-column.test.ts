@@ -33,9 +33,7 @@ describe("home-column rules", () => {
     });
 
     it("allows move to empty home cell", () => {
-      const seatTokens = [
-        makeToken("t1", "H/1/1", "blue"),
-      ];
+      const seatTokens = [makeToken("t1", "H/1/1", "blue")];
       const moves = legalMoves(seatTokens, 2, 1, S, seatTokens);
       const t1Move = moves.find((m) => m.tokenId === "t1");
       expect(t1Move).toBeDefined();

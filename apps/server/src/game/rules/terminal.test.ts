@@ -19,7 +19,12 @@ function makeSeat(index: number, color: PlayerColor, state: SeatState = "active"
 describe("checkTerminal", () => {
   describe("win by all tokens home", () => {
     it("detects win when all 4 tokens are at H/si/4", () => {
-      const seats = [makeSeat(1, "blue"), makeSeat(2, "red"), makeSeat(3, "green"), makeSeat(4, "yellow")];
+      const seats = [
+        makeSeat(1, "blue"),
+        makeSeat(2, "red"),
+        makeSeat(3, "green"),
+        makeSeat(4, "yellow"),
+      ];
       const tokens = [
         makeToken("b1", "H/1/4", "blue"),
         makeToken("b2", "H/1/4", "blue"),
@@ -55,10 +60,7 @@ describe("checkTerminal", () => {
         makeSeat(3, "green", "vacant"),
         makeSeat(4, "yellow", "vacant"),
       ];
-      const tokens = [
-        makeToken("b1", "T/5", "blue"),
-        makeToken("b2", "Y/1/1", "blue"),
-      ];
+      const tokens = [makeToken("b1", "T/5", "blue"), makeToken("b2", "Y/1/1", "blue")];
       const result = checkTerminal(tokens, seats, []);
       expect(result.soleSurvivor).toBe(1);
     });
@@ -88,10 +90,7 @@ describe("checkTerminal", () => {
     });
 
     it("no abort with active seats", () => {
-      const seats = [
-        makeSeat(1, "blue", "active"),
-        makeSeat(2, "red", "vacant"),
-      ];
+      const seats = [makeSeat(1, "blue", "active"), makeSeat(2, "red", "vacant")];
       const result = checkTerminal([], seats, []);
       expect(result.abort).toBe(false);
     });
@@ -125,10 +124,7 @@ describe("checkTerminal", () => {
         makeSeat(3, "green", "active"),
         makeSeat(4, "yellow", "active"),
       ];
-      const tokens = [
-        makeToken("b1", "T/5", "blue"),
-        makeToken("r1", "T/20", "red"),
-      ];
+      const tokens = [makeToken("b1", "T/5", "blue"), makeToken("r1", "T/20", "red")];
       const result = checkTerminal(tokens, seats, []);
       expect(result.seatFinished).toBeNull();
       expect(result.soleSurvivor).toBeNull();

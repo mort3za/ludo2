@@ -42,7 +42,11 @@ export function findBlocks(tokens: Token[]): Map<string, string> {
  * Returns true if any cell in the path (including destination)
  * has a block of a different color than the moving token.
  */
-export function isBlockedByOpponent(path: string[], movingColor: string, blocks: Map<string, string>): boolean {
+export function isBlockedByOpponent(
+  path: string[],
+  movingColor: string,
+  blocks: Map<string, string>,
+): boolean {
   for (const cell of path) {
     const blockColor = blocks.get(cell);
     if (blockColor !== undefined && blockColor !== movingColor) {

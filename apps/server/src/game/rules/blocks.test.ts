@@ -19,10 +19,7 @@ describe("findBlocks", () => {
   });
 
   it("does not detect a block with different colors on same cell", () => {
-    const tokens = [
-      makeToken("t1", "T/5", "blue"),
-      makeToken("t2", "T/5", "red"),
-    ];
+    const tokens = [makeToken("t1", "T/5", "blue"), makeToken("t2", "T/5", "red")];
     const blocks = findBlocks(tokens);
     expect(blocks.has("T/5")).toBe(false);
   });

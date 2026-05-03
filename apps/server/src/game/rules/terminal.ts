@@ -23,7 +23,11 @@ export interface TerminalResult {
  * - Sole survivor: only 1 active seat remains
  * - Abort: 0 active seats remain
  */
-export function checkTerminal(tokens: Token[], seats: SeatInfo[], standings: number[]): TerminalResult {
+export function checkTerminal(
+  tokens: Token[],
+  seats: SeatInfo[],
+  standings: number[],
+): TerminalResult {
   const result: TerminalResult = {
     seatFinished: null,
     soleSurvivor: null,
@@ -37,7 +41,8 @@ export function checkTerminal(tokens: Token[], seats: SeatInfo[], standings: num
     if (standingsSet.has(seat.index)) continue;
 
     const seatTokens = tokens.filter((t) => t.color === seat.color);
-    const allHome = seatTokens.length >= TOKENS_PER_PLAYER &&
+    const allHome =
+      seatTokens.length >= TOKENS_PER_PLAYER &&
       seatTokens.every((t) => {
         const p = parseCell(t.cell);
         return p.kind === "home" && p.index >= HOME_COLUMN_LENGTH;

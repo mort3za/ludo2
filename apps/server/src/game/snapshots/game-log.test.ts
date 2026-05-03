@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { createGameLog, appendEntry, replay, type LogEntry, type GameSnapshot } from "./game-log.js";
+import {
+  createGameLog,
+  appendEntry,
+  replay,
+  type LogEntry,
+  type GameSnapshot,
+} from "./game-log.js";
 import { createSeededRng } from "../rng/rng.js";
 import { TOKENS_PER_PLAYER } from "@ludo/shared";
 import type { PlayerColor } from "@ludo/shared";

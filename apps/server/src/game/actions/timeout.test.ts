@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { autoPickToken, handleMissedTurn, applyKick, type MissedTurnResult, type KickResult } from "./timeout.js";
+import {
+  autoPickToken,
+  handleMissedTurn,
+  applyKick,
+  type MissedTurnResult,
+  type KickResult,
+} from "./timeout.js";
 import type { Token, PlayerColor } from "@ludo/shared";
 import { TIMINGS } from "@ludo/shared";
 
@@ -63,10 +69,7 @@ describe("applyKick", () => {
   });
 
   it("returns immutable result", () => {
-    const tokens = [
-      makeToken("b1", "T/5", "blue"),
-      makeToken("r1", "T/20", "red"),
-    ];
+    const tokens = [makeToken("b1", "T/5", "blue"), makeToken("r1", "T/20", "red")];
     const original = [...tokens];
     applyKick(tokens, "blue");
     expect(tokens).toEqual(original);
