@@ -1,10 +1,4 @@
-import {
-  parseCell,
-  startSquare,
-  stepPath,
-  isOvershoot,
-  HOME_COLUMN_LENGTH,
-} from "@ludo/shared";
+import { parseCell, startSquare, stepPath, isOvershoot, HOME_COLUMN_LENGTH } from "@ludo/shared";
 import type { Token } from "@ludo/shared";
 
 export interface LegalMove {

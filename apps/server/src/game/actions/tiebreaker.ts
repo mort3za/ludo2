@@ -21,10 +21,7 @@ export interface TiebreakerResult {
  *
  * Returns the winning seat index and the full roll history.
  */
-export function resolveTiebreaker(
-  activeSeatIndices: number[],
-  rng: Rng,
-): TiebreakerResult {
+export function resolveTiebreaker(activeSeatIndices: number[], rng: Rng): TiebreakerResult {
   if (activeSeatIndices.length === 0) {
     throw new Error("No active seats for tiebreaker");
   }

@@ -20,11 +20,7 @@ export interface RollOutcome {
  * - On reaching the limit, the turn is forfeited and consecutive
  *   counter resets.
  */
-export function resolveRoll(
-  rng: Rng,
-  consecutiveSixes: number,
-  rules: RollRules,
-): RollOutcome {
+export function resolveRoll(rng: Rng, consecutiveSixes: number, rules: RollRules): RollOutcome {
   const value = rng.rollDie(6);
 
   if (value !== 6) {
