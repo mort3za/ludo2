@@ -133,4 +133,66 @@ describe("legalMoves", () => {
       expect(moves[0]!.tokenId).toBe("t1");
     });
   });
+
+  describe("blocks", () => {
+    it("cannot move through an opponent block", () => {
+      const seatTokens = [makeToken("t1", "T/3", "blue")];
+      // Red block at T/5
+      const allTokens: Token[] = [
+        makeToken("r1", "T/5", "red"),
+        makeToken("r2", "T/5", "red"),
+      ];
+      // Moving 4 steps: T/4, T/5(blocked!), T/6, T/7
+      const moves = legalMoves(seatTokens, 4, 1, S, allTokens);
+      expect(moves).toEqual([]);
+    });
+
+    it("cannot land on an opponent block", () => {
+      const seatTokens = [makeToken("t1", "T/3", "blue")];
+      const allTokens: Token[] = [
+        makeToken("r1", "T/5", "red"),
+        makeToken("r2", "T/5", "red"),
+      ];
+      // Moving 2 steps: T/4, T/5(blocked!)
+      const moves = legalMoves(seatTokens, 2, 1, S, allTokens);
+      expect(moves).toEqual([]);
+    });
+
+    it("can move through own block (voluntary break)", () => {
+      const seatTokens = [
+        makeToken("t1", "T/3", "blue"),
+        makeToken("t2", "T/5", "blue"),
+        makeToken("t3", "T/5", "blue"),
+      ];
+      // Own block at T/5, moving through it is allowed
+      const allTokens = [...seatTokens];
+      const moves = legalMoves(seatTokens, 4, 1, S, allTokens);
+      const t1Move = moves.find((m) => m.tokenId === "t1");
+      expect(t1Move).toBeDefined();
+      expect(t1Move!.to).toBe("T/7");
+    });
+
+    it("cannot deploy when opponent block is on start square", () => {
+      const seatTokens = [makeToken("t1", "Y/1/1", "blue")];
+      // Red block on T/1 (seat 1 start)
+      const allTokens: Token[] = [
+        makeToken("r1", "T/1", "red"),
+        makeToken("r2", "T/1", "red"),
+      ];
+      const moves = legalMoves(seatTokens, 6, 1, S, allTokens);
+      expect(moves).toEqual([]);
+    });
+
+    it("allows deploy when own block is on start square", () => {
+      const seatTokens = [
+        makeToken("t1", "Y/1/1", "blue"),
+        makeToken("t2", "T/1", "blue"),
+        makeToken("t3", "T/1", "blue"),
+      ];
+      const allTokens = [...seatTokens];
+      const moves = legalMoves(seatTokens, 6, 1, S, allTokens);
+      // t1 can deploy (own block), t2 and t3 can move
+      expect(moves.find((m) => m.tokenId === "t1")).toBeDefined();
+    });
+  });
 });

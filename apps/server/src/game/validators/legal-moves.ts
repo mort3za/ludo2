@@ -1,5 +1,6 @@
 import { parseCell, startSquare, stepPath, isOvershoot, HOME_COLUMN_LENGTH } from "@ludo/shared";
 import type { Token } from "@ludo/shared";
+import { findBlocks, isBlockedByOpponent } from "../rules/blocks.js";
 
 export interface LegalMove {
   tokenId: string;
@@ -14,16 +15,17 @@ export interface LegalMove {
  * @param diceValue - the rolled die value (1-6)
  * @param seat - the seat index (1-based)
  * @param S - total number of seats in the game
- * @param _allTokens - all tokens on the board (for future block checks)
+ * @param allTokens - all tokens on the board (for block checks)
  */
 export function legalMoves(
   seatTokens: Token[],
   diceValue: number,
   seat: number,
   S: number,
-  _allTokens: Token[],
+  allTokens: Token[],
 ): LegalMove[] {
   const moves: LegalMove[] = [];
+  const blocks = findBlocks([...seatTokens, ...allTokens.filter((t) => !seatTokens.some((st) => st.id === t.id))]);
 
   for (const token of seatTokens) {
     const parsed = parseCell(token.cell);
@@ -36,10 +38,16 @@ export function legalMoves(
     if (parsed.kind === "yard") {
       // Deploy requires a 6
       if (diceValue === 6) {
+        const dest = startSquare(seat, S);
+        // Check if opponent block is on start square
+        const blockColor = blocks.get(dest);
+        if (blockColor !== undefined && blockColor !== token.color) {
+          continue;
+        }
         moves.push({
           tokenId: token.id,
           from: token.cell,
-          to: startSquare(seat, S),
+          to: dest,
         });
       }
       continue;
@@ -51,6 +59,9 @@ export function legalMoves(
 
     // Check overshoot
     if (isOvershoot(path)) continue;
+
+    // Check if path is blocked by opponent block
+    if (isBlockedByOpponent(path, token.color, blocks)) continue;
 
     const destination = path[path.length - 1]!;
     moves.push({
