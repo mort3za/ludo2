@@ -112,7 +112,7 @@ const server = Bun.serve<WsData>({
     close(ws) {
       const client = wsClients.get(ws);
       if (!client) return;
-      router.removeClient(client);
+      router.handleClose(client);
       wsClients.delete(ws);
     },
   },

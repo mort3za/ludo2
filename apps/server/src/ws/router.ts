@@ -1,5 +1,5 @@
 import type { ClientMessage, ServerMessage } from "@ludo/shared";
-import { setReady, canStart, startGame, type Room } from "../rooms/room.js";
+import { setReady, canStart, startGame, leaveRoom, type Room } from "../rooms/room.js";
 import { initGame } from "../rooms/init-game.js";
 import { createCryptoRng } from "../game/rng/rng.js";
 import {
@@ -23,6 +23,7 @@ export interface Router {
   broadcastLobby: (roomId: string, room: Room) => void;
   addClient: (client: WsClient) => void;
   removeClient: (client: WsClient) => void;
+  handleClose: (client: WsClient) => void;
 }
 
 export function createRouter(rooms: RoomStore): Router {
@@ -52,6 +53,10 @@ export function createRouter(rooms: RoomStore): Router {
 
     switch (message.type) {
       case "ready": {
+        if (room.phase !== "lobby") {
+          client.send({ type: "error", message: "not-in-lobby" });
+          break;
+        }
         const current = room.members.get(client.playerId);
         const result = setReady(room, client.playerId, !(current?.ready ?? false));
         if (result.ok) {
@@ -143,5 +148,18 @@ export function createRouter(rooms: RoomStore): Router {
     clients.delete(client);
   }
 
-  return { dispatch, broadcast, broadcastLobby, addClient, removeClient };
+  function handleClose(client: WsClient): void {
+    removeClient(client);
+    const room = rooms.get(client.roomId);
+    if (!room) return;
+    if (room.phase === "lobby") {
+      const result = leaveRoom(room, client.playerId);
+      if (result.ok) {
+        rooms.set(client.roomId, result.room);
+        broadcastLobby(client.roomId, result.room);
+      }
+    }
+  }
+
+  return { dispatch, broadcast, broadcastLobby, addClient, removeClient, handleClose };
 }
