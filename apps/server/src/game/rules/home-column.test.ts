@@ -1,0 +1,102 @@
+import { describe, it, expect } from "vitest";
+import { legalMoves } from "../validators/legal-moves.js";
+import type { Token, PlayerColor } from "@ludo/shared";
+
+const S = 4;
+
+function makeToken(id: string, cell: string, color: PlayerColor = "blue"): Token {
+  return { id, color, cell };
+}
+
+describe("home-column rules", () => {
+  describe("capacity-1 occupancy", () => {
+    it("cannot move to a home cell already occupied by own token", () => {
+      const seatTokens = [
+        makeToken("t1", "H/1/1", "blue"),
+        makeToken("t2", "H/1/3", "blue"), // occupies H/1/3
+      ];
+      // t1 wants to move 2 steps → H/1/3 (occupied)
+      const moves = legalMoves(seatTokens, 2, 1, S, seatTokens);
+      const t1Move = moves.find((m) => m.tokenId === "t1");
+      expect(t1Move).toBeUndefined();
+    });
+
+    it("cannot move through an occupied home cell", () => {
+      const seatTokens = [
+        makeToken("t1", "H/1/1", "blue"),
+        makeToken("t2", "H/1/2", "blue"), // occupies H/1/2
+      ];
+      // t1 wants to move 3 steps → path: H/1/2(occupied!), H/1/3, H/1/4
+      const moves = legalMoves(seatTokens, 3, 1, S, seatTokens);
+      const t1Move = moves.find((m) => m.tokenId === "t1");
+      expect(t1Move).toBeUndefined();
+    });
+
+    it("allows move to empty home cell", () => {
+      const seatTokens = [
+        makeToken("t1", "H/1/1", "blue"),
+      ];
+      const moves = legalMoves(seatTokens, 2, 1, S, seatTokens);
+      const t1Move = moves.find((m) => m.tokenId === "t1");
+      expect(t1Move).toBeDefined();
+      expect(t1Move!.to).toBe("H/1/3");
+    });
+
+    it("allows move when path has no occupied home cells", () => {
+      const seatTokens = [
+        makeToken("t1", "H/1/1", "blue"),
+        makeToken("t2", "H/1/4", "blue"), // finished, not in the way
+      ];
+      const moves = legalMoves(seatTokens, 2, 1, S, seatTokens);
+      const t1Move = moves.find((m) => m.tokenId === "t1");
+      expect(t1Move).toBeDefined();
+      expect(t1Move!.to).toBe("H/1/3");
+    });
+  });
+
+  describe("entry from track to home", () => {
+    it("enters home column when passing through entry square", () => {
+      // Seat 1 entry = T/52. From T/51, step 3: T/52(entry)→H/1/1, H/1/2
+      const seatTokens = [makeToken("t1", "T/51", "blue")];
+      const moves = legalMoves(seatTokens, 3, 1, S, seatTokens);
+      expect(moves[0]!.to).toBe("H/1/2");
+    });
+
+    it("cannot enter home if first home cell is occupied", () => {
+      const seatTokens = [
+        makeToken("t1", "T/51", "blue"),
+        makeToken("t2", "H/1/1", "blue"), // occupies H/1/1
+      ];
+      // From T/51, step 2: T/52(entry)→H/1/1(occupied!)
+      const moves = legalMoves(seatTokens, 2, 1, S, seatTokens);
+      const t1Move = moves.find((m) => m.tokenId === "t1");
+      expect(t1Move).toBeUndefined();
+    });
+  });
+
+  describe("exact roll to finish", () => {
+    it("requires exact roll to reach H/si/4", () => {
+      const seatTokens = [makeToken("t1", "H/1/2", "blue")];
+      // Need exactly 2 to reach H/1/4
+      const moves = legalMoves(seatTokens, 2, 1, S, seatTokens);
+      expect(moves[0]!.to).toBe("H/1/4");
+    });
+
+    it("rejects overshoot past H/si/4", () => {
+      const seatTokens = [makeToken("t1", "H/1/2", "blue")];
+      // 3 would go to H/1/5 (overshoot)
+      const moves = legalMoves(seatTokens, 3, 1, S, seatTokens);
+      expect(moves).toEqual([]);
+    });
+  });
+
+  describe("no captures inside home", () => {
+    it("does not attempt capture in home column", () => {
+      // This is already handled by move.ts, but verify via legalMoves
+      // that landing in home is always safe
+      const seatTokens = [makeToken("t1", "H/1/1", "blue")];
+      const moves = legalMoves(seatTokens, 1, 1, S, seatTokens);
+      expect(moves).toEqual([{ tokenId: "t1", from: "H/1/1", to: "H/1/2" }]);
+    });
+  });
+});

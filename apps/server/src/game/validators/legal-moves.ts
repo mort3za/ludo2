@@ -63,6 +63,9 @@ export function legalMoves(
     // Check if path is blocked by opponent block
     if (isBlockedByOpponent(path, token.color, blocks)) continue;
 
+    // Check home-column capacity-1: no occupied home cells in path
+    if (isHomePathBlocked(path, token.id, allTokens)) continue;
+
     const destination = path[path.length - 1]!;
     moves.push({
       tokenId: token.id,
@@ -72,4 +75,27 @@ export function legalMoves(
   }
 
   return moves;
+}
+
+/**
+ * Check if any home-column cell in the path is already occupied
+ * by another token (capacity-1 rule).
+ */
+function isHomePathBlocked(path: string[], movingTokenId: string, allTokens: Token[]): boolean {
+  const occupiedHomeCells = new Set(
+    allTokens
+      .filter((t) => t.id !== movingTokenId && t.cell.startsWith("H/"))
+      .filter((t) => {
+        const p = parseCell(t.cell);
+        return p.kind === "home" && p.index < HOME_COLUMN_LENGTH;
+      })
+      .map((t) => t.cell),
+  );
+
+  for (const cell of path) {
+    if (cell.startsWith("H/") && occupiedHomeCells.has(cell)) {
+      return true;
+    }
+  }
+  return false;
 }
