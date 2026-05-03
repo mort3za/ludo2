@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
-import { DButton, DCard } from "@/shared/ui";
+import { DButton, DCard, DInput } from "@/shared/ui";
 import { useSessionStore } from "@/stores/session";
+import { guestLogin } from "@/shared/api/client";
 import { createWsConnection, type WsConnection } from "@/shared/lib/ws";
 import ReconnectBanner from "@/features/match/ReconnectBanner.vue";
 import type { ServerMessage, LobbyPlayer } from "@ludo/shared";
@@ -14,6 +15,10 @@ const session = useSessionStore();
 const players = ref<LobbyPlayer[]>([]);
 const ownerId = ref("");
 const gameStarted = ref(false);
+const joined = ref(false);
+const joinName = ref("");
+const joinLoading = ref(false);
+const joinError = ref("");
 
 const myReady = computed(
   () => players.value.find((p) => p.playerId === session.playerId)?.ready ?? false,
@@ -37,18 +42,40 @@ function handleMessage(msg: ServerMessage) {
   }
 }
 
-onMounted(() => {
-  if (!session.token) {
-    router.push({ name: "home" });
-    return;
-  }
-  ws = createWsConnection(props.roomId, session.token);
+function connectWs() {
+  ws = createWsConnection(props.roomId, session.token!);
   ws.onMessage(handleMessage);
+  joined.value = true;
+}
+
+onMounted(() => {
+  if (session.token) {
+    connectWs();
+  }
 });
 
 onUnmounted(() => {
   ws?.close();
 });
+
+async function handleJoin() {
+  joinError.value = "";
+  const trimmed = joinName.value.trim();
+  if (!trimmed) {
+    joinError.value = "Enter your name";
+    return;
+  }
+  joinLoading.value = true;
+  try {
+    const auth = await guestLogin(trimmed);
+    session.login(auth.token, auth.playerId);
+    connectWs();
+  } catch (e) {
+    joinError.value = e instanceof Error ? e.message : "Something went wrong";
+  } finally {
+    joinLoading.value = false;
+  }
+}
 
 function toggleReady() {
   ws?.send({ type: "ready" });
@@ -63,7 +90,22 @@ function startGame() {
   <main class="min-h-screen flex items-center justify-center bg-canvas-white">
     <ReconnectBanner v-if="ws" :status="ws.status.value" />
 
-    <DCard class="p-8 w-full max-w-sm">
+    <!-- Join form for users without a session -->
+    <DCard v-if="!joined" class="p-8 w-full max-w-sm">
+      <h2 class="text-heading font-sans text-midnight-ink text-center mb-6">Join Room</h2>
+      <form class="flex flex-col gap-4" @submit.prevent="handleJoin">
+        <DInput v-model="joinName" placeholder="Your name" data-testid="join-name-input" />
+        <DButton :disabled="joinLoading" data-testid="join-btn">
+          {{ joinLoading ? "Joining…" : "Join" }}
+        </DButton>
+        <p v-if="joinError" class="text-caption text-red-500 font-sans text-center">
+          {{ joinError }}
+        </p>
+      </form>
+    </DCard>
+
+    <!-- Lobby view after joining -->
+    <DCard v-else class="p-8 w-full max-w-sm">
       <h2 class="text-heading font-sans text-midnight-ink text-center mb-2">Room Lobby</h2>
       <p class="text-body-sm text-subtle-gray text-center mb-6 font-sans" data-testid="room-id">
         {{ roomId }}
