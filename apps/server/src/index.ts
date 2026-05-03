@@ -95,6 +95,17 @@ const server = Bun.serve<WsData>({
       } else {
         router.broadcastLobby(roomId, joinResult.room);
       }
+
+      // Re-emit game state for reconnecting players
+      const session = router.getGameSession(roomId);
+      if (session && session.state.status !== "finished") {
+        client.send({ type: "state", state: session.state });
+        client.send({
+          type: "turn",
+          seat: session.state.activeSeat,
+          deadline: Date.now() + 30000,
+        });
+      }
     },
     message(ws, message) {
       const client = wsClients.get(ws);

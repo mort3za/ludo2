@@ -114,4 +114,32 @@ describe("WS router", () => {
       expect(c1.send).not.toHaveBeenCalled();
     });
   });
+
+  describe("getGameSession", () => {
+    it("returns undefined when no game is active", () => {
+      const room = makeLobbyRoom(["p1", "p2"]);
+      rooms.set("room-1", room);
+      const router = createRouter(rooms);
+      expect(router.getGameSession("room-1")).toBeUndefined();
+    });
+
+    it("returns the game session after start", () => {
+      // Create a room with 4 players all ready
+      let room = makeLobbyRoom(["p1", "p2", "p3", "p4"]);
+      for (const pid of ["p1", "p2", "p3", "p4"]) {
+        room = (setReady(room, pid, true) as { ok: true; room: Room }).room;
+      }
+      rooms.set("room-1", room);
+
+      const router = createRouter(rooms);
+      const c1 = makeMockClient("p1");
+      router.addClient(c1);
+
+      router.dispatch(c1, { type: "start" });
+
+      const session = router.getGameSession("room-1");
+      expect(session).toBeDefined();
+      expect(session!.state.status).toBe("rolling");
+    });
+  });
 });

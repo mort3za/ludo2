@@ -1,4 +1,5 @@
 import type { ClientMessage, ServerMessage } from "@ludo/shared";
+import { TIMINGS } from "@ludo/shared";
 import { setReady, canStart, startGame, leaveRoom, type Room } from "../rooms/room.js";
 import { initGame } from "../rooms/init-game.js";
 import { createCryptoRng } from "../game/rng/rng.js";
@@ -6,6 +7,7 @@ import {
   createGameSession,
   handleRoll,
   handleMove,
+  handleTimeout,
   type GameSession,
 } from "../rooms/game-session.js";
 
@@ -24,11 +26,38 @@ export interface Router {
   addClient: (client: WsClient) => void;
   removeClient: (client: WsClient) => void;
   handleClose: (client: WsClient) => void;
+  getGameSession: (roomId: string) => GameSession | undefined;
 }
 
 export function createRouter(rooms: RoomStore): Router {
   const clients = new Set<WsClient>();
   const gameSessions = new Map<string, GameSession>();
+  const turnTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+  function scheduleTurnTimeout(roomId: string) {
+    clearTurnTimeout(roomId);
+    turnTimers.set(
+      roomId,
+      setTimeout(() => {
+        const session = gameSessions.get(roomId);
+        if (!session || (session.state.status as string) === "finished") return;
+        const msgs = handleTimeout(session);
+        for (const msg of msgs) broadcast(roomId, msg);
+        // If the game isn't finished, a new turn was emitted which schedules next timeout
+        if ((session.state.status as string) !== "finished") {
+          scheduleTurnTimeout(roomId);
+        }
+      }, TIMINGS.turnTimeout),
+    );
+  }
+
+  function clearTurnTimeout(roomId: string) {
+    const existing = turnTimers.get(roomId);
+    if (existing) {
+      clearTimeout(existing);
+      turnTimers.delete(roomId);
+    }
+  }
 
   function broadcastLobby(roomId: string, room: Room): void {
     const players = [...room.members.values()].map((m) => ({
@@ -85,8 +114,9 @@ export function createRouter(rooms: RoomStore): Router {
           broadcast(client.roomId, {
             type: "turn",
             seat: state.activeSeat,
-            deadline: Date.now() + 30000,
+            deadline: Date.now() + TIMINGS.turnTimeout,
           });
+          scheduleTurnTimeout(client.roomId);
         } else {
           client.send({ type: "error", message: startResult.error });
         }
@@ -107,6 +137,12 @@ export function createRouter(rooms: RoomStore): Router {
         }
         const rollMsgs = handleRoll(session);
         for (const msg of rollMsgs) broadcast(client.roomId, msg);
+        // Reschedule timeout after player action
+        if (session.state.status !== "finished") {
+          scheduleTurnTimeout(client.roomId);
+        } else {
+          clearTurnTimeout(client.roomId);
+        }
         break;
       }
 
@@ -123,6 +159,12 @@ export function createRouter(rooms: RoomStore): Router {
         }
         const moveMsgs = handleMove(session, message.tokenId);
         for (const msg of moveMsgs) broadcast(client.roomId, msg);
+        // Reschedule timeout after player action
+        if (session.state.status !== "finished") {
+          scheduleTurnTimeout(client.roomId);
+        } else {
+          clearTurnTimeout(client.roomId);
+        }
         break;
       }
 
@@ -161,5 +203,17 @@ export function createRouter(rooms: RoomStore): Router {
     }
   }
 
-  return { dispatch, broadcast, broadcastLobby, addClient, removeClient, handleClose };
+  return {
+    dispatch,
+    broadcast,
+    broadcastLobby,
+    addClient,
+    removeClient,
+    handleClose,
+    getGameSession,
+  };
+
+  function getGameSession(roomId: string): GameSession | undefined {
+    return gameSessions.get(roomId);
+  }
 }
