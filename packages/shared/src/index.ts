@@ -14,3 +14,6 @@ export { startSquare, entrySquare } from "./board/seats.js";
 export { stepPath } from "./board/movement.js";
 export { isSafeSquare, isOvershoot } from "./board/rules.js";
 export { drawPalette } from "./board/palette.js";
+export { findBlocks, isBlockedByOpponent } from "./board/blocks.js";
+export { legalMoves } from "./board/legal-moves.js";
+export type { LegalMove } from "./board/legal-moves.js";
