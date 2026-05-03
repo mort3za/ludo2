@@ -55,6 +55,7 @@ const legalTokenIds = computed(() => {
 });
 
 function onServerMessage(msg: ServerMessage) {
+  console.log("[ws]", msg.type, msg);
   handleMessage(msg);
 
   if (msg.type === "turn") {
@@ -74,6 +75,14 @@ function onRoll() {
 }
 
 function onMove(tokenId: string) {
+  console.log(
+    "[onMove]",
+    tokenId,
+    "status:",
+    gameState.value?.status,
+    "dice:",
+    gameState.value?.diceValue,
+  );
   ws?.send({ type: "move", tokenId });
 }
 
