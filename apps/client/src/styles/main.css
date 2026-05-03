@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  /* — Colors — */
-  --color-midnight-ink: #000000;
-  --color-canvas-white: #ffffff;
-  --color-near-white: #f7f7f5;
-  --color-deep-charcoal: #292421;
-  --color-subtle-gray: #898683;
-  --color-card-wash: #edece7;
-  --color-quiet-black: #1a1816;
-  --color-medium-gray: #444444;
-  --color-onyx-button: #160f0c;
-  --color-light-steel: #b2afae;
-  --color-slate-text: #0d0d0d;
-  --color-input-fill: #eeeeee;
-  --color-accent-purple: #1b0624;
-  --color-muted-slate: #766a7c;
+  /* — Colors (dark mode) — */
+  --color-midnight-ink: #e5e5e5;
+  --color-canvas-white: #121212;
+  --color-near-white: #1e1e1e;
+  --color-deep-charcoal: #d4d0cd;
+  --color-subtle-gray: #9a9896;
+  --color-card-wash: #1a1a1a;
+  --color-quiet-black: #e0ddd9;
+  --color-medium-gray: #aaaaaa;
+  --color-onyx-button: #e8e0dc;
+  --color-light-steel: #555352;
+  --color-slate-text: #f0f0f0;
+  --color-input-fill: #2a2a2a;
+  --color-accent-purple: #d4b8e0;
+  --color-muted-slate: #a99aaf;
 
   /* — Type Scale — */
   --text-caption: 12px;
