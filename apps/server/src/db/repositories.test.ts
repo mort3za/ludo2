@@ -1,7 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { createDb, type Db } from "./connection.js";
-import { sql } from "drizzle-orm";
-import * as schema from "./schema.js";
+import { createDb, applySchema, type Db } from "./connection.js";
 import {
   insertPlayer,
   getPlayer,
@@ -15,37 +13,6 @@ import {
   getGameLog,
   purgeOldGames,
 } from "./repositories.js";
-
-function applySchema(db: Db) {
-  // Create tables manually for in-memory testing
-  db.run(sql`CREATE TABLE IF NOT EXISTS players (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    created_at INTEGER NOT NULL
-  )`);
-  db.run(sql`CREATE TABLE IF NOT EXISTS rooms (
-    id TEXT PRIMARY KEY,
-    owner_id TEXT,
-    board_size INTEGER NOT NULL,
-    phase TEXT NOT NULL,
-    game_id TEXT,
-    created_at INTEGER NOT NULL,
-    game_ended_at INTEGER
-  )`);
-  db.run(sql`CREATE TABLE IF NOT EXISTS games (
-    id TEXT PRIMARY KEY,
-    room_id TEXT NOT NULL,
-    status TEXT NOT NULL,
-    created_at INTEGER NOT NULL,
-    completed_at INTEGER
-  )`);
-  db.run(sql`CREATE TABLE IF NOT EXISTS move_log (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    game_id TEXT NOT NULL,
-    seq INTEGER NOT NULL,
-    entry TEXT NOT NULL
-  )`);
-}
 
 describe("repositories", () => {
   let db: Db;

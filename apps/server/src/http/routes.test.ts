@@ -1,27 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createHttpHandler, type HttpDeps } from "./routes.js";
 import { createGuestAuth, type GuestAuth } from "../auth/guest-auth.js";
-import { createDb, type Db } from "../db/connection.js";
-import { sql } from "drizzle-orm";
+import { createDb, applySchema, type Db } from "../db/connection.js";
 import { insertGame, completeGame, appendLogEntry, insertRoom } from "../db/repositories.js";
-
-function applySchema(db: Db) {
-  db.run(sql`CREATE TABLE IF NOT EXISTS players (
-    id TEXT PRIMARY KEY, name TEXT NOT NULL, created_at INTEGER NOT NULL
-  )`);
-  db.run(sql`CREATE TABLE IF NOT EXISTS rooms (
-    id TEXT PRIMARY KEY, owner_id TEXT, board_size INTEGER NOT NULL,
-    phase TEXT NOT NULL, game_id TEXT, created_at INTEGER NOT NULL, game_ended_at INTEGER
-  )`);
-  db.run(sql`CREATE TABLE IF NOT EXISTS games (
-    id TEXT PRIMARY KEY, room_id TEXT NOT NULL, status TEXT NOT NULL,
-    created_at INTEGER NOT NULL, completed_at INTEGER
-  )`);
-  db.run(sql`CREATE TABLE IF NOT EXISTS move_log (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, game_id TEXT NOT NULL,
-    seq INTEGER NOT NULL, entry TEXT NOT NULL
-  )`);
-}
 
 describe("HTTP routes", () => {
   let auth: GuestAuth;

@@ -3,7 +3,7 @@ import { createRoom, joinRoom } from "./rooms/room.js";
 import { createRouter, type WsClient, type RoomStore } from "./ws/router.js";
 import { parseClientMessage } from "./ws/protocol.js";
 import { createHttpHandler } from "./http/routes.js";
-import { createDb } from "./db/connection.js";
+import { createDb, applySchema } from "./db/connection.js";
 import type { ServerMessage } from "@ludo/shared";
 
 // --- Configuration ---
@@ -14,6 +14,7 @@ const BOARD_SIZE = 4;
 // --- Singletons ---
 const auth = createGuestAuth(JWT_SECRET);
 const db = createDb(); // in-memory SQLite
+applySchema(db);
 const rooms: RoomStore = new Map();
 const router = createRouter(rooms);
 const httpHandler = createHttpHandler({ auth, db, boardSize: BOARD_SIZE });
