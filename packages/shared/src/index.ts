@@ -13,3 +13,4 @@ export { parseCell, yard, track, home } from "./board/cell.js";
 export { startSquare, entrySquare } from "./board/seats.js";
 export { stepPath } from "./board/movement.js";
 export { isSafeSquare, isOvershoot } from "./board/rules.js";
+export { drawPalette } from "./board/palette.js";
