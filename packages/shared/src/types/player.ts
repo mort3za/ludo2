@@ -1,12 +1,14 @@
 export type PlayerColor =
-  | "red"
   | "blue"
+  | "red"
   | "green"
   | "yellow"
-  | "orange"
   | "purple"
-  | "teal"
+  | "orange"
+  | "cyan"
   | "pink";
+
+export type SeatState = "active" | "vacant" | "empty";
 
 export interface Player {
   id: string;

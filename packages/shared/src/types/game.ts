@@ -1,18 +1,30 @@
-import type { PlayerColor } from "./player.js";
+import type { PlayerColor, SeatState } from "./player.js";
 
-export type GameStatus = "waiting" | "rolling" | "moving" | "finished";
+/** Cell ID — slash-delimited string: Y/<seat>/<slot>, T/<index>, H/<seat>/<i> */
+export type Cell = string;
 
-export interface Piece {
+export type GameStatus = "waiting" | "tiebreaker" | "rolling" | "moving" | "finished";
+
+export interface Token {
   id: string;
   color: PlayerColor;
-  position: Cell;
+  cell: Cell;
 }
 
-export type Cell = string; // e.g. "Y/1/1", "T/5", "H/2/3"
+export interface Seat {
+  index: number;
+  state: SeatState;
+  color: PlayerColor;
+  playerId: string | null;
+}
 
 export interface GameState {
+  gameId: string;
   status: GameStatus;
-  pieces: Piece[];
+  seats: Seat[];
+  tokens: Token[];
   activeSeat: number;
   diceValue: number | null;
+  consecutiveSixes: number;
+  standings: number[];
 }
