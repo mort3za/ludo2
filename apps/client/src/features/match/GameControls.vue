@@ -47,12 +47,16 @@ const statusText = computed(() => {
   <div class="flex flex-col items-center gap-3">
     <p class="text-body-sm text-subtle-gray font-sans">{{ statusText }}</p>
 
-    <!-- Roll button -->
-    <DButton v-if="phase === 'roll'" @click="emit('roll')"> Roll </DButton>
+    <!-- Roll button + Dice result -->
+    <div class="flex items-center gap-3">
+      <DButton v-if="phase === 'roll'" @click="emit('roll')"> Roll </DButton>
 
-    <!-- Dice result -->
-    <div v-if="state.diceValue" class="text-display font-sans text-midnight-ink">
-      {{ state.diceValue }}
+      <div
+        v-if="state.diceValue"
+        class="flex items-center justify-center size-12 rounded-lg bg-onyx-button text-canvas-white text-heading font-sans font-bold"
+      >
+        {{ state.diceValue }}
+      </div>
     </div>
 
     <!-- Token pick buttons -->
