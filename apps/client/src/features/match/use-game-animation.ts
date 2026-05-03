@@ -28,6 +28,18 @@ export function useGameAnimation(): GameAnimationState {
   const gameState = ref<GameState | null>(null);
   const animating = ref<AnimatingToken | null>(null);
 
+  /** Timestamp of the last "rolled" message, used to keep dice visible briefly. */
+  let lastRolledAt = 0;
+  let pendingTurnTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function applyTurn(msg: { seat: number }) {
+    if (gameState.value) {
+      gameState.value.activeSeat = msg.seat;
+      gameState.value.diceValue = null;
+      gameState.value.status = "rolling";
+    }
+  }
+
   function handleMessage(msg: ServerMessage) {
     switch (msg.type) {
       case "state":
@@ -71,15 +83,24 @@ export function useGameAnimation(): GameAnimationState {
         if (gameState.value) {
           gameState.value.diceValue = msg.value;
         }
+        lastRolledAt = Date.now();
         break;
 
-      case "turn":
-        if (gameState.value) {
-          gameState.value.activeSeat = msg.seat;
-          gameState.value.diceValue = null;
-          gameState.value.status = "rolling";
+      case "turn": {
+        if (pendingTurnTimer) clearTimeout(pendingTurnTimer);
+        const elapsed = Date.now() - lastRolledAt;
+        const MIN_DICE_DISPLAY_MS = 1000;
+        if (elapsed < MIN_DICE_DISPLAY_MS && lastRolledAt > 0) {
+          const turnMsg = msg;
+          pendingTurnTimer = setTimeout(() => {
+            applyTurn(turnMsg);
+            pendingTurnTimer = null;
+          }, MIN_DICE_DISPLAY_MS - elapsed);
+        } else {
+          applyTurn(msg);
         }
         break;
+      }
 
       case "finished":
         if (gameState.value) {
