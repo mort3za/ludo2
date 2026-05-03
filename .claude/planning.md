@@ -102,6 +102,10 @@
 > - entry point `src/index.ts`
 > - **Drizzle ORM** for persistence
 > - **SQLite** for initial development and local deployment
+> - **`jose`** for JWT creation and verification (guest-first auth; no sign-up wall)
+>
+> ### Auth strategy
+> Guest-first with JWT sessions. On first visit the server auto-creates a guest identity and issues a signed JWT. The client stores it in `localStorage` and sends it as a `Bearer` token on HTTP requests and as a query param during WS upgrade. The server validates the JWT and binds session → player → seat. Social/OAuth login is deferred (add `arctic` when needed).
 >
 > Important: database code belongs only to the server app. Do not place Drizzle or SQLite in the client app.
 >
@@ -229,9 +233,10 @@
 - [ ] tests → impl: room lifecycle — link-only create, owner authority, join until cap `S`, ready gating, owner-only start, rematch with re-drawn colors and currently-seated players auto-seated, 60s post-game window, 15min pre-game idle expiry
 - [ ] tests → impl: WebSocket protocol routing — validate every incoming `ClientMessage`, reject malformed, dispatch to room/engine, broadcast `ServerMessage` to all subscribers and spectators
 - [ ] tests → impl: reconnect — passive resync via move-log replay; reconnect alone never resets the missed-turn counter
-- [ ] Boot `Bun.serve()` with HTTP + WS upgrade, connection registry, session→seat binding
+- [ ] tests → impl: guest auth — `jose` JWT issue on first visit, verify on subsequent requests; token refresh; reject expired/tampered tokens
+- [ ] Boot `Bun.serve()` with HTTP + WS upgrade, connection registry, JWT verification on upgrade, session→seat binding
 - [ ] tests → impl: Drizzle repositories on in-memory SQLite for rooms, players, games, and the move log; 24h retention policy on completed games
-- [ ] HTTP endpoints: health, room create, game-history fetch (read-only)
+- [ ] HTTP endpoints: health, guest-auth (issue/refresh token), room create, game-history fetch (read-only)
 
 ### Phase 4 — Client shell & Duna design system
 
