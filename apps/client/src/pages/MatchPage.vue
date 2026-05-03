@@ -99,6 +99,7 @@ onUnmounted(() => {
 
     <div v-if="gameState" class="w-full max-w-lg flex flex-col items-center gap-4">
       <BoardView
+        class="h-[50vh]"
         :board-size="gameState.seats.length"
         :local-seat="mySeat ?? undefined"
         :tokens="gameState.tokens"
