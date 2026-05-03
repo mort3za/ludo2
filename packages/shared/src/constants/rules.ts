@@ -3,9 +3,10 @@ export const DEFAULT_RULES = {
   extraTurnOnSix: true,
   captureSendsHome: true,
   mustRollSixToStart: true,
+  consecutiveSixLimit: 3,
 } as const;
 
-/** Timing defaults (milliseconds) */
+/** Timing defaults (milliseconds unless noted) */
 export const TIMINGS = {
   turnTimeout: 30_000,
   kickAfterMisses: 3,

@@ -13,12 +13,12 @@ export const TOKENS_PER_PLAYER = 4;
 
 /** All 8 available colors in seat order */
 export const COLOR_PALETTE = [
-  "red",
   "blue",
+  "red",
   "green",
   "yellow",
-  "orange",
   "purple",
-  "teal",
+  "orange",
+  "cyan",
   "pink",
 ] as const;
