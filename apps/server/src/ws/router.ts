@@ -34,7 +34,10 @@ export function createRouter(rooms: RoomStore): Router {
   const gameSessions = new Map<string, GameSession>();
   const turnTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
+  const isProduction = process.env["NODE_ENV"] === "production";
+
   function scheduleTurnTimeout(roomId: string) {
+    if (!isProduction) return;
     clearTurnTimeout(roomId);
     turnTimers.set(
       roomId,

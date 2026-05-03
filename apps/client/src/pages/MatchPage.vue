@@ -103,6 +103,8 @@ onUnmounted(() => {
         :board-size="gameState.seats.length"
         :local-seat="mySeat ?? undefined"
         :tokens="gameState.tokens"
+        :legal-token-ids="legalTokenIds"
+        @move="onMove"
       />
 
       <TurnTimer :deadline="deadline" />

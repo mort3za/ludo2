@@ -8,7 +8,14 @@ const props = defineProps<{
   boardSize: number;
   localSeat?: number;
   tokens?: Token[];
+  legalTokenIds?: string[];
 }>();
+
+const emit = defineEmits<{
+  move: [tokenId: string];
+}>();
+
+const legalSet = computed(() => new Set(props.legalTokenIds ?? []));
 
 const layout = computed(() => computeBoardLayout(props.boardSize));
 
@@ -72,8 +79,13 @@ function startSquareColor(cellId: string): string | null {
         dominant-baseline="central"
         :font-size="layout.cellSize * 0.8"
         fill="#898683"
-        :style="{ transform: `rotate(${-rotation}deg)`, transformOrigin: `${cell.x}px ${cell.y}px` }"
-      >★</text>
+        :style="{
+          transform: `rotate(${-rotation}deg)`,
+          transformOrigin: `${cell.x}px ${cell.y}px`,
+        }"
+      >
+        ★
+      </text>
     </template>
 
     <!-- Home columns -->
@@ -127,7 +139,9 @@ function startSquareColor(cellId: string): string | null {
         :fill="playerColorHex(token.color)"
         stroke="#1a1816"
         :stroke-width="layout.cellSize * 0.12"
-        class="transition-all duration-300"
+        :class="['transition-all duration-300', legalSet.has(token.id) && 'cursor-pointer']"
+        :style="legalSet.has(token.id) ? { filter: 'drop-shadow(0 0 4px #fff)' } : {}"
+        @click="legalSet.has(token.id) && emit('move', token.id)"
       />
     </template>
   </svg>

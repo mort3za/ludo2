@@ -10,6 +10,7 @@ const props = defineProps<{
 
 const remaining = ref(0);
 let timerId: ReturnType<typeof setInterval> | null = null;
+const isDev = import.meta.env.DEV;
 
 const threshold = computed(() => props.warnThreshold ?? 5000);
 const isWarning = computed(() => remaining.value > 0 && remaining.value <= threshold.value);
@@ -48,7 +49,7 @@ onUnmounted(() => {
 
 <template>
   <div
-    v-if="deadline && remaining > 0"
+    v-if="!isDev && deadline && remaining > 0"
     class="font-sans text-heading tabular-nums transition-colors"
     :class="isWarning ? 'text-red-500 animate-pulse' : 'text-subtle-gray'"
   >

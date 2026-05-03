@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { DButton } from "@/shared/ui";
+import { playerColorHex } from "@/entities/game/board-geometry";
 import type { GameState, Token } from "@ludo/shared";
 
 const props = defineProps<{
@@ -16,6 +17,11 @@ const emit = defineEmits<{
 
 const isMyTurn = computed(() => props.state.activeSeat === props.mySeat);
 
+const activeSeatColor = computed(() => {
+  const seat = props.state.seats.find((s) => s.index === props.state.activeSeat);
+  return seat ? playerColorHex(seat.color) : "#888";
+});
+
 const phase = computed(() => {
   if (!isMyTurn.value) return "waiting" as const;
   if (props.state.status === "rolling") return "roll" as const;
@@ -30,7 +36,7 @@ const phase = computed(() => {
 const statusText = computed(() => {
   switch (phase.value) {
     case "waiting":
-      return `Seat ${props.state.activeSeat}'s turn`;
+      return "Their turn";
     case "roll":
       return "Your turn — roll the dice!";
     case "no-moves":
@@ -45,7 +51,13 @@ const statusText = computed(() => {
 
 <template>
   <div class="flex flex-col items-center gap-3">
-    <p class="text-body-sm text-subtle-gray font-sans">{{ statusText }}</p>
+    <p class="text-body-sm text-subtle-gray font-sans flex items-center gap-1.5">
+      <span
+        class="inline-block size-3 rounded-full"
+        :style="{ backgroundColor: activeSeatColor }"
+      ></span>
+      {{ statusText }}
+    </p>
 
     <!-- Roll button + Dice result -->
     <div class="flex items-center gap-3">
