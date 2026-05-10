@@ -1,9 +1,17 @@
 <script setup lang="ts">
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { computed } from "vue";
+import { useSessionStore } from "@/stores/session";
 
 const route = useRoute();
+const router = useRouter();
+const session = useSessionStore();
 const isHome = computed(() => route.name === "home");
+
+function logout() {
+  session.logout();
+  router.push("/");
+}
 </script>
 
 <template>
@@ -14,5 +22,12 @@ const isHome = computed(() => route.name === "home");
     >
       ← Home
     </router-link>
+    <button
+      v-if="session.isLoggedIn"
+      class="ml-auto text-body-sm font-sans text-subtle-gray hover:text-midnight-ink transition-colors"
+      @click="logout"
+    >
+      Log out
+    </button>
   </header>
 </template>

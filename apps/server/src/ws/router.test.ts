@@ -147,7 +147,9 @@ describe("WS router", () => {
 
   describe("rematch", () => {
     function setupFinishedGame() {
-      const room = makeLobbyRoom(["p1", "p2"]);
+      let room = makeLobbyRoom(["p1", "p2"]);
+      room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
+      room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
       rooms.set("room-1", room);
       const router = createRouter(rooms);
       const c1 = makeMockClient("p1");
@@ -171,7 +173,9 @@ describe("WS router", () => {
     });
 
     it("returns error when game is not finished", () => {
-      const room = makeLobbyRoom(["p1", "p2"]);
+      let room = makeLobbyRoom(["p1", "p2"]);
+      room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
+      room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
       rooms.set("room-1", room);
       const router = createRouter(rooms);
       const c1 = makeMockClient("p1");

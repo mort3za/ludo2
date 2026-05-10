@@ -52,6 +52,15 @@
   --header-height: 36px;
 }
 
+html {
+  background-image: url('../assets/bg-1.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  min-height: 100%;
+}
+
 main {
   margin-top: var(--header-height);
 }

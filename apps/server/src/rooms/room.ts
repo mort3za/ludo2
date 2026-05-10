@@ -56,8 +56,7 @@ export function joinRoom(room: Room, playerId: string, name: string): Result<{ r
   }
 
   const members = cloneMembers(room.members);
-  const autoReady = process.env["NODE_ENV"] !== "production";
-  members.set(playerId, { playerId, name, ready: autoReady });
+  members.set(playerId, { playerId, name, ready: false });
 
   return {
     ok: true,

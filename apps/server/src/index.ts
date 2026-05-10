@@ -75,6 +75,7 @@ const server = Bun.serve<WsData>({
       // Join room
       const room = rooms.get(roomId)!;
       const joinResult = joinRoom(room, playerId, name);
+      const isExistingMember = room.members.has(playerId);
       if (joinResult.ok) {
         rooms.set(roomId, joinResult.room);
       }
@@ -90,9 +91,9 @@ const server = Bun.serve<WsData>({
       wsClients.set(ws, client);
       router.addClient(client);
 
-      if (!joinResult.ok) {
+      if (!joinResult.ok && !isExistingMember) {
         client.send({ type: "error", message: joinResult.error });
-      } else {
+      } else if (joinResult.ok) {
         router.broadcastLobby(roomId, joinResult.room);
       }
 

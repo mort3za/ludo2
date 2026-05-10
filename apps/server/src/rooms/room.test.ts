@@ -38,7 +38,7 @@ describe("joinRoom", () => {
     expect(result.room.ownerId).toBe("p1");
     expect(result.room.members.size).toBe(1);
     expect(result.room.members.get("p1")?.name).toBe("Alice");
-    expect(result.room.members.get("p1")?.ready).toBe(true);
+    expect(result.room.members.get("p1")?.ready).toBe(false);
   });
 
   it("subsequent players join without becoming owner", () => {

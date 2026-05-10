@@ -51,9 +51,13 @@ test("create room → second player joins → both ready → game starts", async
   await player1.getByTestId("ready-btn").click();
   await player2.getByTestId("ready-btn").click();
 
+  await expect(player1.getByTestId("start-btn")).toBeEnabled();
+  await player1.getByTestId("start-btn").click();
+
   // Game should start — players navigate to match page
   // The game state message triggers navigation
   await player1.waitForURL(/\/match\/.+/, { timeout: 5000 });
+  await player2.waitForURL(/\/match\/.+/, { timeout: 5000 });
 
   // Clean up
   await ctx1.close();

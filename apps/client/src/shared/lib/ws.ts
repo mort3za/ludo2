@@ -19,35 +19,50 @@ export function createWsConnection(roomId: string, token: string): WsConnection 
   let ws: WebSocket | null = null;
   let reconnectAttempt = 0;
   let intentionalClose = false;
+  let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   let messageHandler: ((msg: ServerMessage) => void) | null = null;
 
   function connect() {
     const base = apiConfig.baseUrl || globalThis.location.origin;
     const wsBase = base.replace(/^http/, "ws");
-    ws = new WebSocket(`${wsBase}/ws/${roomId}?token=${encodeURIComponent(token)}`);
+    const socket = new WebSocket(`${wsBase}/ws/${roomId}?token=${encodeURIComponent(token)}`);
+    ws = socket;
     status.value = "connecting";
 
-    ws.onopen = () => {
+    socket.onopen = () => {
+      if (ws !== socket) return;
       status.value = "connected";
       reconnectAttempt = 0;
+      if (reconnectTimer !== null) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+      }
     };
 
-    ws.onmessage = (event) => {
+    socket.onmessage = (event) => {
+      if (ws !== socket) return;
       if (!messageHandler) return;
       const msg = JSON.parse(event.data as string) as ServerMessage;
       messageHandler(msg);
     };
 
-    ws.onclose = () => {
+    socket.onclose = () => {
+      if (ws !== socket) return;
       status.value = "disconnected";
       if (!intentionalClose && reconnectAttempt < MAX_RECONNECT_ATTEMPTS) {
         const delay = RECONNECT_DELAYS[reconnectAttempt]!;
         reconnectAttempt++;
-        setTimeout(connect, delay);
+        reconnectTimer = setTimeout(() => {
+          reconnectTimer = null;
+          if (ws === socket) {
+            connect();
+          }
+        }, delay);
       }
     };
 
-    ws.onerror = () => {
+    socket.onerror = () => {
+      if (ws !== socket) return;
       // onclose will fire after onerror
     };
   }
@@ -66,6 +81,10 @@ export function createWsConnection(roomId: string, token: string): WsConnection 
     },
     close() {
       intentionalClose = true;
+      if (reconnectTimer !== null) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+      }
       ws?.close();
     },
   };
