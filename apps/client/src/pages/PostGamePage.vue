@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useSessionStore } from "@/stores/session";
 import { useGameResultStore } from "@/stores/game-result";
+import { createWsConnection, type WsConnection } from "@/shared/lib/ws";
 import { DButton } from "@/shared/ui";
 import PostGameStandings from "@/features/match/PostGameStandings.vue";
 
@@ -17,10 +18,30 @@ const isOwner = computed(() => {
   return seat?.playerId === session.playerId;
 });
 
+let ws: WsConnection | null = null;
+
 function goToLobby() {
   gameResult.clear();
   router.push({ name: "room", params: { roomId: props.roomId } });
 }
+
+function sendRematch() {
+  ws?.send({ type: "rematch" });
+}
+
+onMounted(() => {
+  if (!session.token) return;
+  ws = createWsConnection(props.roomId, session.token);
+  ws.onMessage((msg) => {
+    if (msg.type === "state") {
+      router.push({ name: "match", params: { roomId: props.roomId } });
+    }
+  });
+});
+
+onUnmounted(() => {
+  ws?.close();
+});
 </script>
 
 <template>
@@ -34,6 +55,7 @@ function goToLobby() {
 
     <p v-else class="text-body-sm text-subtle-gray font-sans">No game data available.</p>
 
-    <DButton variant="ghost" class="mt-4" @click="goToLobby"> Back to Lobby </DButton>
+    <DButton v-if="isOwner" class="mt-4" @click="sendRematch">Rematch</DButton>
+    <DButton variant="ghost" class="mt-4" @click="goToLobby">Back to Lobby</DButton>
   </main>
 </template>

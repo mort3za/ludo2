@@ -144,4 +144,73 @@ describe("WS router", () => {
       expect(session!.state.status).toBe("rolling");
     });
   });
+
+  describe("rematch", () => {
+    function setupFinishedGame() {
+      const room = makeLobbyRoom(["p1", "p2"]);
+      rooms.set("room-1", room);
+      const router = createRouter(rooms);
+      const c1 = makeMockClient("p1");
+      const c2 = makeMockClient("p2");
+      router.addClient(c1);
+      router.addClient(c2);
+      router.dispatch(c1, { type: "start" });
+      const session = router.getGameSession("room-1")!;
+      session.state.status = "finished";
+      (c1.send as ReturnType<typeof vi.fn>).mockClear();
+      (c2.send as ReturnType<typeof vi.fn>).mockClear();
+      return { router, c1, c2, session };
+    }
+
+    it("returns error when sender is not owner", () => {
+      const { router, c2 } = setupFinishedGame();
+      router.dispatch(c2, { type: "rematch" });
+      expect(c2.send).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "error", message: "not-owner" }),
+      );
+    });
+
+    it("returns error when game is not finished", () => {
+      const room = makeLobbyRoom(["p1", "p2"]);
+      rooms.set("room-1", room);
+      const router = createRouter(rooms);
+      const c1 = makeMockClient("p1");
+      router.addClient(c1);
+      router.dispatch(c1, { type: "start" });
+      (c1.send as ReturnType<typeof vi.fn>).mockClear();
+
+      router.dispatch(c1, { type: "rematch" });
+
+      expect(c1.send).toHaveBeenCalledWith(expect.objectContaining({ type: "error" }));
+    });
+
+    it("broadcasts new state with same playerIds and empty standings", () => {
+      const { router, c1, c2, session } = setupFinishedGame();
+      const origPlayerIds = new Set(
+        session.state.seats.filter((s) => s.playerId !== null).map((s) => s.playerId),
+      );
+
+      router.dispatch(c1, { type: "rematch" });
+
+      const stateCall = (c1.send as ReturnType<typeof vi.fn>).mock.calls.find(
+        (call) => call[0]?.type === "state",
+      );
+      expect(stateCall).toBeDefined();
+      const newState = stateCall![0].state;
+      expect(newState.standings).toEqual([]);
+      const newPlayerIds = new Set(
+        newState.seats
+          .filter((s: { playerId: string | null }) => s.playerId !== null)
+          .map((s: { playerId: string }) => s.playerId),
+      );
+      expect(newPlayerIds).toEqual(origPlayerIds);
+      expect(c2.send).toHaveBeenCalledWith(expect.objectContaining({ type: "state" }));
+    });
+
+    it("broadcasts a new turn message after rematch", () => {
+      const { router, c1 } = setupFinishedGame();
+      router.dispatch(c1, { type: "rematch" });
+      expect(c1.send).toHaveBeenCalledWith(expect.objectContaining({ type: "turn" }));
+    });
+  });
 });

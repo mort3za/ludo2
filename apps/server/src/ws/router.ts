@@ -171,9 +171,32 @@ export function createRouter(rooms: RoomStore): Router {
         break;
       }
 
-      case "rematch":
-        // Rematch will be implemented when needed
+      case "rematch": {
+        if (room.ownerId !== client.playerId) {
+          client.send({ type: "error", message: "not-owner" });
+          break;
+        }
+        const existingSession = gameSessions.get(client.roomId);
+        if (!existingSession || existingSession.state.status !== "finished") {
+          client.send({ type: "error", message: "game-not-finished" });
+          break;
+        }
+        clearTurnTimeout(client.roomId);
+        const newGameId = crypto.randomUUID();
+        const rematchRoom: Room = { ...room, phase: "playing", gameId: newGameId };
+        rooms.set(client.roomId, rematchRoom);
+        const rng = createCryptoRng();
+        const newState = initGame(rematchRoom, newGameId, rng);
+        gameSessions.set(client.roomId, createGameSession(newState));
+        broadcast(client.roomId, { type: "state", state: newState });
+        broadcast(client.roomId, {
+          type: "turn",
+          seat: newState.activeSeat,
+          deadline: Date.now() + TIMINGS.turnTimeout,
+        });
+        scheduleTurnTimeout(client.roomId);
         break;
+      }
     }
   }
 
