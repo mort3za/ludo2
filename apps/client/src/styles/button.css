@@ -1,0 +1,15 @@
+.d-btn {
+  @apply inline-flex items-center justify-center font-sans transition-colors cursor-pointer;
+}
+
+.d-btn--primary {
+  @apply bg-onyx-button text-canvas-white rounded-pill px-3.5 py-2;
+}
+
+.d-btn--ghost {
+  @apply bg-transparent text-midnight-ink border border-midnight-ink rounded-pill px-5 py-1.5;
+}
+
+.d-btn--disabled {
+  @apply opacity-50 cursor-not-allowed;
+}

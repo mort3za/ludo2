@@ -1,0 +1,9 @@
+// Source - https://stackoverflow.com/a/75269714
+// Posted by cyberwombat
+// Retrieved 2026-05-10, License - CC BY-SA 4.0
+
+{
+  "files.associations": {
+    "*.css": "tailwindcss"
+  }
+}
