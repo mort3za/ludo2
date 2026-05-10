@@ -20,10 +20,8 @@ async function handleCreateRoom() {
   }
   loading.value = true;
   try {
-    if (!session.isLoggedIn) {
-      const auth = await guestLogin(trimmed);
-      session.login(auth.token, auth.playerId);
-    }
+    const auth = await guestLogin(trimmed);
+    session.login(auth.token, auth.playerId);
     const { roomId } = await createRoom();
     router.push({ name: "room", params: { roomId } });
   } catch (e) {
@@ -40,11 +38,7 @@ async function handleCreateRoom() {
       <h1 class="text-heading-lg font-sans text-midnight-ink text-center mb-6">Ludo</h1>
 
       <form class="flex flex-col gap-4" @submit.prevent="handleCreateRoom">
-        <DInput
-          v-model="name"
-          placeholder="Your name"
-          data-testid="name-input"
-        />
+        <DInput v-model="name" placeholder="Your name" data-testid="name-input" />
         <DButton :disabled="loading" data-testid="create-room-btn">
           {{ loading ? "Creating…" : "Create Room" }}
         </DButton>

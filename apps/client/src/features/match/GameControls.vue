@@ -62,7 +62,7 @@ const statusText = computed(() => {
     <!-- Roll button + Dice result -->
     <div class="flex items-center gap-3 w-1/3 justify-end">
       <div
-        v-if="state.diceValue"
+        :class="{ invisible: !state.diceValue }"
         class="flex items-center justify-center rounded-lg bg-onyx-button text-canvas-white text-heading font-sans font-bold"
       >
         {{ state.diceValue }}

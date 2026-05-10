@@ -60,6 +60,18 @@ function onServerMessage(msg: ServerMessage) {
   pendingAction.value = false;
   handleMessage(msg);
 
+  // Server restarted: fresh lobby room means game session is gone — go back to room
+  if (msg.type === "lobby") {
+    vueRouter.push({ name: "room", params: { roomId: props.roomId } });
+    return;
+  }
+
+  // Safety net: session missing (e.g. server restart race) — go back to room
+  if (msg.type === "error" && msg.message === "no-game") {
+    vueRouter.push({ name: "room", params: { roomId: props.roomId } });
+    return;
+  }
+
   if (msg.type === "turn") {
     deadline.value = msg.deadline;
   }
