@@ -16,6 +16,104 @@ export interface BoardLayout {
   cellSize: number;
 }
 
+function computeClassicFourSeatLayout(): BoardLayout {
+  const ARM_ROWS = Math.floor(CELLS_PER_ARM / 2);
+  const armBase = 1;
+  const startOffset = ARM_ROWS + 1;
+  const yardCenter = 4.3;
+  const yardSpacing = 1.6;
+  const snap = (value: number) => {
+    const rounded = Math.round(value * 1_000_000) / 1_000_000;
+    return Object.is(rounded, -0) ? 0 : rounded;
+  };
+
+  const track: CellPos[] = [];
+  const homes: CellPos[][] = [];
+  const yards: CellPos[][] = [];
+
+  for (let a = 0; a < 4; a++) {
+    const seat = a + 1;
+    const θ = -Math.PI / 2 + (a * Math.PI) / 2;
+    const dx = Math.cos(θ);
+    const dy = Math.sin(θ);
+    const px = -Math.sin(θ);
+    const py = Math.cos(θ);
+    const armStart = a * CELLS_PER_ARM;
+
+    const armTrack: Array<Pick<CellPos, "x" | "y">> = [];
+
+    for (let row = 0; row < ARM_ROWS; row++) {
+      armTrack.push({
+        x: snap((armBase + row) * dx - px),
+        y: snap((armBase + row) * dy - py),
+      });
+    }
+
+    armTrack.push({
+      x: snap((armBase + ARM_ROWS - 1) * dx),
+      y: snap((armBase + ARM_ROWS - 1) * dy),
+    });
+
+    for (let row = ARM_ROWS - 1; row >= 0; row--) {
+      armTrack.push({
+        x: snap((armBase + row) * dx + px),
+        y: snap((armBase + row) * dy + py),
+      });
+    }
+
+    for (let i = 0; i < CELLS_PER_ARM; i++) {
+      const pos = armTrack[(i + startOffset) % CELLS_PER_ARM]!;
+      track.push({
+        x: pos.x,
+        y: pos.y,
+        id: `T/${armStart + i + 1}`,
+      });
+    }
+
+    const homeCol: CellPos[] = [];
+    for (let i = 0; i < HOME_COLUMN_LENGTH; i++) {
+      homeCol.push({
+        x: snap((armBase + i) * dx),
+        y: snap((armBase + i) * dy),
+        id: `H/${seat}/${i + 1}`,
+        seatIndex: seat,
+      });
+    }
+    homes.push(homeCol);
+
+    const qx = Math.sign(dx + px) || 1;
+    const qy = Math.sign(dy + py) || -1;
+    const yardCells: CellPos[] = [];
+    for (let j = 0; j < TOKENS_PER_PLAYER; j++) {
+      const col = j % 2;
+      const row = Math.floor(j / 2);
+      yardCells.push({
+        x: snap(qx * yardCenter + (col - 0.5) * yardSpacing),
+        y: snap(qy * yardCenter + (row - 0.5) * yardSpacing),
+        id: `Y/${seat}/${j + 1}`,
+        seatIndex: seat,
+      });
+    }
+    yards.push(yardCells);
+  }
+
+  const all = [...track, ...homes.flat(), ...yards.flat()];
+  const margin = 2;
+  const minX = Math.min(...all.map((c) => c.x)) - margin;
+  const minY = Math.min(...all.map((c) => c.y)) - margin;
+  const maxX = Math.max(...all.map((c) => c.x)) + margin;
+  const maxY = Math.max(...all.map((c) => c.y)) + margin;
+
+  return {
+    track,
+    homes,
+    yards,
+    center: { x: 0, y: 0 },
+    viewBox: `${minX} ${minY} ${maxX - minX} ${maxY - minY}`,
+    cellSize: 0.4,
+  };
+}
+
 /**
  * Compute (x, y) positions for every cell on a parametric S-seat Ludo board.
  *
@@ -23,6 +121,10 @@ export interface BoardLayout {
  * For S=4 the layout forms a cross; for S≥5 a star.
  */
 export function computeBoardLayout(S: number): BoardLayout {
+  if (S === 4) {
+    return computeClassicFourSeatLayout();
+  }
+
   // Inner radius: circumradius of a regular S-gon with side 3
   const R = 1.5 / Math.sin(Math.PI / S);
   const ARM_ROWS = Math.floor(CELLS_PER_ARM / 2);
