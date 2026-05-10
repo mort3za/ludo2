@@ -3,7 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { DButton, DCard, DInput } from "@/shared/ui";
 import { useSessionStore } from "@/stores/session";
-import { guestLogin } from "@/shared/api/client";
+import { guestLogin, refreshToken } from "@/shared/api/client";
 import { createWsConnection, type WsConnection } from "@/shared/lib/ws";
 import ReconnectBanner from "@/features/match/ReconnectBanner.vue";
 import type { ServerMessage, LobbyPlayer } from "@ludo/shared";
@@ -19,6 +19,7 @@ const joined = ref(false);
 const joinName = ref("");
 const joinLoading = ref(false);
 const joinError = ref("");
+const restoringSession = ref(false);
 
 const myReady = computed(
   () => players.value.find((p) => p.playerId === session.playerId)?.ready ?? false,
@@ -55,9 +56,28 @@ function connectWs() {
   joined.value = true;
 }
 
+async function restoreSession() {
+  if (!session.token || !session.playerId) {
+    session.logout();
+    return;
+  }
+
+  restoringSession.value = true;
+  try {
+    const auth = await refreshToken(session.token);
+    session.login(auth.token, session.playerId);
+    connectWs();
+  } catch {
+    session.logout();
+    joined.value = false;
+  } finally {
+    restoringSession.value = false;
+  }
+}
+
 onMounted(() => {
   if (session.token) {
-    connectWs();
+    void restoreSession();
   }
 });
 
@@ -97,8 +117,12 @@ function startGame() {
   <main class="min-h-screen flex items-center justify-center bg-canvas-white">
     <ReconnectBanner v-if="ws" :status="ws.status.value" />
 
+    <DCard v-if="restoringSession" class="p-8 w-full max-w-sm">
+      <p class="text-body-sm text-subtle-gray font-sans text-center">Restoring session…</p>
+    </DCard>
+
     <!-- Join form for users without a session -->
-    <DCard v-if="!joined" class="p-8 w-full max-w-sm">
+    <DCard v-else-if="!joined" class="p-8 w-full max-w-sm">
       <h2 class="text-heading font-sans text-midnight-ink text-center mb-6">Join Room</h2>
       <form class="flex flex-col gap-4" @submit.prevent="handleJoin">
         <DInput v-model="joinName" placeholder="Your name" data-testid="join-name-input" />

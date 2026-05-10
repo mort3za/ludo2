@@ -63,3 +63,31 @@ test("create room → second player joins → both ready → game starts", async
   await ctx1.close();
   await ctx2.close();
 });
+
+test("room join clears stale session and shows join form", async ({ browser }) => {
+  const hostCtx = await browser.newContext();
+  const guestCtx = await browser.newContext();
+  const host = await hostCtx.newPage();
+  const guest = await guestCtx.newPage();
+
+  await host.goto("/");
+  await host.getByTestId("play-btn").click();
+  await host.getByTestId("name-input").fill("Alice");
+  await host.getByTestId("create-room-btn").click();
+  await host.waitForURL(/\/room\/.+/);
+  const roomUrl = host.url();
+
+  await guest.goto("/");
+  await guest.evaluate(() => {
+    localStorage.setItem("ludo_token", "stale-token");
+    localStorage.setItem("ludo_player", "stale-player");
+  });
+
+  await guest.goto(roomUrl);
+
+  await expect(guest.getByTestId("join-btn")).toBeVisible({ timeout: 5000 });
+  await expect(guest.locator("text=Disconnected — reconnecting…")).toHaveCount(0);
+
+  await hostCtx.close();
+  await guestCtx.close();
+});
