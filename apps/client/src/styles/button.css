@@ -1,13 +1,13 @@
 .d-btn {
-  @apply inline-flex items-center justify-center font-sans transition-colors cursor-pointer;
+  @apply inline-flex items-center justify-center font-sans font-medium text-sm tracking-wide transition-colors cursor-pointer;
 }
 
 .d-btn--primary {
-  @apply bg-onyx-button text-canvas-white rounded-pill px-3.5 py-2;
+  @apply bg-valley-green text-canvas-ice rounded-pill px-4 py-1.5;
 }
 
 .d-btn--ghost {
-  @apply bg-transparent text-midnight-ink border border-midnight-ink rounded-pill px-5 py-1.5;
+  @apply bg-transparent text-valley-green border border-valley-green rounded-pill px-4 py-1.5;
 }
 
 .d-btn--disabled {

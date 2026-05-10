@@ -107,6 +107,15 @@ onUnmounted(() => {
     <SpectatorBadge v-if="isSpectator && gameState" />
 
     <div v-if="gameState" class="w-full max-w-lg flex flex-col items-center gap-4">
+      <GameControls
+        v-if="mySeat !== null"
+        :state="gameState"
+        :my-seat="mySeat"
+        :legal-token-ids="legalTokenIds"
+        @roll="onRoll"
+        @move="onMove"
+      />
+
       <BoardView
         class="h-[50vh]"
         :board-size="gameState.seats.length"
@@ -118,15 +127,6 @@ onUnmounted(() => {
       />
 
       <TurnTimer :deadline="deadline" />
-
-      <GameControls
-        v-if="mySeat !== null"
-        :state="gameState"
-        :my-seat="mySeat"
-        :legal-token-ids="legalTokenIds"
-        @roll="onRoll"
-        @move="onMove"
-      />
     </div>
 
     <p v-else class="text-body-sm text-subtle-gray font-sans">Loading game…</p>

@@ -50,8 +50,8 @@ const statusText = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col items-center gap-3">
-    <p class="text-body-sm text-subtle-gray font-sans flex items-center gap-1.5">
+  <div class="flex items-center gap-3 w-full">
+    <p class="text-body-sm text-subtle-gray font-sans flex items-center gap-1.5 w-2/3">
       <span
         class="inline-block size-3 rounded-full"
         :style="{ backgroundColor: activeSeatColor }"
@@ -60,7 +60,7 @@ const statusText = computed(() => {
     </p>
 
     <!-- Roll button + Dice result -->
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 w-1/3 justify-end">
       <DButton v-if="phase === 'roll'" @click="emit('roll')"> Roll </DButton>
 
       <div

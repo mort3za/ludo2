@@ -125,11 +125,11 @@ function startGame() {
         <div class="flex items-center gap-2">
           <code
             class="flex-1 p-2 bg-near-white rounded-sm text-body-sm font-sans text-midnight-ink break-all"
-            data-testid="share-link"
+            data-testid="share-link w-2/3"
           >
             {{ shareLink }}
           </code>
-          <DButton variant="ghost" @click="copyLink">
+          <DButton class="w-1/3" variant="ghost" @click="copyLink">
             {{ copied ? "Copied!" : "Copy" }}
           </DButton>
         </div>
