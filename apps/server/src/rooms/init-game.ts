@@ -13,12 +13,18 @@ export function initGame(room: Room, gameId: string, rng: Rng): GameState {
   const colors = drawPalette(S, () => rng.random()) as PlayerColor[];
 
   const memberList = Array.from(room.members.entries());
+  const playerCount = memberList.length;
   const seats: Seat[] = [];
   const tokens: Token[] = [];
 
+  // For 2-player games, place players at opposite seats (1 & 3)
+  const occupiedSeats =
+    playerCount === 2 && S === 4 ? [1, 3] : Array.from({ length: playerCount }, (_, i) => i + 1);
+
   for (let i = 0; i < S; i++) {
-    const member = memberList[i];
     const seatIndex = i + 1;
+    const playerIdx = occupiedSeats.indexOf(seatIndex);
+    const member = playerIdx !== -1 ? memberList[playerIdx] : undefined;
     const color = colors[i]!;
 
     seats.push({
