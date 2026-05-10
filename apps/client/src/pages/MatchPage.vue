@@ -20,6 +20,7 @@ const gameResultStore = useGameResultStore();
 const { gameState, animating, handleMessage } = useGameAnimation();
 
 const deadline = ref<number>(0);
+const pendingAction = ref(false);
 let ws: WsConnection | null = null;
 
 /** Find the local player's seat index, or null if spectator. */
@@ -56,6 +57,7 @@ const legalTokenIds = computed(() => {
 
 function onServerMessage(msg: ServerMessage) {
   console.log("[ws]", msg.type, msg);
+  pendingAction.value = false;
   handleMessage(msg);
 
   if (msg.type === "turn") {
@@ -71,18 +73,14 @@ function onServerMessage(msg: ServerMessage) {
 }
 
 function onRoll() {
+  if (pendingAction.value) return;
+  pendingAction.value = true;
   ws?.send({ type: "roll" });
 }
 
 function onMove(tokenId: string) {
-  console.log(
-    "[onMove]",
-    tokenId,
-    "status:",
-    gameState.value?.status,
-    "dice:",
-    gameState.value?.diceValue,
-  );
+  if (pendingAction.value) return;
+  pendingAction.value = true;
   ws?.send({ type: "move", tokenId });
 }
 

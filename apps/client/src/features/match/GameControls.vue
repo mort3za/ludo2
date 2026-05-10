@@ -61,14 +61,13 @@ const statusText = computed(() => {
 
     <!-- Roll button + Dice result -->
     <div class="flex items-center gap-3 w-1/3 justify-end">
-      <DButton v-if="phase === 'roll'" @click="emit('roll')"> Roll </DButton>
-
       <div
         v-if="state.diceValue"
-        class="flex items-center justify-center size-12 rounded-lg bg-onyx-button text-canvas-white text-heading font-sans font-bold"
+        class="flex items-center justify-center rounded-lg bg-onyx-button text-canvas-white text-heading font-sans font-bold"
       >
         {{ state.diceValue }}
       </div>
+      <DButton v-if="phase === 'roll'" @click="emit('roll')"> Roll </DButton>
     </div>
 
     <!-- Token pick buttons -->
