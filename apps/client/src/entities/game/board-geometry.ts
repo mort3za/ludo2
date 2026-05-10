@@ -43,28 +43,31 @@ export function computeBoardLayout(S: number): BoardLayout {
 
     const armStart = a * CELLS_PER_ARM; // 0-indexed base for this arm
 
-    // Track: 13 cells per arm
-    // Right column going outward (cells 1–6)
+    // Track cells per arm: left column outward → tip → right column inward.
+    // This ordering makes the last cell of each arm geometrically adjacent to
+    // the first cell of the next arm, and produces a clockwise overall circuit.
+
+    // Left column going outward (-px side, cells 1–ARM_ROWS)
     for (let row = 0; row < ARM_ROWS; row++) {
       track.push({
-        x: (R + row) * dx + px,
-        y: (R + row) * dy + py,
+        x: (R + row) * dx - px,
+        y: (R + row) * dy - py,
         id: `T/${armStart + row + 1}`,
       });
     }
 
-    // Tip cell (cell 7): center column, outermost row
+    // Tip cell: center column, outermost row
     track.push({
       x: (R + ARM_ROWS - 1) * dx,
       y: (R + ARM_ROWS - 1) * dy,
       id: `T/${armStart + ARM_ROWS + 1}`,
     });
 
-    // Left column going inward (cells 8–13)
+    // Right column going inward (+px side, cells ARM_ROWS+2–CELLS_PER_ARM)
     for (let row = ARM_ROWS - 1; row >= 0; row--) {
       track.push({
-        x: (R + row) * dx - px,
-        y: (R + row) * dy - py,
+        x: (R + row) * dx + px,
+        y: (R + row) * dy + py,
         id: `T/${armStart + ARM_ROWS + 2 + (ARM_ROWS - 1 - row)}`,
       });
     }
