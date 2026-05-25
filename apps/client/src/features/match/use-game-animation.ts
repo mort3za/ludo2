@@ -190,6 +190,7 @@ export function useGameAnimation(
       case "rolled": {
         if (gameState.value) {
           gameState.value.diceValue = msg.value;
+          gameState.value.status = "moving";
         }
         lastRolledAt = Date.now();
         if (pendingDiceTimer) clearTimeout(pendingDiceTimer);

@@ -124,7 +124,6 @@ onUnmounted(() => {
         :legal-token-ids="legalTokenIds"
         :last-rolled-value="lastRolledValue"
         @roll="onRoll"
-        @move="onMove"
       />
 
       <BoardView

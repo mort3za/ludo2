@@ -13,7 +13,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   roll: [];
-  move: [tokenId: string];
 }>();
 
 const isMyTurn = computed(() => props.state.activeSeat === props.mySeat);
@@ -25,7 +24,7 @@ const activeSeatColor = computed(() => activeSeat.value ? playerColorHex(activeS
 const activeSeatIsBot = computed(() => activeSeat.value?.isBot ?? false);
 
 const phase = computed(() => {
-  if (!isMyTurn.value) return "waiting" as const;
+  if (!isMyTurn.value || activeSeatIsBot.value) return "waiting" as const;
   if (props.state.status === "rolling") return "roll" as const;
   if (props.state.status === "moving") {
     if (props.legalTokenIds.length === 0) return "no-moves" as const;
@@ -74,16 +73,5 @@ const statusText = computed(() => {
       <DButton :disabled="phase !== 'roll'" @click="emit('roll')"> Roll </DButton>
     </div>
 
-    <!-- Token pick buttons -->
-    <div v-if="phase === 'pick'" class="flex gap-2">
-      <DButton
-        v-for="tokenId in legalTokenIds"
-        :key="tokenId"
-        variant="ghost"
-        @click="emit('move', tokenId)"
-      >
-        {{ tokenId }}
-      </DButton>
-    </div>
   </div>
 </template>
