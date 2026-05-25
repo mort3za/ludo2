@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { computeBoardLayout, playerColorHex, type CellPos } from "./board-geometry";
-import { startSquare } from "@ludo/shared";
+import { startSquare, findBlocks } from "@ludo/shared";
 import type { Token, Seat } from "@ludo/shared";
 
 const props = defineProps<{
@@ -59,6 +59,27 @@ function resolvedSeatColor(seatIndex: number): string {
   return seatColorMap.value.get(seatIndex) ?? "#888";
 }
 
+/** Map cell ID → token count for cells with 2+ tokens (for stack badge). */
+const stackedCells = computed(() => {
+  if (!props.tokens) return new Map<string, number>();
+  const counts = new Map<string, number>();
+  for (const token of props.tokens) {
+    counts.set(token.cell, (counts.get(token.cell) ?? 0) + 1);
+  }
+  return new Map([...counts].filter(([, v]) => v >= 2));
+});
+
+/** Track cells that are blocks (2+ same-color tokens): Map<cellId, hexColor>. */
+const blockedTrackCells = computed(() => {
+  if (!props.tokens) return new Map<string, string>();
+  const blocks = findBlocks(props.tokens);
+  const result = new Map<string, string>();
+  for (const [cell, color] of blocks) {
+    result.set(cell, playerColorHex(color));
+  }
+  return result;
+});
+
 /** Color each start square to its seat color. */
 function startSquareColor(cellId: string): string | null {
   for (let si = 1; si <= props.boardSize; si++) {
@@ -85,6 +106,17 @@ function startSquareColor(cellId: string): string | null {
         :opacity="startSquareColor(cell.id) ? 0.35 : 1"
         :stroke="startSquareColor(cell.id) ?? '#b2afae'"
         :stroke-width="layout.cellSize * 0.15"
+      />
+      <!-- Block indicator ring (2 same-color tokens on this cell) -->
+      <circle
+        v-if="blockedTrackCells.has(cell.id)"
+        :cx="cell.x"
+        :cy="cell.y"
+        :r="layout.cellSize * 0.85"
+        fill="none"
+        :stroke="blockedTrackCells.get(cell.id)"
+        :stroke-width="layout.cellSize * 0.18"
+        stroke-opacity="0.75"
       />
       <!-- Safe marker (star) -->
       <text
@@ -162,6 +194,31 @@ function startSquareColor(cellId: string): string | null {
         :style="legalSet.has(token.id) ? { filter: 'drop-shadow(0 0 4px #fff)' } : {}"
         @click="legalSet.has(token.id) && emit('move', token.id)"
       />
+    </template>
+
+    <!-- Token stack badges: small count badge when 2+ tokens share a cell -->
+    <template v-if="tokens">
+      <template v-for="[cellId, count] in stackedCells" :key="`badge-${cellId}`">
+        <circle
+          :cx="(cellPositions.get(cellId)?.x ?? 0) + layout.cellSize * 0.5"
+          :cy="(cellPositions.get(cellId)?.y ?? 0) - layout.cellSize * 0.5"
+          :r="layout.cellSize * 0.35"
+          fill="#1a1816"
+        />
+        <text
+          :x="(cellPositions.get(cellId)?.x ?? 0) + layout.cellSize * 0.5"
+          :y="(cellPositions.get(cellId)?.y ?? 0) - layout.cellSize * 0.5"
+          text-anchor="middle"
+          dominant-baseline="central"
+          :font-size="layout.cellSize * 0.45"
+          fill="white"
+          font-weight="bold"
+          :style="{
+            transform: `rotate(${-rotation}deg)`,
+            transformOrigin: `${(cellPositions.get(cellId)?.x ?? 0) + layout.cellSize * 0.5}px ${(cellPositions.get(cellId)?.y ?? 0) - layout.cellSize * 0.5}px`,
+          }"
+        >{{ count }}</text>
+      </template>
     </template>
   </svg>
 </template>

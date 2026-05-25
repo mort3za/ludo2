@@ -98,9 +98,10 @@ export function useGameAnimation(): GameAnimationState {
           animating.value = {
             tokenId: msg.tokenId,
             from: token.cell,
-            to: token.cell, // Will be updated by the next "state" message
+            to: msg.to,
             type: "capture",
           };
+          token.cell = msg.to;
         }
         break;
       }

@@ -112,7 +112,8 @@ export function handleMove(session: GameSession, tokenId: string): ServerMessage
   messages.push({ type: "moved", tokenId, to: move.to, path });
 
   if (result.captured) {
-    messages.push({ type: "captured", tokenId: result.captured });
+    const capturedToken = result.tokens.find((t) => t.id === result.captured);
+    messages.push({ type: "captured", tokenId: result.captured, to: capturedToken!.cell });
   }
 
   // Check terminal conditions (seat finished / sole survivor)

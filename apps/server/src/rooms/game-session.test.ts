@@ -175,6 +175,29 @@ describe("handleMove — standings and finished", () => {
   });
 });
 
+describe("handleMove — capture", () => {
+  it("emits captured message with the new yard cell", () => {
+    // Blue on T/5, red on T/8 — blue rolls 3 and captures red
+    const tokens: Token[] = [
+      { id: "b1", color: "blue", cell: "T/5" },
+      { id: "r1", color: "red", cell: "T/8" },
+      { id: "r2", color: "red", cell: "Y/2/1" },
+      { id: "r3", color: "red", cell: "Y/2/2" },
+      { id: "r4", color: "red", cell: "Y/2/3" },
+    ];
+    const state = makeState({ tokens, activeSeat: 1, status: "moving", diceValue: 3 });
+    const session = createGameSession(state);
+    const msgs = handleMove(session, "b1");
+
+    const capturedMsg = msgs.find((m) => m.type === "captured");
+    expect(capturedMsg).toBeDefined();
+    if (capturedMsg && capturedMsg.type === "captured") {
+      expect(capturedMsg.tokenId).toBe("r1");
+      expect(capturedMsg.to).toMatch(/^Y\/2\//);
+    }
+  });
+});
+
 describe("handleTimeout", () => {
   it("advances turn on timeout", () => {
     const tokens: Token[] = [

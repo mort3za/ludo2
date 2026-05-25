@@ -22,7 +22,7 @@ export type ServerMessage =
   | { type: "state"; state: GameState }
   | { type: "rolled"; seat: number; value: number }
   | { type: "moved"; tokenId: string; to: Cell; path: Cell[] }
-  | { type: "captured"; tokenId: string }
+  | { type: "captured"; tokenId: string; to: Cell }
   | { type: "turn"; seat: number; deadline: number }
   | { type: "finished"; standings: number[] }
   | { type: "kicked"; seat: number };
