@@ -13,6 +13,7 @@ export interface GameSession {
   rng: Rng;
   colorToSeat: Record<string, number>;
   seatMisses: Map<number, number>;
+  lastRollAt: number | null;
 }
 
 export function createGameSession(state: GameState): GameSession {
@@ -21,7 +22,18 @@ export function createGameSession(state: GameState): GameSession {
   for (const seat of state.seats) {
     colorToSeat[seat.color] = seat.index;
   }
-  return { state, rng, colorToSeat, seatMisses: new Map() };
+  return { state, rng, colorToSeat, seatMisses: new Map(), lastRollAt: null };
+}
+
+const ROLL_HOLD_MS = TIMINGS.diceReveal + TIMINGS.diceShow;
+
+export function getPendingRollHoldMs(session: GameSession, now = Date.now()): number {
+  if (session.lastRollAt === null) return 0;
+  return Math.max(0, ROLL_HOLD_MS - (now - session.lastRollAt));
+}
+
+function nextTurnDeadline(session: GameSession, now = Date.now()): number {
+  return now + TIMINGS.turnTimeout + getPendingRollHoldMs(session, now);
 }
 
 export function handleRoll(session: GameSession): ServerMessage[] {
@@ -32,8 +44,10 @@ export function handleRoll(session: GameSession): ServerMessage[] {
   session.seatMisses.set(state.activeSeat, 0);
 
   const outcome = resolveRoll(rng, state.consecutiveSixes, DEFAULT_RULES);
+  const rollAt = Date.now();
   state.diceValue = outcome.value;
   state.consecutiveSixes = outcome.newConsecutiveSixes;
+  session.lastRollAt = rollAt;
 
   const messages: ServerMessage[] = [];
   messages.push({ type: "rolled", seat: state.activeSeat, value: outcome.value });
@@ -61,7 +75,11 @@ export function handleRoll(session: GameSession): ServerMessage[] {
       advanceTurn(session, messages);
     } else {
       state.status = "rolling";
-      messages.push({ type: "turn", seat: state.activeSeat, deadline: Date.now() + 30000 });
+      messages.push({
+        type: "turn",
+        seat: state.activeSeat,
+        deadline: nextTurnDeadline(session, rollAt),
+      });
     }
     return messages;
   }
@@ -97,7 +115,12 @@ export function handleMove(session: GameSession, tokenId: string): ServerMessage
     return [{ type: "error", message: "illegal-move" }];
   }
 
-  const path = computeMovePath(move.from, state.diceValue ?? 0, state.activeSeat, state.seats.length);
+  const path = computeMovePath(
+    move.from,
+    state.diceValue ?? 0,
+    state.activeSeat,
+    state.seats.length,
+  );
 
   const result = applyMove(
     state.tokens,
@@ -142,7 +165,11 @@ export function handleMove(session: GameSession, tokenId: string): ServerMessage
   if (hadExtraTurn) {
     state.status = "rolling";
     state.diceValue = null;
-    messages.push({ type: "turn", seat: state.activeSeat, deadline: Date.now() + 30000 });
+    messages.push({
+      type: "turn",
+      seat: state.activeSeat,
+      deadline: nextTurnDeadline(session),
+    });
   } else {
     advanceTurn(session, messages);
   }
@@ -180,7 +207,7 @@ function advanceTurn(session: GameSession, messages: ServerMessage[]) {
   state.status = "rolling";
   state.diceValue = null;
   state.consecutiveSixes = 0;
-  messages.push({ type: "turn", seat: next, deadline: Date.now() + TIMINGS.turnTimeout });
+  messages.push({ type: "turn", seat: next, deadline: nextTurnDeadline(session) });
 }
 
 /**

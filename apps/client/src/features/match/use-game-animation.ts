@@ -1,5 +1,5 @@
 import { ref, type Ref } from "vue";
-import type { ServerMessage, GameState, Token, Cell } from "@ludo/shared";
+import { TIMINGS, type ServerMessage, type GameState, type Token, type Cell } from "@ludo/shared";
 
 export interface AnimatingToken {
   tokenId: string;
@@ -33,8 +33,12 @@ export function useGameAnimation(): GameAnimationState {
 
   /** Timestamp of the last "rolled" message, used to keep dice visible briefly. */
   let lastRolledAt = 0;
+  let pendingDiceTimer: ReturnType<typeof setTimeout> | null = null;
   let pendingTurnTimer: ReturnType<typeof setTimeout> | null = null;
   let pendingStepTimers: ReturnType<typeof setTimeout>[] = [];
+
+  const DICE_REVEAL_MS = TIMINGS.diceReveal;
+  const DICE_SHOW_MS = TIMINGS.diceShow;
 
   /** Delay between per-cell steps. Must roughly match the BoardView token CSS transition. */
   const STEP_INTERVAL_MS = 220;
@@ -106,24 +110,31 @@ export function useGameAnimation(): GameAnimationState {
         break;
       }
 
-      case "rolled":
+      case "rolled": {
         if (gameState.value) {
           gameState.value.diceValue = msg.value;
         }
-        lastRolledValue.value = msg.value;
         lastRolledAt = Date.now();
+        if (pendingDiceTimer) clearTimeout(pendingDiceTimer);
+        lastRolledValue.value = null;
+        const rolledValue = msg.value;
+        pendingDiceTimer = setTimeout(() => {
+          lastRolledValue.value = rolledValue;
+          pendingDiceTimer = null;
+        }, DICE_REVEAL_MS);
         break;
+      }
 
       case "turn": {
         if (pendingTurnTimer) clearTimeout(pendingTurnTimer);
         const elapsed = Date.now() - lastRolledAt;
-        const MIN_DICE_DISPLAY_MS = 1000;
-        if (elapsed < MIN_DICE_DISPLAY_MS && lastRolledAt > 0) {
+        const holdMs = DICE_REVEAL_MS + DICE_SHOW_MS;
+        if (lastRolledAt > 0 && elapsed < holdMs) {
           const turnMsg = msg;
           pendingTurnTimer = setTimeout(() => {
             applyTurn(turnMsg);
             pendingTurnTimer = null;
-          }, MIN_DICE_DISPLAY_MS - elapsed);
+          }, holdMs - elapsed);
         } else {
           applyTurn(msg);
         }

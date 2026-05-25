@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { createGameSession, handleRoll, handleMove, handleTimeout } from "./game-session.js";
 import type { GameState, Seat, Token } from "@ludo/shared";
 import { HOME_COLUMN_LENGTH, TOKENS_PER_PLAYER, TIMINGS } from "@ludo/shared";
@@ -310,5 +310,71 @@ describe("handleTimeout", () => {
     if (turnMsg && turnMsg.type === "turn") {
       expect(turnMsg.seat).toBe(2);
     }
+  });
+});
+
+describe("turn timing", () => {
+  it("extends the next turn deadline while a no-move roll is still visible", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-25T00:00:01.000Z"));
+
+    const tokens: Token[] = [
+      { id: "1-1", color: "blue", cell: "Y/1/1" },
+      { id: "1-2", color: "blue", cell: "Y/1/2" },
+      { id: "1-3", color: "blue", cell: "Y/1/3" },
+      { id: "1-4", color: "blue", cell: "Y/1/4" },
+      { id: "2-1", color: "red", cell: "T/14" },
+      { id: "2-2", color: "red", cell: "Y/2/2" },
+      { id: "2-3", color: "red", cell: "Y/2/3" },
+      { id: "2-4", color: "red", cell: "Y/2/4" },
+    ];
+
+    const state = makeState({ tokens, activeSeat: 1, status: "rolling" });
+    const session = createGameSession(state);
+    session.rng = { random: () => 0.5, rollDie: () => 3 };
+
+    const msgs = handleRoll(session);
+    const turnMsg = msgs.find((msg) => msg.type === "turn");
+
+    expect(turnMsg).toBeDefined();
+    if (turnMsg && turnMsg.type === "turn") {
+      expect(turnMsg.deadline).toBe(
+        Date.now() + TIMINGS.turnTimeout + TIMINGS.diceReveal + TIMINGS.diceShow,
+      );
+    }
+
+    vi.useRealTimers();
+  });
+
+  it("preserves only the remaining dice hold when a move ends the turn quickly", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-25T00:00:01.000Z"));
+
+    const tokens: Token[] = [
+      { id: "1-1", color: "blue", cell: "T/5" },
+      { id: "1-2", color: "blue", cell: "Y/1/2" },
+      { id: "1-3", color: "blue", cell: "Y/1/3" },
+      { id: "1-4", color: "blue", cell: "Y/1/4" },
+      { id: "2-1", color: "red", cell: "T/14" },
+      { id: "2-2", color: "red", cell: "Y/2/2" },
+      { id: "2-3", color: "red", cell: "Y/2/3" },
+      { id: "2-4", color: "red", cell: "Y/2/4" },
+    ];
+
+    const state = makeState({ tokens, activeSeat: 1, status: "moving", diceValue: 3 });
+    const session = createGameSession(state);
+    session.lastRollAt = Date.now();
+
+    vi.setSystemTime(new Date("2026-05-25T00:00:01.400Z"));
+
+    const msgs = handleMove(session, "1-1");
+    const turnMsg = msgs.find((msg) => msg.type === "turn");
+
+    expect(turnMsg).toBeDefined();
+    if (turnMsg && turnMsg.type === "turn") {
+      expect(turnMsg.deadline).toBe(Date.now() + TIMINGS.turnTimeout + 1200);
+    }
+
+    vi.useRealTimers();
   });
 });

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { scheduleBotTurn } from "./driver.js";
 import type { GameSession } from "../../rooms/game-session.js";
-import type { GameState, ServerMessage, Seat, Token } from "@ludo/shared";
+import { TIMINGS, type GameState, type ServerMessage, type Seat, type Token } from "@ludo/shared";
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
   return {
@@ -33,8 +33,11 @@ function makeSession(stateOverrides: Partial<GameState> = {}): GameSession {
     rng: { random: () => 0.5, rollDie: (_n: number) => 3 },
     colorToSeat: { blue: 1, red: 2 },
     seatMisses: new Map(),
+    lastRollAt: null,
   };
 }
+
+const ROLL_HOLD_MS = TIMINGS.diceReveal + TIMINGS.diceShow;
 
 describe("scheduleBotTurn", () => {
   beforeEach(() => {
@@ -83,11 +86,58 @@ describe("scheduleBotTurn", () => {
     session.rng = { random: () => 0.5, rollDie: () => 3 };
 
     scheduleBotTurn(session, broadcast);
-    vi.advanceTimersByTime(800);  // bot rolls
-    vi.advanceTimersByTime(600);  // bot moves
+    vi.advanceTimersByTime(800); // bot rolls
+    expect(
+      broadcast.mock.calls.flatMap((c) => c[0] as ServerMessage[]).some((m) => m.type === "moved"),
+    ).toBe(false);
+
+    vi.advanceTimersByTime(ROLL_HOLD_MS); // dice reveal + show, then bot moves
 
     const allMsgs: ServerMessage[] = broadcast.mock.calls.flatMap((c) => c[0] as ServerMessage[]);
     expect(allMsgs.some((m) => m.type === "moved")).toBe(true);
+  });
+
+  it("waits for the roll hold before the next bot starts after an auto-pass", () => {
+    const session = makeSession({
+      activeSeat: 1,
+      seats: [
+        { index: 1, state: "active", color: "blue", playerId: "bot:1", isBot: true },
+        { index: 2, state: "active", color: "red", playerId: "bot:2", isBot: true },
+      ] as Seat[],
+      tokens: [
+        { id: "1-1", color: "blue", cell: "Y/1/1" },
+        { id: "1-2", color: "blue", cell: "Y/1/2" },
+        { id: "1-3", color: "blue", cell: "Y/1/3" },
+        { id: "1-4", color: "blue", cell: "Y/1/4" },
+        { id: "2-1", color: "red", cell: "Y/2/1" },
+        { id: "2-2", color: "red", cell: "Y/2/2" },
+        { id: "2-3", color: "red", cell: "Y/2/3" },
+        { id: "2-4", color: "red", cell: "Y/2/4" },
+      ] as Token[],
+    });
+    session.rng = { random: () => 0.5, rollDie: () => 3 };
+    session.colorToSeat = { blue: 1, red: 2 };
+
+    const broadcast = vi.fn();
+    scheduleBotTurn(session, broadcast);
+
+    vi.advanceTimersByTime(800);
+    expect(broadcast).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(ROLL_HOLD_MS - 1);
+    expect(
+      broadcast.mock.calls
+        .flatMap((c) => c[0] as ServerMessage[])
+        .filter((m) => m.type === "rolled").length,
+    ).toBe(1);
+
+    vi.advanceTimersByTime(1);
+
+    const rolledMsgs = broadcast.mock.calls
+      .flatMap((c) => c[0] as ServerMessage[])
+      .filter((msg) => msg.type === "rolled");
+    expect(rolledMsgs).toHaveLength(2);
+    expect(rolledMsgs[1]).toMatchObject({ type: "rolled", seat: 2 });
   });
 
   it("does not re-schedule after game is finished", () => {

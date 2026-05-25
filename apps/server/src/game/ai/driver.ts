@@ -1,6 +1,10 @@
-import type { ServerMessage } from "@ludo/shared";
-import { legalMoves } from "@ludo/shared";
-import { handleRoll, handleMove, type GameSession } from "../../rooms/game-session.js";
+import { type ServerMessage, legalMoves } from "@ludo/shared";
+import {
+  getPendingRollHoldMs,
+  handleRoll,
+  handleMove,
+  type GameSession,
+} from "../../rooms/game-session.js";
 import { pickMove } from "./picker.js";
 
 const ROLL_DELAY_MS = 800;
@@ -23,6 +27,7 @@ export function scheduleBotTurn(
   const activeSeat = state.seats.find((s) => s.index === state.activeSeat);
   if (!activeSeat?.isBot) return;
 
+  const rollDelayMs = Math.max(ROLL_DELAY_MS, getPendingRollHoldMs(session));
   setTimeout(() => {
     if (state.status === "finished") return;
 
@@ -34,6 +39,7 @@ export function scheduleBotTurn(
 
     if (session.state.status === "moving") {
       // Multiple legal moves — bot must pick one
+      const moveDelayMs = Math.max(MOVE_DELAY_MS, getPendingRollHoldMs(session));
       setTimeout(() => {
         if (session.state.status === "finished") return;
 
@@ -56,12 +62,12 @@ export function scheduleBotTurn(
 
         // Extra turn or turn advanced — reschedule if bot is still active
         maybeRescheduleSelf(session, broadcast);
-      }, MOVE_DELAY_MS);
+      }, moveDelayMs);
     } else {
       // Turn was auto-handled (no-legal-moves pass, single forced move, or forfeit)
       maybeRescheduleSelf(session, broadcast);
     }
-  }, ROLL_DELAY_MS);
+  }, rollDelayMs);
 }
 
 function maybeRescheduleSelf(

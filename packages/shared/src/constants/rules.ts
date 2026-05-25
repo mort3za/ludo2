@@ -8,6 +8,8 @@ export const DEFAULT_RULES = {
 
 /** Timing defaults (milliseconds unless noted) */
 export const TIMINGS = {
+  diceReveal: 800,
+  diceShow: 800,
   turnTimeout: 30_000,
   kickAfterMisses: 3,
   postGameWindow: 60_000,
