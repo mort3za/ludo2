@@ -92,7 +92,11 @@ function startSquareColor(cellId: string): string | null {
 <template>
   <svg
     :viewBox="layout.viewBox"
-    :style="{ transform: `rotate(${rotation}deg)` }"
+    :style="{
+      transform: `rotate(${rotation}deg)`,
+      backgroundColor: 'rgba(255,255,255,0.3)',
+      borderRadius: '8px',
+    }"
     class="w-full h-full transition-transform duration-500"
     xmlns="http://www.w3.org/2000/svg"
   >
@@ -169,16 +173,6 @@ function startSquareColor(cellId: string): string | null {
       />
     </template>
 
-    <!-- Center marker: fills the central goal area between the four home columns. -->
-    <circle
-      :cx="layout.center.x"
-      :cy="layout.center.y"
-      :r="layout.cellSize * 4"
-      fill="#f7f7f5"
-      stroke="#898683"
-      :stroke-width="layout.cellSize * 0.2"
-    />
-
     <!-- Tokens -->
     <template v-if="tokens">
       <circle
@@ -190,8 +184,7 @@ function startSquareColor(cellId: string): string | null {
         :fill="playerColorHex(token.color)"
         stroke="#1a1816"
         :stroke-width="layout.cellSize * 0.12"
-        :class="['transition-all duration-300', legalSet.has(token.id) && 'cursor-pointer']"
-        :style="legalSet.has(token.id) ? { filter: 'drop-shadow(0 0 4px #fff)' } : {}"
+        :class="['transition-all duration-300', legalSet.has(token.id) && 'legal-token']"
         @click="legalSet.has(token.id) && emit('move', token.id)"
       />
     </template>
@@ -217,8 +210,31 @@ function startSquareColor(cellId: string): string | null {
             transform: `rotate(${-rotation}deg)`,
             transformOrigin: `${(cellPositions.get(cellId)?.x ?? 0) + layout.cellSize * 0.5}px ${(cellPositions.get(cellId)?.y ?? 0) - layout.cellSize * 0.5}px`,
           }"
-        >{{ count }}</text>
+        >
+          {{ count }}
+        </text>
       </template>
     </template>
   </svg>
 </template>
+
+<style scoped>
+.legal-token {
+  cursor: pointer;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: legal-token-pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes legal-token-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.7));
+  }
+  50% {
+    transform: scale(1.18);
+    filter: drop-shadow(0 0 7px rgba(255, 255, 255, 1));
+  }
+}
+</style>
