@@ -20,7 +20,7 @@ export type ServerMessage =
   | { type: "lobby"; players: LobbyPlayer[]; ownerId: string }
   | { type: "state"; state: GameState }
   | { type: "rolled"; seat: number; value: number }
-  | { type: "moved"; tokenId: string; to: Cell }
+  | { type: "moved"; tokenId: string; to: Cell; path: Cell[] }
   | { type: "captured"; tokenId: string }
   | { type: "turn"; seat: number; deadline: number }
   | { type: "finished"; standings: number[] }

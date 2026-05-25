@@ -34,6 +34,31 @@ export function useGameAnimation(): GameAnimationState {
   /** Timestamp of the last "rolled" message, used to keep dice visible briefly. */
   let lastRolledAt = 0;
   let pendingTurnTimer: ReturnType<typeof setTimeout> | null = null;
+  let pendingStepTimers: ReturnType<typeof setTimeout>[] = [];
+
+  /** Delay between per-cell steps. Must roughly match the BoardView token CSS transition. */
+  const STEP_INTERVAL_MS = 220;
+
+  function animateAlongPath(token: Token, path: Cell[], finalCell: Cell) {
+    for (const t of pendingStepTimers) clearTimeout(t);
+    pendingStepTimers = [];
+
+    if (path.length === 0) {
+      token.cell = finalCell;
+      return;
+    }
+
+    path.forEach((cell, i) => {
+      if (i === 0) {
+        token.cell = cell;
+        return;
+      }
+      const timer = setTimeout(() => {
+        token.cell = cell;
+      }, i * STEP_INTERVAL_MS);
+      pendingStepTimers.push(timer);
+    });
+  }
 
   function applyTurn(msg: { seat: number }) {
     if (gameState.value) {
@@ -54,18 +79,15 @@ export function useGameAnimation(): GameAnimationState {
 
       case "moved": {
         if (!gameState.value) break;
-        // Find the token and record animation
         const token = gameState.value.tokens.find((t) => t.id === msg.tokenId);
-        if (token) {
-          animating.value = {
-            tokenId: msg.tokenId,
-            from: token.cell,
-            to: msg.to,
-            type: "move",
-          };
-          // Update token position immediately (CSS transition handles visual)
-          token.cell = msg.to;
-        }
+        if (!token) break;
+        animating.value = {
+          tokenId: msg.tokenId,
+          from: token.cell,
+          to: msg.to,
+          type: "move",
+        };
+        animateAlongPath(token, msg.path, msg.to);
         break;
       }
 

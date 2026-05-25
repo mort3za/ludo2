@@ -1,5 +1,5 @@
-import type { GameState, ServerMessage, Token } from "@ludo/shared";
-import { DEFAULT_RULES, TIMINGS } from "@ludo/shared";
+import type { GameState, ServerMessage, Token, Cell } from "@ludo/shared";
+import { DEFAULT_RULES, TIMINGS, parseCell, stepPath, startSquare } from "@ludo/shared";
 import { resolveRoll } from "../game/actions/roll.js";
 import { applyMove } from "../game/actions/move.js";
 import { legalMoves, type LegalMove } from "../game/validators/legal-moves.js";
@@ -97,6 +97,8 @@ export function handleMove(session: GameSession, tokenId: string): ServerMessage
     return [{ type: "error", message: "illegal-move" }];
   }
 
+  const path = computeMovePath(move.from, state.diceValue ?? 0, state.activeSeat, state.seats.length);
+
   const result = applyMove(
     state.tokens,
     tokenId,
@@ -107,7 +109,7 @@ export function handleMove(session: GameSession, tokenId: string): ServerMessage
   );
   state.tokens = result.tokens;
 
-  messages.push({ type: "moved", tokenId, to: move.to });
+  messages.push({ type: "moved", tokenId, to: move.to, path });
 
   if (result.captured) {
     messages.push({ type: "captured", tokenId: result.captured });
@@ -145,6 +147,20 @@ export function handleMove(session: GameSession, tokenId: string): ServerMessage
   }
 
   return messages;
+}
+
+/**
+ * Compute the per-cell path a token traverses for an applied move.
+ *
+ * For yard deploys the token jumps directly to its start square (single hop).
+ * For track/home moves, returns every cell visited in order (excluding origin).
+ */
+function computeMovePath(from: Cell, dice: number, seat: number, S: number): Cell[] {
+  const parsed = parseCell(from);
+  if (parsed.kind === "yard") {
+    return [startSquare(seat, S)];
+  }
+  return stepPath(from, dice, seat, S);
 }
 
 function advanceTurn(session: GameSession, messages: ServerMessage[]) {
