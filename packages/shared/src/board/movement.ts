@@ -7,8 +7,9 @@ import { entrySquare } from "./seats.js";
  * stepping `steps` positions forward from `from`.
  *
  * Handles clockwise track wraparound and home-column transition
- * for the given seat. Returns the raw path — overshoot validation
- * is handled separately.
+ * for the given seat. The owner's entry track square is skipped,
+ * so the last turn into home is a direct 90-degree move.
+ * Returns the raw path — overshoot validation is handled separately.
  */
 export function stepPath(from: string, steps: number, seat: number, S: number): string[] {
   const parsed = parseCell(from);
@@ -36,8 +37,10 @@ export function stepPath(from: string, steps: number, seat: number, S: number): 
   let pos = parsed.index;
 
   for (let i = 0; i < steps; i++) {
-    // Check if current position is the entry square — next step enters home
-    if (pos === entryIdx) {
+    const nextTrackPos = (pos % trackLen) + 1;
+
+    // The owner's entry square is not walkable; turn directly into home.
+    if (pos === entryIdx || nextTrackPos === entryIdx) {
       // Remaining steps go into home column
       const remaining = steps - i;
       for (let h = 1; h <= remaining; h++) {
@@ -47,9 +50,8 @@ export function stepPath(from: string, steps: number, seat: number, S: number): 
     }
 
     // Normal track step with wraparound
-    pos = (pos % trackLen) + 1;
+    pos = nextTrackPos;
 
-    // If we just stepped onto the entry square and there are more steps, continue loop
     path.push(track(pos));
   }
 

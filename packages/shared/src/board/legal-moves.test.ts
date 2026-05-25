@@ -40,7 +40,13 @@ describe("legalMoves (shared)", () => {
     it("wraps around track end into home column", () => {
       const tokens = [makeToken("t1", "T/43")];
       const moves = legalMoves(tokens, 3, 1, S, []);
-      expect(moves[0]!.to).toBe("H/1/2");
+      expect(moves[0]!.to).toBe("H/1/3");
+    });
+
+    it("skips the owner's entry square when entering home", () => {
+      const tokens = [makeToken("t1", "T/43")];
+      const moves = legalMoves(tokens, 1, 1, S, []);
+      expect(moves).toEqual([{ tokenId: "t1", from: "T/43", to: "H/1/1" }]);
     });
   });
 

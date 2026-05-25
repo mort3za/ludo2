@@ -27,9 +27,9 @@ describe("stepPath — track stepping", () => {
 });
 
 describe("stepPath — entry to home transition", () => {
-  it("seat 2 (S=4): one step past entry T/11 → H/2/1", () => {
-    // From T/10, 2 steps: T/11 (entry), H/2/1
-    expect(stepPath("T/10", 2, 2, 4)).toEqual(["T/11", "H/2/1"]);
+  it("seat 2 (S=4): skips T/11 and turns directly into home", () => {
+    expect(stepPath("T/10", 1, 2, 4)).toEqual(["H/2/1"]);
+    expect(stepPath("T/10", 2, 2, 4)).toEqual(["H/2/1", "H/2/2"]);
   });
 
   it("seat 2 (S=4): from entry T/11, 1 step → H/2/1", () => {
@@ -40,17 +40,17 @@ describe("stepPath — entry to home transition", () => {
     expect(stepPath("T/11", 4, 2, 4)).toEqual(["H/2/1", "H/2/2", "H/2/3", "H/2/4"]);
   });
 
-  it("seat 1 (S=4): entry is T/44 (wrap), step to home", () => {
-    // From T/43, 2 steps: T/44 (entry), H/1/1
-    expect(stepPath("T/43", 2, 1, 4)).toEqual(["T/44", "H/1/1"]);
+  it("seat 1 (S=4): entry is T/44 (wrap), turn to home before it", () => {
+    expect(stepPath("T/43", 1, 1, 4)).toEqual(["H/1/1"]);
+    expect(stepPath("T/43", 2, 1, 4)).toEqual(["H/1/1", "H/1/2"]);
   });
 
   it("seat 1 (S=4): from entry T/44, 1 step → H/1/1", () => {
     expect(stepPath("T/44", 1, 1, 4)).toEqual(["H/1/1"]);
   });
 
-  it("seat 3 (S=4): entry T/22, 3 steps from T/21 → T/22, H/3/1, H/3/2", () => {
-    expect(stepPath("T/21", 3, 3, 4)).toEqual(["T/22", "H/3/1", "H/3/2"]);
+  it("seat 3 (S=4): entry T/22, 3 steps from T/21 → H/3/1, H/3/2, H/3/3", () => {
+    expect(stepPath("T/21", 3, 3, 4)).toEqual(["H/3/1", "H/3/2", "H/3/3"]);
   });
 
   it("seat 4 (S=4): entry T/33, from T/33 2 steps → H/4/1, H/4/2", () => {
@@ -69,8 +69,9 @@ describe("stepPath — within home column", () => {
 });
 
 describe("stepPath — S=6 entry transitions", () => {
-  it("seat 1 (S=6): entry T/66, step from T/65 → T/66, H/1/1", () => {
-    expect(stepPath("T/65", 2, 1, 6)).toEqual(["T/66", "H/1/1"]);
+  it("seat 1 (S=6): entry T/66 is skipped for its owner", () => {
+    expect(stepPath("T/65", 1, 1, 6)).toEqual(["H/1/1"]);
+    expect(stepPath("T/65", 2, 1, 6)).toEqual(["H/1/1", "H/1/2"]);
   });
 
   it("seat 5 (S=6): entry T/44, step from T/44 → H/5/1", () => {
@@ -79,8 +80,9 @@ describe("stepPath — S=6 entry transitions", () => {
 });
 
 describe("stepPath — S=8 entry transitions", () => {
-  it("seat 1 (S=8): entry T/88, from T/87 2 steps → T/88, H/1/1", () => {
-    expect(stepPath("T/87", 2, 1, 8)).toEqual(["T/88", "H/1/1"]);
+  it("seat 1 (S=8): entry T/88 is skipped for its owner", () => {
+    expect(stepPath("T/87", 1, 1, 8)).toEqual(["H/1/1"]);
+    expect(stepPath("T/87", 2, 1, 8)).toEqual(["H/1/1", "H/1/2"]);
   });
 
   it("seat 8 (S=8): entry T/77, from T/77 3 steps → H/8/1, H/8/2, H/8/3", () => {
