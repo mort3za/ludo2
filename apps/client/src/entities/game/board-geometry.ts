@@ -18,8 +18,20 @@ export interface BoardLayout {
 
 function computeClassicFourSeatLayout(): BoardLayout {
   const ARM_ROWS = Math.floor(CELLS_PER_ARM / 2);
-  const armBase = 1;
-  const startOffset = ARM_ROWS + 1;
+  // Arms sit at axial distances [armBase, armBase + ARM_ROWS] from the center.
+  // armBase = 2 (not 1) leaves the inner ring at distance 1 empty for both track and
+  // home cells. That keeps the 44 logical track cells geometrically distinct — with
+  // armBase = 1 the (perp ±1, distance 1) inner-corner positions are claimed by both
+  // an arm's right column and the next arm's left column, causing two consecutive
+  // track cells to render at the same coordinates and tokens to appear to skip a
+  // step when crossing an arm boundary.
+  const armBase = 2;
+  // Home column reaches outward to be adjacent to the tip and stops one cell short
+  // of the center, mirroring the arm spacing.
+  const homeBase = 2;
+  // T/1 must be the cell adjacent to home (the "start square"). With ARM_ROWS=5 the
+  // arm laid out as [left×5, tip, right×5] puts that cell at flatTrack[ARM_ROWS+2].
+  const startOffset = ARM_ROWS + 2;
   const yardCenter = 4.3;
   const yardSpacing = 1.6;
   const snap = (value: number) => {
@@ -42,6 +54,7 @@ function computeClassicFourSeatLayout(): BoardLayout {
 
     const armTrack: Array<Pick<CellPos, "x" | "y">> = [];
 
+    // Left column outward: 5 cells at distances armBase..armBase+4, perp -1.
     for (let row = 0; row < ARM_ROWS; row++) {
       armTrack.push({
         x: snap((armBase + row) * dx - px),
@@ -49,11 +62,13 @@ function computeClassicFourSeatLayout(): BoardLayout {
       });
     }
 
+    // Tip: 1 cell at distance armBase+ARM_ROWS-1, perp 0.
     armTrack.push({
       x: snap((armBase + ARM_ROWS - 1) * dx),
       y: snap((armBase + ARM_ROWS - 1) * dy),
     });
 
+    // Right column inward: 5 cells at distances armBase+4..armBase, perp +1.
     for (let row = ARM_ROWS - 1; row >= 0; row--) {
       armTrack.push({
         x: snap((armBase + row) * dx + px),
@@ -66,8 +81,8 @@ function computeClassicFourSeatLayout(): BoardLayout {
     const homeCol: CellPos[] = [];
     for (let i = 0; i < HOME_COLUMN_LENGTH; i++) {
       homeCol.push({
-        x: snap((armBase + HOME_COLUMN_LENGTH - 1 - i) * dx),
-        y: snap((armBase + HOME_COLUMN_LENGTH - 1 - i) * dy),
+        x: snap((homeBase + HOME_COLUMN_LENGTH - 1 - i) * dx),
+        y: snap((homeBase + HOME_COLUMN_LENGTH - 1 - i) * dy),
         id: `H/${seat}/${i + 1}`,
         seatIndex: seat,
       });

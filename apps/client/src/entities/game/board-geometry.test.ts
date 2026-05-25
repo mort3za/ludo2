@@ -14,25 +14,20 @@ describe("computeBoardLayout", () => {
     expect(getTrackPoint(startSquare(4, 4))).toMatchObject({ x: -5, y: -1 });
   });
 
-  it("keeps the inner ring aligned as a square around the center", () => {
+  it("leaves the inner ring at distance 1 empty so arm-to-arm transitions don't overlap", () => {
     const layout = computeBoardLayout(4);
-    const expectedTrackCorners = new Set(["-1,-1", "1,-1", "1,1", "-1,1"]);
-    const expectedHomeEdges = new Set(["0,-1", "1,0", "0,1", "-1,0"]);
+    const innerCells = [
+      ...layout.track,
+      ...layout.homes.flat(),
+    ].filter((cell) => Math.abs(cell.x) <= 1 && Math.abs(cell.y) <= 1);
+    expect(innerCells, "no track or home cell should sit inside the central goal area").toEqual([]);
 
-    const trackCorners = new Set(
-      layout.track
-        .filter((cell) => Math.abs(cell.x) <= 1 && Math.abs(cell.y) <= 1)
+    const innerHomeEnds = new Set(
+      layout.homes.flat()
+        .filter((cell) => Math.max(Math.abs(cell.x), Math.abs(cell.y)) === 2)
         .map((cell) => `${cell.x},${cell.y}`),
     );
-    const homeEdges = new Set(
-      layout.homes
-        .flat()
-        .filter((cell) => Math.abs(cell.x) <= 1 && Math.abs(cell.y) <= 1)
-        .map((cell) => `${cell.x},${cell.y}`),
-    );
-
-    expect(trackCorners).toEqual(expectedTrackCorners);
-    expect(homeEdges).toEqual(expectedHomeEdges);
+    expect(innerHomeEnds).toEqual(new Set(["0,-2", "2,0", "0,2", "-2,0"]));
   });
 
   it("moves each yard into its corner quadrant", () => {
@@ -42,6 +37,18 @@ describe("computeBoardLayout", () => {
     expect(layout.yards[1]?.every((cell) => cell.x > 0 && cell.y > 0)).toBe(true);
     expect(layout.yards[2]?.every((cell) => cell.x < 0 && cell.y > 0)).toBe(true);
     expect(layout.yards[3]?.every((cell) => cell.x < 0 && cell.y < 0)).toBe(true);
+  });
+
+  it("gives every track cell a unique position so movement never visually stalls at arm transitions", () => {
+    const layout = computeBoardLayout(4);
+    const seen = new Map<string, string>();
+    for (const cell of layout.track) {
+      const key = `${cell.x},${cell.y}`;
+      const prev = seen.get(key);
+      expect(prev, `${cell.id} and ${prev} both render at (${key})`).toBeUndefined();
+      seen.set(key, cell.id);
+    }
+    expect(seen.size).toBe(layout.track.length);
   });
 
   it("ensures geometric continuity for S=4 track and entry/home", () => {

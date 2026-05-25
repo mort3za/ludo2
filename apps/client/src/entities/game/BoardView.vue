@@ -137,11 +137,11 @@ function startSquareColor(cellId: string): string | null {
       />
     </template>
 
-    <!-- Center marker -->
+    <!-- Center marker: fills the central goal area between the four home columns. -->
     <circle
       :cx="layout.center.x"
       :cy="layout.center.y"
-      :r="layout.cellSize * 1.5"
+      :r="layout.cellSize * 4"
       fill="#f7f7f5"
       stroke="#898683"
       :stroke-width="layout.cellSize * 0.2"
