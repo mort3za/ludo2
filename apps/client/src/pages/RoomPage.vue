@@ -141,7 +141,7 @@ const canAddBot = computed(
     </DCard>
 
     <!-- Lobby view after joining -->
-    <DCard v-else class="p-8 w-full max-w-sm">
+    <DCard v-else class="bg-frost rounded-lg p-8 w-full max-w-sm">
       <h2 class="text-heading font-sans text-midnight-ink text-center mb-6">Setup the Game</h2>
 
       <div class="mb-6">

@@ -148,12 +148,8 @@ function startSquareColor(cellId: string): string | null {
 <template>
   <svg
     :viewBox="layout.viewBox"
-    :style="{
-      transform: `rotate(${rotation}deg)`,
-      backgroundColor: 'rgba(255,255,255,0.3)',
-      borderRadius: '8px',
-    }"
-    class="w-full h-full transition-transform duration-500"
+    :style="{ transform: `rotate(${rotation}deg)` }"
+    class="bg-frost w-full h-full rounded-lg transition-transform duration-500"
     xmlns="http://www.w3.org/2000/svg"
   >
     <!-- Track cells -->

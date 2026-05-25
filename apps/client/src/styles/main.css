@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./button.css";
+@import "./background.css";
 
 @theme {
   /* — Colors — */
