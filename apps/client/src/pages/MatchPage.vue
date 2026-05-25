@@ -17,22 +17,26 @@ const props = defineProps<{ roomId: string }>();
 const vueRouter = useRouter();
 const session = useSessionStore();
 const gameResultStore = useGameResultStore();
-const { gameState, animating, lastRolledValue, handleMessage } = useGameAnimation((msg) => {
-  if (msg.type === "turn") {
-    deadline.value = msg.deadline;
-  }
-
-  if (msg.type === "finished") {
-    if (gameState.value) {
-      gameResultStore.setResult(gameState.value);
+const { gameState, animating, lastRolledValue, isActionLocked, handleMessage } = useGameAnimation(
+  (msg) => {
+    if (msg.type === "turn") {
+      deadline.value = msg.deadline;
     }
-    vueRouter.push({ name: "post-game", params: { roomId: props.roomId } });
-  }
-});
+
+    if (msg.type === "finished") {
+      if (gameState.value) {
+        gameResultStore.setResult(gameState.value);
+      }
+      vueRouter.push({ name: "post-game", params: { roomId: props.roomId } });
+    }
+  },
+);
 
 const deadline = ref<number>(0);
 const pendingAction = ref(false);
 let ws: WsConnection | null = null;
+
+const canSendAction = computed(() => !pendingAction.value && !isActionLocked.value);
 
 /** Find the local player's seat index, or null if spectator. */
 const mySeat = computed(() => {
@@ -47,6 +51,7 @@ const isSpectator = computed(() => mySeat.value === null);
 const legalTokenIds = computed(() => {
   const state = gameState.value;
   if (!state || mySeat.value === null) return [];
+  if (isActionLocked.value) return [];
   if (state.activeSeat !== mySeat.value) return [];
   if (state.status !== "moving" && state.status !== "rolling") return [];
   if (state.diceValue === null) return [];
@@ -85,13 +90,13 @@ function onServerMessage(msg: ServerMessage) {
 }
 
 function onRoll() {
-  if (pendingAction.value) return;
+  if (!canSendAction.value) return;
   pendingAction.value = true;
   ws?.send({ type: "roll" });
 }
 
 function onMove(tokenId: string) {
-  if (pendingAction.value) return;
+  if (!canSendAction.value) return;
   pendingAction.value = true;
   ws?.send({ type: "move", tokenId });
 }
@@ -123,6 +128,7 @@ onUnmounted(() => {
         :my-seat="mySeat"
         :legal-token-ids="legalTokenIds"
         :last-rolled-value="lastRolledValue"
+        :action-locked="isActionLocked"
         @roll="onRoll"
       />
 

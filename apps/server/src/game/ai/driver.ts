@@ -1,4 +1,4 @@
-import { type ServerMessage, legalMoves } from "@ludo/shared";
+import { TIMINGS, type ServerMessage, legalMoves } from "@ludo/shared";
 import {
   getPendingRollHoldMs,
   handleRoll,
@@ -27,7 +27,7 @@ export function scheduleBotTurn(
   const activeSeat = state.seats.find((s) => s.index === state.activeSeat);
   if (!activeSeat?.isBot) return;
 
-  const rollDelayMs = Math.max(ROLL_DELAY_MS, getPendingRollHoldMs(session));
+  const rollDelayMs = Math.max(ROLL_DELAY_MS, getPendingRollHoldMs(session) + TIMINGS.turnPass);
   setTimeout(() => {
     if (state.status === "finished") return;
 

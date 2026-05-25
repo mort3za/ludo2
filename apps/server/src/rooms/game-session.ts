@@ -33,7 +33,7 @@ export function getPendingRollHoldMs(session: GameSession, now = Date.now()): nu
 }
 
 function nextTurnDeadline(session: GameSession, now = Date.now()): number {
-  return now + TIMINGS.turnTimeout + getPendingRollHoldMs(session, now);
+  return now + TIMINGS.turnTimeout + getPendingRollHoldMs(session, now) + TIMINGS.turnPass;
 }
 
 export function handleRoll(session: GameSession): ServerMessage[] {

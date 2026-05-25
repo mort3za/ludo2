@@ -38,6 +38,7 @@ function makeSession(stateOverrides: Partial<GameState> = {}): GameSession {
 }
 
 const ROLL_HOLD_MS = TIMINGS.diceReveal + TIMINGS.diceShow;
+const TURN_PASS_MS = TIMINGS.turnPass;
 
 describe("scheduleBotTurn", () => {
   beforeEach(() => {
@@ -124,7 +125,7 @@ describe("scheduleBotTurn", () => {
     vi.advanceTimersByTime(800);
     expect(broadcast).toHaveBeenCalledTimes(1);
 
-    vi.advanceTimersByTime(ROLL_HOLD_MS - 1);
+    vi.advanceTimersByTime(ROLL_HOLD_MS + TURN_PASS_MS - 1);
     expect(
       broadcast.mock.calls
         .flatMap((c) => c[0] as ServerMessage[])

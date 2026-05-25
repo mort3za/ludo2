@@ -9,6 +9,7 @@ const props = defineProps<{
   mySeat: number;
   legalTokenIds: string[];
   lastRolledValue: number | null;
+  actionLocked: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -17,14 +18,19 @@ const emit = defineEmits<{
 
 const isMyTurn = computed(() => props.state.activeSeat === props.mySeat);
 
-const activeSeat = computed(() => props.state.seats.find((s) => s.index === props.state.activeSeat));
+const activeSeat = computed(() =>
+  props.state.seats.find((s) => s.index === props.state.activeSeat),
+);
 
-const activeSeatColor = computed(() => activeSeat.value ? playerColorHex(activeSeat.value.color) : "#888");
+const activeSeatColor = computed(() =>
+  activeSeat.value ? playerColorHex(activeSeat.value.color) : "#888",
+);
 
 const activeSeatIsBot = computed(() => activeSeat.value?.isBot ?? false);
 
 const phase = computed(() => {
   if (!isMyTurn.value || activeSeatIsBot.value) return "waiting" as const;
+  if (props.actionLocked) return "locked" as const;
   if (props.state.status === "rolling") return "roll" as const;
   if (props.state.status === "moving") {
     if (props.legalTokenIds.length === 0) return "no-moves" as const;
@@ -39,6 +45,8 @@ const statusText = computed(() => {
     case "waiting":
       if (activeSeatIsBot.value) return `Player${activeSeat.value?.index ?? ""} (AI) is thinking…`;
       return "Their turn";
+    case "locked":
+      return "Waiting for dice…";
     case "roll":
       return "Your turn — roll the dice!";
     case "no-moves":
@@ -72,6 +80,5 @@ const statusText = computed(() => {
       </div>
       <DButton :disabled="phase !== 'roll'" @click="emit('roll')"> Roll </DButton>
     </div>
-
   </div>
 </template>

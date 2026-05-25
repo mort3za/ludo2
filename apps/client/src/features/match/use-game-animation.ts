@@ -12,6 +12,7 @@ export interface GameAnimationState {
   gameState: Ref<GameState | null>;
   animating: Ref<AnimatingToken | null>;
   lastRolledValue: Ref<number | null>;
+  isActionLocked: Ref<boolean>;
   handleMessage: (msg: ServerMessage) => void;
 }
 
@@ -32,25 +33,47 @@ export function useGameAnimation(
   const animating = ref<AnimatingToken | null>(null);
   // Persists across turn changes — only replaced when next player rolls.
   const lastRolledValue = ref<number | null>(null);
+  const isActionLocked = ref(false);
 
   /** Timestamp of the last "rolled" message, used to keep dice visible briefly. */
   let lastRolledAt = 0;
+  let movementEndsAt = 0;
+  let turnPassEndsAt = 0;
   let pendingDiceTimer: ReturnType<typeof setTimeout> | null = null;
-  let pendingTurnTimer: ReturnType<typeof setTimeout> | null = null;
   let pendingActionTimer: ReturnType<typeof setTimeout> | null = null;
   let pendingStepTimers: ReturnType<typeof setTimeout>[] = [];
   let queuedMessages: ServerMessage[] = [];
 
   const DICE_REVEAL_MS = TIMINGS.diceReveal;
   const DICE_SHOW_MS = TIMINGS.diceShow;
+  const TURN_PASS_MS = TIMINGS.turnPass;
 
   /** Delay between per-cell steps. Must roughly match the BoardView token CSS transition. */
   const STEP_INTERVAL_MS = 220;
+  const TOKEN_TRANSITION_MS = 300;
 
   function getRemainingRollHoldMs(now = Date.now()) {
     if (lastRolledAt === 0) return 0;
     const holdMs = DICE_REVEAL_MS + DICE_SHOW_MS;
     return Math.max(0, holdMs - (now - lastRolledAt));
+  }
+
+  function getRemainingMoveHoldMs(now = Date.now()) {
+    if (movementEndsAt === 0) return 0;
+    return Math.max(0, movementEndsAt - now);
+  }
+
+  function getRemainingTurnPassMs(now = Date.now()) {
+    if (turnPassEndsAt === 0) return 0;
+    return Math.max(0, turnPassEndsAt - now);
+  }
+
+  function getRemainingActionLockMs(now = Date.now()) {
+    return Math.max(
+      getRemainingRollHoldMs(now),
+      getRemainingMoveHoldMs(now),
+      getRemainingTurnPassMs(now),
+    );
   }
 
   function emitAppliedMessage(msg: ServerMessage) {
@@ -63,18 +86,24 @@ export function useGameAnimation(
       pendingActionTimer = null;
     }
     queuedMessages = [];
+    movementEndsAt = 0;
+    turnPassEndsAt = 0;
+    isActionLocked.value = false;
   }
 
-  function scheduleQueuedMessages() {
-    const delayMs = getRemainingRollHoldMs();
+  function schedulePendingWork() {
+    const delayMs = getRemainingActionLockMs();
     if (delayMs <= 0) {
+      isActionLocked.value = false;
       flushQueuedMessages();
       return;
     }
 
+    isActionLocked.value = true;
     if (pendingActionTimer) clearTimeout(pendingActionTimer);
     pendingActionTimer = setTimeout(() => {
       pendingActionTimer = null;
+      isActionLocked.value = false;
       flushQueuedMessages();
     }, delayMs);
   }
@@ -82,21 +111,24 @@ export function useGameAnimation(
   function flushQueuedMessages() {
     if (queuedMessages.length === 0) return;
 
-    const delayMs = getRemainingRollHoldMs();
-    if (delayMs > 0) {
-      scheduleQueuedMessages();
-      return;
-    }
-
     const pending = queuedMessages;
     queuedMessages = [];
-    for (const queuedMsg of pending) {
+    for (let index = 0; index < pending.length; index += 1) {
+      const queuedMsg = pending[index];
+      if (!queuedMsg) continue;
+      const delayMs = shouldDelayMessage(queuedMsg) ? getRemainingActionLockMs() : 0;
+      if (delayMs > 0) {
+        queuedMessages = pending.slice(index);
+        schedulePendingWork();
+        return;
+      }
       applyMessage(queuedMsg);
     }
   }
 
   function shouldDelayMessage(msg: ServerMessage) {
     return (
+      msg.type === "rolled" ||
       msg.type === "moved" ||
       msg.type === "captured" ||
       msg.type === "turn" ||
@@ -108,10 +140,11 @@ export function useGameAnimation(
   function animateAlongPath(token: Token, path: Cell[], finalCell: Cell) {
     for (const t of pendingStepTimers) clearTimeout(t);
     pendingStepTimers = [];
+    animating.value = null;
 
     if (path.length === 0) {
       token.cell = finalCell;
-      return;
+      return 0;
     }
 
     path.forEach((cell, i) => {
@@ -124,6 +157,14 @@ export function useGameAnimation(
       }, i * STEP_INTERVAL_MS);
       pendingStepTimers.push(timer);
     });
+
+    const totalMs = (path.length - 1) * STEP_INTERVAL_MS + TOKEN_TRANSITION_MS;
+    const cleanupTimer = setTimeout(() => {
+      animating.value = null;
+    }, totalMs);
+    pendingStepTimers.push(cleanupTimer);
+
+    return totalMs;
   }
 
   function applyTurn(msg: { seat: number }) {
@@ -131,6 +172,8 @@ export function useGameAnimation(
       gameState.value.activeSeat = msg.seat;
       gameState.value.diceValue = null;
       gameState.value.status = "rolling";
+      turnPassEndsAt = Date.now() + TURN_PASS_MS;
+      schedulePendingWork();
     }
   }
 
@@ -143,16 +186,15 @@ export function useGameAnimation(
           clearTimeout(pendingDiceTimer);
           pendingDiceTimer = null;
         }
-        if (pendingTurnTimer) {
-          clearTimeout(pendingTurnTimer);
-          pendingTurnTimer = null;
-        }
         for (const t of pendingStepTimers) clearTimeout(t);
         pendingStepTimers = [];
         lastRolledAt = 0;
+        movementEndsAt = 0;
+        turnPassEndsAt = 0;
         gameState.value = msg.state;
         animating.value = null;
         lastRolledValue.value = msg.state.diceValue;
+        isActionLocked.value = false;
         emitAppliedMessage(msg);
         break;
 
@@ -166,7 +208,8 @@ export function useGameAnimation(
           to: msg.to,
           type: "move",
         };
-        animateAlongPath(token, msg.path, msg.to);
+        movementEndsAt = Date.now() + animateAlongPath(token, msg.path, msg.to);
+        schedulePendingWork();
         emitAppliedMessage(msg);
         break;
       }
@@ -193,6 +236,7 @@ export function useGameAnimation(
           gameState.value.status = "moving";
         }
         lastRolledAt = Date.now();
+        isActionLocked.value = true;
         if (pendingDiceTimer) clearTimeout(pendingDiceTimer);
         lastRolledValue.value = null;
         const rolledValue = msg.value;
@@ -200,12 +244,12 @@ export function useGameAnimation(
           lastRolledValue.value = rolledValue;
           pendingDiceTimer = null;
         }, DICE_REVEAL_MS);
+        schedulePendingWork();
         emitAppliedMessage(msg);
         break;
       }
 
       case "turn": {
-        if (pendingTurnTimer) clearTimeout(pendingTurnTimer);
         applyTurn(msg);
         emitAppliedMessage(msg);
         break;
@@ -237,10 +281,10 @@ export function useGameAnimation(
 
   function handleMessage(msg: ServerMessage) {
     if (shouldDelayMessage(msg)) {
-      const delayMs = getRemainingRollHoldMs();
+      const delayMs = getRemainingActionLockMs();
       if (delayMs > 0) {
         queuedMessages.push(msg);
-        scheduleQueuedMessages();
+        schedulePendingWork();
         return;
       }
     }
@@ -248,5 +292,5 @@ export function useGameAnimation(
     applyMessage(msg);
   }
 
-  return { gameState, animating, lastRolledValue, handleMessage };
+  return { gameState, animating, lastRolledValue, isActionLocked, handleMessage };
 }

@@ -359,7 +359,7 @@ describe("turn timing", () => {
     expect(turnMsg).toBeDefined();
     if (turnMsg && turnMsg.type === "turn") {
       expect(turnMsg.deadline).toBe(
-        Date.now() + TIMINGS.turnTimeout + TIMINGS.diceReveal + TIMINGS.diceShow,
+        Date.now() + TIMINGS.turnTimeout + TIMINGS.diceReveal + TIMINGS.diceShow + TIMINGS.turnPass,
       );
     }
 
@@ -392,7 +392,7 @@ describe("turn timing", () => {
 
     expect(turnMsg).toBeDefined();
     if (turnMsg && turnMsg.type === "turn") {
-      expect(turnMsg.deadline).toBe(Date.now() + TIMINGS.turnTimeout + 1200);
+      expect(turnMsg.deadline).toBe(Date.now() + TIMINGS.turnTimeout + 1200 + TIMINGS.turnPass);
     }
 
     vi.useRealTimers();
