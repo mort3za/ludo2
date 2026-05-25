@@ -23,10 +23,6 @@ export default defineConfig({
   webServer: [
     {
       command: "bun run --cwd apps/server src/index.ts",
-      env: {
-        ...process.env,
-        DEBUG_START_STATE_FILE: process.env["DEBUG_START_STATE_FILE"] ?? "",
-      },
       url: `http://localhost:${SERVER_PORT}/health`,
       reuseExistingServer: !process.env["CI"],
     },

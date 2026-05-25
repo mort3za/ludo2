@@ -1,14 +1,6 @@
 import type { ClientMessage, ServerMessage } from "@ludo/shared";
 import { TIMINGS } from "@ludo/shared";
-import {
-  setReady,
-  canStart,
-  startGame,
-  leaveRoom,
-  addBotMember,
-  removeBotMember,
-  type Room,
-} from "../rooms/room.js";
+import { setReady, canStart, startGame, leaveRoom, type Room } from "../rooms/room.js";
 import { initGame } from "../rooms/init-game.js";
 import { createCryptoRng } from "../game/rng/rng.js";
 import {
@@ -19,7 +11,6 @@ import {
   type GameSession,
 } from "../rooms/game-session.js";
 import { scheduleBotTurn } from "../game/ai/driver.js";
-import type { DebugStartState } from "../config/debug-start-state.js";
 
 export interface WsClient {
   playerId: string;
@@ -39,11 +30,7 @@ export interface Router {
   getGameSession: (roomId: string) => GameSession | undefined;
 }
 
-export interface RouterOptions {
-  debugStartState?: DebugStartState | null;
-}
-
-export function createRouter(rooms: RoomStore, options: RouterOptions = {}): Router {
+export function createRouter(rooms: RoomStore): Router {
   const clients = new Set<WsClient>();
   const gameSessions = new Map<string, GameSession>();
   const turnTimers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -89,12 +76,7 @@ export function createRouter(rooms: RoomStore, options: RouterOptions = {}): Rou
       ready: m.ready,
       isBot: m.kind === "bot",
     }));
-    broadcast(roomId, {
-      type: "lobby",
-      players,
-      ownerId: room.ownerId ?? "",
-      maxPlayers: room.boardSize,
-    });
+    broadcast(roomId, { type: "lobby", players, ownerId: room.ownerId ?? "" });
   }
 
   function dispatch(client: WsClient, message: ClientMessage): void {
@@ -136,12 +118,7 @@ export function createRouter(rooms: RoomStore, options: RouterOptions = {}): Rou
         if (startResult.ok) {
           rooms.set(client.roomId, startResult.room);
           const rng = createCryptoRng();
-          const state = initGame(
-            startResult.room,
-            gameId,
-            rng,
-            options.debugStartState ?? undefined,
-          );
+          const state = initGame(startResult.room, gameId, rng);
           const session = createGameSession(state);
           gameSessions.set(client.roomId, session);
           broadcast(client.roomId, { type: "state", state });
@@ -203,44 +180,6 @@ export function createRouter(rooms: RoomStore, options: RouterOptions = {}): Rou
         break;
       }
 
-      case "add-bot": {
-        if (room.phase !== "lobby") {
-          client.send({ type: "error", message: "not-in-lobby" });
-          break;
-        }
-        if (room.ownerId !== client.playerId) {
-          client.send({ type: "error", message: "not-owner" });
-          break;
-        }
-        const result = addBotMember(room);
-        if (result.ok) {
-          rooms.set(client.roomId, result.room);
-          broadcastLobby(client.roomId, result.room);
-        } else {
-          client.send({ type: "error", message: result.error });
-        }
-        break;
-      }
-
-      case "remove-bot": {
-        if (room.phase !== "lobby") {
-          client.send({ type: "error", message: "not-in-lobby" });
-          break;
-        }
-        if (room.ownerId !== client.playerId) {
-          client.send({ type: "error", message: "not-owner" });
-          break;
-        }
-        const result = removeBotMember(room);
-        if (result.ok) {
-          rooms.set(client.roomId, result.room);
-          broadcastLobby(client.roomId, result.room);
-        } else {
-          client.send({ type: "error", message: result.error });
-        }
-        break;
-      }
-
       case "rematch": {
         if (room.ownerId !== client.playerId) {
           client.send({ type: "error", message: "not-owner" });
@@ -256,12 +195,7 @@ export function createRouter(rooms: RoomStore, options: RouterOptions = {}): Rou
         const rematchRoom: Room = { ...room, phase: "playing", gameId: newGameId };
         rooms.set(client.roomId, rematchRoom);
         const rng = createCryptoRng();
-        const newState = initGame(
-          rematchRoom,
-          newGameId,
-          rng,
-          options.debugStartState ?? undefined,
-        );
+        const newState = initGame(rematchRoom, newGameId, rng);
         const newSession = createGameSession(newState);
         gameSessions.set(client.roomId, newSession);
         broadcast(client.roomId, { type: "state", state: newState });

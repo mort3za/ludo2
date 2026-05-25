@@ -54,11 +54,10 @@ describe("home-column rules", () => {
 
   describe("entry from track to home", () => {
     it("enters home column when passing through entry square", () => {
-      // Seat 1 skips T/44 and turns directly into home.
-      // From T/43, step 3: H/1/1, H/1/2, H/1/3.
+      // Seat 1 entry = T/44. From T/43, step 3: T/44(entry)→H/1/1, H/1/2
       const seatTokens = [makeToken("t1", "T/43", "blue")];
       const moves = legalMoves(seatTokens, 3, 1, S, seatTokens);
-      expect(moves[0]!.to).toBe("H/1/3");
+      expect(moves[0]!.to).toBe("H/1/2");
     });
 
     it("cannot enter home if first home cell is occupied", () => {

@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createRouter, type WsClient, type RoomStore } from "./router.js";
 import type { ServerMessage, ClientMessage } from "@ludo/shared";
 import { createRoom, joinRoom, setReady, type Room } from "../rooms/room.js";
-import type { DebugStartState } from "../config/debug-start-state.js";
 
 function makeMockClient(playerId: string): WsClient {
   return {
@@ -143,33 +142,6 @@ describe("WS router", () => {
       const session = router.getGameSession("room-1");
       expect(session).toBeDefined();
       expect(session!.state.status).toBe("rolling");
-    });
-
-    it("applies the configured debug start state when a game starts", () => {
-      let room = makeLobbyRoom(["p1", "p2"]);
-      room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
-      room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
-      rooms.set("room-1", room);
-
-      const debugStartState: DebugStartState = {
-        status: "moving",
-        activeSeat: 1,
-        diceValue: 6,
-        consecutiveSixes: 1,
-        tokens: [{ id: "1-1", cell: "H/1/3" }],
-      };
-
-      const router = createRouter(rooms, { debugStartState });
-      const c1 = makeMockClient("p1");
-      router.addClient(c1);
-
-      router.dispatch(c1, { type: "start" });
-
-      const session = router.getGameSession("room-1");
-      expect(session).toBeDefined();
-      expect(session!.state.status).toBe("moving");
-      expect(session!.state.diceValue).toBe(6);
-      expect(session!.state.tokens.find((token) => token.id === "1-1")?.cell).toBe("H/1/3");
     });
   });
 
