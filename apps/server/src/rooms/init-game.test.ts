@@ -7,7 +7,7 @@ import { TOKENS_PER_PLAYER } from "@ludo/shared";
 function makeRoom(playerCount: number, boardSize: number) {
   let room = createRoom("room-1", boardSize, Date.now());
   for (let i = 1; i <= playerCount; i++) {
-    const result = joinRoom(room, `p${i}`, `Player ${i}`);
+    const result = joinRoom(room, `p${i}`);
     if (!result.ok) throw new Error(result.error);
     room = result.room;
   }

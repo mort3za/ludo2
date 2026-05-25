@@ -14,10 +14,8 @@ import { test, expect, type Page } from "@playwright/test";
  * and will be enabled when the server supports short timeout overrides.
  */
 
-async function registerGuest(page: Page, name: string) {
-  const res = await page.request.post("http://localhost:3000/auth/guest", {
-    data: { name },
-  });
+async function registerGuest(page: Page) {
+  const res = await page.request.post("http://localhost:3000/auth/guest", {});
   const body = (await res.json()) as { token: string; playerId: string };
   await page.evaluate(({ token, playerId }) => {
     localStorage.setItem("ludo_token", token);

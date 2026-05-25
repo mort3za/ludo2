@@ -19,10 +19,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export function guestLogin(name: string) {
+export function guestLogin() {
   return request<{ token: string; playerId: string }>("/auth/guest", {
     method: "POST",
-    body: JSON.stringify({ name }),
   });
 }
 

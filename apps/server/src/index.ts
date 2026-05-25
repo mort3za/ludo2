@@ -24,7 +24,6 @@ const wsClients = new WeakMap<object, WsClient>();
 
 interface WsData {
   playerId: string;
-  name: string;
   roomId: string;
 }
 
@@ -52,7 +51,7 @@ const server = Bun.serve<WsData>({
       }
 
       const upgraded = server.upgrade(req, {
-        data: { playerId: result.playerId, name: result.name, roomId },
+        data: { playerId: result.playerId, roomId },
       });
       if (!upgraded) {
         return new Response("WebSocket upgrade failed", { status: 400 });
@@ -65,7 +64,7 @@ const server = Bun.serve<WsData>({
   },
   websocket: {
     open(ws) {
-      const { playerId, name, roomId } = ws.data;
+      const { playerId, roomId } = ws.data;
 
       // Ensure room exists (link-only create)
       if (!rooms.has(roomId)) {
@@ -74,7 +73,7 @@ const server = Bun.serve<WsData>({
 
       // Join room
       const room = rooms.get(roomId)!;
-      const joinResult = joinRoom(room, playerId, name);
+      const joinResult = joinRoom(room, playerId);
       const isExistingMember = room.members.has(playerId);
       if (joinResult.ok) {
         rooms.set(roomId, joinResult.room);

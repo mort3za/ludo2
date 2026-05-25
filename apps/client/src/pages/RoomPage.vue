@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
-import { DButton, DCard, DInput } from "@/shared/ui";
+import { DButton, DCard } from "@/shared/ui";
 import { useSessionStore } from "@/stores/session";
 import { guestLogin, refreshToken } from "@/shared/api/client";
 import { createWsConnection, type WsConnection } from "@/shared/lib/ws";
@@ -16,10 +16,8 @@ const players = ref<LobbyPlayer[]>([]);
 const ownerId = ref("");
 const gameStarted = ref(false);
 const joined = ref(false);
-const joinName = ref("");
-const joinLoading = ref(false);
 const joinError = ref("");
-const restoringSession = ref(false);
+const connecting = ref(false);
 
 const myReady = computed(
   () => players.value.find((p) => p.playerId === session.playerId)?.ready ?? false,
@@ -56,53 +54,46 @@ function connectWs() {
   joined.value = true;
 }
 
+async function joinAsGuest() {
+  connecting.value = true;
+  joinError.value = "";
+  try {
+    const auth = await guestLogin();
+    session.login(auth.token, auth.playerId);
+    connectWs();
+  } catch (e) {
+    joinError.value = e instanceof Error ? e.message : "Something went wrong";
+  } finally {
+    connecting.value = false;
+  }
+}
+
 async function restoreSession() {
   if (!session.token || !session.playerId) {
-    session.logout();
+    await joinAsGuest();
     return;
   }
 
-  restoringSession.value = true;
+  connecting.value = true;
   try {
     const auth = await refreshToken(session.token);
     session.login(auth.token, session.playerId);
     connectWs();
   } catch {
     session.logout();
-    joined.value = false;
+    await joinAsGuest();
   } finally {
-    restoringSession.value = false;
+    connecting.value = false;
   }
 }
 
 onMounted(() => {
-  if (session.token) {
-    void restoreSession();
-  }
+  void restoreSession();
 });
 
 onUnmounted(() => {
   ws?.close();
 });
-
-async function handleJoin() {
-  joinError.value = "";
-  const trimmed = joinName.value.trim();
-  if (!trimmed) {
-    joinError.value = "Enter your name";
-    return;
-  }
-  joinLoading.value = true;
-  try {
-    const auth = await guestLogin(trimmed);
-    session.login(auth.token, auth.playerId);
-    connectWs();
-  } catch (e) {
-    joinError.value = e instanceof Error ? e.message : "Something went wrong";
-  } finally {
-    joinLoading.value = false;
-  }
-}
 
 function toggleReady() {
   ws?.send({ type: "ready" });
@@ -117,22 +108,18 @@ function startGame() {
   <main class="min-h-screen flex items-center justify-center bg-canvas-white">
     <ReconnectBanner v-if="ws" :status="ws.status.value" />
 
-    <DCard v-if="restoringSession" class="p-8 w-full max-w-sm">
-      <p class="text-body-sm text-subtle-gray font-sans text-center">Restoring session…</p>
+    <DCard v-if="connecting && !joined" class="p-8 w-full max-w-sm">
+      <p class="text-body-sm text-subtle-gray font-sans text-center">Joining room…</p>
     </DCard>
 
-    <!-- Join form for users without a session -->
     <DCard v-else-if="!joined" class="p-8 w-full max-w-sm">
-      <h2 class="text-heading font-sans text-midnight-ink text-center mb-6">Join Room</h2>
-      <form class="flex flex-col gap-4" @submit.prevent="handleJoin">
-        <DInput v-model="joinName" placeholder="Your name" data-testid="join-name-input" />
-        <DButton :disabled="joinLoading" data-testid="join-btn">
-          {{ joinLoading ? "Joining…" : "Join" }}
-        </DButton>
-        <p v-if="joinError" class="text-caption text-red-500 font-sans text-center">
-          {{ joinError }}
-        </p>
-      </form>
+      <p
+        v-if="joinError"
+        class="text-caption text-red-500 font-sans text-center"
+        data-testid="join-error"
+      >
+        {{ joinError }}
+      </p>
     </DCard>
 
     <!-- Lobby view after joining -->

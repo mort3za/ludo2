@@ -14,7 +14,7 @@ function makeMockClient(playerId: string): WsClient {
 function makeLobbyRoom(players: string[]): Room {
   let room = createRoom("room-1", 4, 1000);
   for (const pid of players) {
-    room = (joinRoom(room, pid, `Name-${pid}`) as { ok: true; room: Room }).room;
+    room = (joinRoom(room, pid) as { ok: true; room: Room }).room;
   }
   return room;
 }

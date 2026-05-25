@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { createHttpHandler, type HttpDeps } from "./routes.js";
 import { createGuestAuth, type GuestAuth } from "../auth/guest-auth.js";
 import { createDb, applySchema, type Db } from "../db/connection.js";
-import { insertGame, completeGame, appendLogEntry, insertRoom } from "../db/repositories.js";
+import { insertGame, appendLogEntry } from "../db/repositories.js";
 
 describe("HTTP routes", () => {
   let auth: GuestAuth;
@@ -28,13 +28,9 @@ describe("HTTP routes", () => {
 
   // --- Guest Auth ---
   describe("POST /auth/guest", () => {
-    it("issues a token for valid name", async () => {
+    it("issues a token without requiring a body", async () => {
       const res = await handler(
-        new Request("http://localhost/auth/guest", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: "Alice" }),
-        }),
+        new Request("http://localhost/auth/guest", { method: "POST" }),
       );
       expect(res.status).toBe(200);
       const body = (await res.json()) as { token: string; playerId: string };
@@ -42,32 +38,18 @@ describe("HTTP routes", () => {
       expect(body.playerId).toBeDefined();
     });
 
-    it("rejects empty name", async () => {
-      const res = await handler(
-        new Request("http://localhost/auth/guest", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: "" }),
-        }),
-      );
-      expect(res.status).toBe(400);
-    });
-
-    it("rejects long name", async () => {
-      const res = await handler(
-        new Request("http://localhost/auth/guest", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: "a".repeat(31) }),
-        }),
-      );
-      expect(res.status).toBe(400);
+    it("issues distinct playerIds for separate requests", async () => {
+      const res1 = await handler(new Request("http://localhost/auth/guest", { method: "POST" }));
+      const res2 = await handler(new Request("http://localhost/auth/guest", { method: "POST" }));
+      const a = (await res1.json()) as { playerId: string };
+      const b = (await res2.json()) as { playerId: string };
+      expect(a.playerId).not.toBe(b.playerId);
     });
   });
 
   describe("POST /auth/refresh", () => {
     it("refreshes a valid token", async () => {
-      const token = await auth.issue("p1", "Alice");
+      const token = await auth.issue("p1");
       const res = await handler(
         new Request("http://localhost/auth/refresh", {
           method: "POST",
@@ -95,7 +77,7 @@ describe("HTTP routes", () => {
   // --- Room Create ---
   describe("POST /rooms", () => {
     it("creates a room and returns id", async () => {
-      const token = await auth.issue("p1", "Alice");
+      const token = await auth.issue("p1");
       const res = await handler(
         new Request("http://localhost/rooms", {
           method: "POST",
@@ -130,7 +112,7 @@ describe("HTTP routes", () => {
         to: "T/1",
       }).run();
 
-      const token = await auth.issue("p1", "Alice");
+      const token = await auth.issue("p1");
       const res = await handler(
         new Request("http://localhost/games/g1/history", {
           headers: { Authorization: `Bearer ${token}` },
@@ -142,7 +124,7 @@ describe("HTTP routes", () => {
     });
 
     it("returns 404 for unknown game", async () => {
-      const token = await auth.issue("p1", "Alice");
+      const token = await auth.issue("p1");
       const res = await handler(
         new Request("http://localhost/games/nope/history", {
           headers: { Authorization: `Bearer ${token}` },

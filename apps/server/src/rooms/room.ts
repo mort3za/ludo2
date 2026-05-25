@@ -44,7 +44,7 @@ export function createRoom(id: string, boardSize: number, now: number): Room {
   };
 }
 
-export function joinRoom(room: Room, playerId: string, name: string): Result<{ room: Room }> {
+export function joinRoom(room: Room, playerId: string): Result<{ room: Room }> {
   if (room.phase !== "lobby") {
     return { ok: false, error: "not-in-lobby" };
   }
@@ -56,6 +56,7 @@ export function joinRoom(room: Room, playerId: string, name: string): Result<{ r
   }
 
   const members = cloneMembers(room.members);
+  const name = nextPlayerName(members, room.boardSize);
   members.set(playerId, { playerId, name, ready: false });
 
   return {
@@ -66,6 +67,16 @@ export function joinRoom(room: Room, playerId: string, name: string): Result<{ r
       ownerId: room.ownerId ?? playerId,
     },
   };
+}
+
+function nextPlayerName(members: Map<string, RoomMember>, boardSize: number): string {
+  const used = new Set<string>();
+  for (const m of members.values()) used.add(m.name);
+  for (let i = 1; i <= boardSize; i++) {
+    const candidate = `Player${i}`;
+    if (!used.has(candidate)) return candidate;
+  }
+  return `Player${members.size + 1}`;
 }
 
 export function leaveRoom(room: Room, playerId: string): Result<{ room: Room }> {

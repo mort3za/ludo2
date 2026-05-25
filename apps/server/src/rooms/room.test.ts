@@ -30,21 +30,46 @@ describe("createRoom", () => {
 });
 
 describe("joinRoom", () => {
-  it("first player becomes owner", () => {
+  it("first player becomes owner and is named Player1", () => {
     const room = createRoom("room-1", S, 1000);
-    const result = joinRoom(room, "p1", "Alice");
+    const result = joinRoom(room, "p1");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.room.ownerId).toBe("p1");
     expect(result.room.members.size).toBe(1);
-    expect(result.room.members.get("p1")?.name).toBe("Alice");
+    expect(result.room.members.get("p1")?.name).toBe("Player1");
     expect(result.room.members.get("p1")?.ready).toBe(false);
+  });
+
+  it("auto-assigns Player1..PlayerN by join order", () => {
+    let room = createRoom("room-1", S, 1000);
+    for (let i = 1; i <= S; i++) {
+      room = (joinRoom(room, `p${i}`) as { ok: true; room: Room }).room;
+    }
+    expect(room.members.get("p1")?.name).toBe("Player1");
+    expect(room.members.get("p2")?.name).toBe("Player2");
+    expect(room.members.get("p3")?.name).toBe("Player3");
+    expect(room.members.get("p4")?.name).toBe("Player4");
+  });
+
+  it("reuses the lowest free slot after a member leaves", () => {
+    let room = createRoom("room-1", S, 1000);
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p3") as { ok: true; room: Room }).room;
+    room = (leaveRoom(room, "p2") as { ok: true; room: Room }).room;
+    const result = joinRoom(room, "p4");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.room.members.get("p4")?.name).toBe("Player2");
+    expect(result.room.members.get("p1")?.name).toBe("Player1");
+    expect(result.room.members.get("p3")?.name).toBe("Player3");
   });
 
   it("subsequent players join without becoming owner", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
-    const result = joinRoom(room, "p2", "Bob");
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    const result = joinRoom(room, "p2");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.room.ownerId).toBe("p1");
@@ -54,9 +79,9 @@ describe("joinRoom", () => {
   it("rejects when room is full", () => {
     let room = createRoom("room-1", S, 1000);
     for (let i = 1; i <= S; i++) {
-      room = (joinRoom(room, `p${i}`, `Player${i}`) as { ok: true; room: Room }).room;
+      room = (joinRoom(room, `p${i}`) as { ok: true; room: Room }).room;
     }
-    const result = joinRoom(room, "extra", "ExtraPlayer");
+    const result = joinRoom(room, "extra");
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toBe("room-full");
@@ -64,8 +89,8 @@ describe("joinRoom", () => {
 
   it("rejects duplicate player", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
-    const result = joinRoom(room, "p1", "Alice");
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    const result = joinRoom(room, "p1");
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toBe("already-joined");
@@ -73,10 +98,10 @@ describe("joinRoom", () => {
 
   it("rejects when room is not in lobby phase", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
-    room = (joinRoom(room, "p2", "Bob") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
     room = { ...room, phase: "playing" as RoomPhase };
-    const result = joinRoom(room, "p3", "Charlie");
+    const result = joinRoom(room, "p3");
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toBe("not-in-lobby");
@@ -86,8 +111,8 @@ describe("joinRoom", () => {
 describe("leaveRoom", () => {
   it("removes a non-owner player", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
-    room = (joinRoom(room, "p2", "Bob") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
     const result = leaveRoom(room, "p2");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -97,8 +122,8 @@ describe("leaveRoom", () => {
 
   it("transfers ownership when owner leaves", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
-    room = (joinRoom(room, "p2", "Bob") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
     const result = leaveRoom(room, "p1");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -108,7 +133,7 @@ describe("leaveRoom", () => {
 
   it("sets ownerId to null when last player leaves", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
     const result = leaveRoom(room, "p1");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -126,7 +151,7 @@ describe("leaveRoom", () => {
 describe("setReady", () => {
   it("marks a player as ready", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
     const result = setReady(room, "p1", true);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -135,7 +160,7 @@ describe("setReady", () => {
 
   it("marks a player as not ready", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
     room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
     const result = setReady(room, "p1", false);
     expect(result.ok).toBe(true);
@@ -153,8 +178,8 @@ describe("setReady", () => {
 describe("canStart", () => {
   it("returns true when owner, all ready, ≥2 players", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
-    room = (joinRoom(room, "p2", "Bob") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
     room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
     room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
     expect(canStart(room, "p1")).toBe(true);
@@ -162,8 +187,8 @@ describe("canStart", () => {
 
   it("returns false when non-owner requests", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
-    room = (joinRoom(room, "p2", "Bob") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
     room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
     room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
     expect(canStart(room, "p2")).toBe(false);
@@ -171,23 +196,23 @@ describe("canStart", () => {
 
   it("returns false when not all players are ready", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
-    room = (joinRoom(room, "p2", "Bob") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
     room = (setReady(room, "p2", false) as { ok: true; room: Room }).room;
     expect(canStart(room, "p1")).toBe(false);
   });
 
   it("returns false with fewer than 2 players", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
     room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
     expect(canStart(room, "p1")).toBe(false);
   });
 
   it("returns false when not in lobby phase", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
-    room = (joinRoom(room, "p2", "Bob") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
     room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
     room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
     room = { ...room, phase: "playing" as RoomPhase };
@@ -198,8 +223,8 @@ describe("canStart", () => {
 describe("startGame", () => {
   it("transitions to playing phase with a gameId", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
-    room = (joinRoom(room, "p2", "Bob") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
     room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
     room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
     const result = startGame(room, "p1", "game-1");
@@ -211,7 +236,7 @@ describe("startGame", () => {
 
   it("rejects if canStart is false", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
     const result = startGame(room, "p1", "game-1");
     expect(result.ok).toBe(false);
   });
@@ -220,8 +245,8 @@ describe("startGame", () => {
 describe("endGame", () => {
   it("transitions to post-game phase with timestamp", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
-    room = (joinRoom(room, "p2", "Bob") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
     room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
     room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
     room = (startGame(room, "p1", "game-1") as { ok: true; room: Room }).room;
@@ -234,8 +259,8 @@ describe("endGame", () => {
 describe("requestRematch", () => {
   it("transitions back to lobby with players unreadied", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
-    room = (joinRoom(room, "p2", "Bob") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
     room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
     room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
     room = (startGame(room, "p1", "game-1") as { ok: true; room: Room }).room;
@@ -254,7 +279,7 @@ describe("requestRematch", () => {
 
   it("rejects if not in post-game phase", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
     const result = requestRematch(room, "p1");
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -263,8 +288,8 @@ describe("requestRematch", () => {
 
   it("rejects if non-owner requests", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
-    room = (joinRoom(room, "p2", "Bob") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
     room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
     room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
     room = (startGame(room, "p1", "game-1") as { ok: true; room: Room }).room;
@@ -289,8 +314,8 @@ describe("isExpired", () => {
 
   it("post-game room expires after postGameWindow", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
-    room = (joinRoom(room, "p2", "Bob") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
     room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
     room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
     room = (startGame(room, "p1", "game-1") as { ok: true; room: Room }).room;
@@ -300,8 +325,8 @@ describe("isExpired", () => {
 
   it("post-game room not expired before postGameWindow", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
-    room = (joinRoom(room, "p2", "Bob") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
     room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
     room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
     room = (startGame(room, "p1", "game-1") as { ok: true; room: Room }).room;
@@ -311,8 +336,8 @@ describe("isExpired", () => {
 
   it("playing room never expires", () => {
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1", "Alice") as { ok: true; room: Room }).room;
-    room = (joinRoom(room, "p2", "Bob") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
     room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
     room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
     room = (startGame(room, "p1", "game-1") as { ok: true; room: Room }).room;

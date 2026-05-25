@@ -3,29 +3,14 @@ import { test, expect, type Page } from "@playwright/test";
 /**
  * Helper: register a guest and store token in localStorage.
  */
-async function registerGuest(page: Page, name: string) {
-  const res = await page.request.post("http://localhost:3000/auth/guest", {
-    data: { name },
-  });
+async function registerGuest(page: Page) {
+  const res = await page.request.post("http://localhost:3000/auth/guest", {});
   const body = (await res.json()) as { token: string; playerId: string };
   await page.evaluate(({ token, playerId }) => {
     localStorage.setItem("ludo_token", token);
     localStorage.setItem("ludo_player", playerId);
   }, body);
   return body;
-}
-
-/**
- * Helper: create a room via API, returns roomId.
- */
-async function createRoomViaApi(page: Page) {
-  const res = await page.request.post("http://localhost:3000/rooms", {
-    headers: {
-      Authorization: `Bearer ${await page.evaluate(() => localStorage.getItem("ludo_token"))}`,
-    },
-  });
-  const body = (await res.json()) as { roomId: string };
-  return body.roomId;
 }
 
 test.describe("full turn flow", () => {
@@ -36,13 +21,12 @@ test.describe("full turn flow", () => {
     const p2 = await ctx2.newPage();
 
     // Register both players
-    const player1 = await registerGuest(p1, "Alice");
-    const player2 = await registerGuest(p2, "Bob");
+    await registerGuest(p1);
+    await registerGuest(p2);
 
     // Player 1 creates room from home page, navigates
     await p1.goto("/");
     await p1.getByTestId("play-btn").click();
-    await p1.getByTestId("name-input").fill("Alice");
     await p1.getByTestId("create-room-btn").click();
     await p1.waitForURL(/\/room\/.+/);
     const roomUrl = p1.url();

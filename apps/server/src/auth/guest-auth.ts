@@ -3,7 +3,6 @@ import { SignJWT, jwtVerify, errors } from "jose";
 interface VerifyOk {
   ok: true;
   playerId: string;
-  name: string;
 }
 
 interface VerifyErr {
@@ -26,7 +25,7 @@ interface RefreshErr {
 type RefreshResult = RefreshOk | RefreshErr;
 
 export interface GuestAuth {
-  issue: (playerId: string, name: string) => Promise<string>;
+  issue: (playerId: string) => Promise<string>;
   verify: (token: string) => Promise<VerifyResult>;
   refresh: (token: string) => Promise<RefreshResult>;
 }
@@ -34,8 +33,8 @@ export interface GuestAuth {
 export function createGuestAuth(secret: string, expiresIn: string = "7d"): GuestAuth {
   const encodedSecret = new TextEncoder().encode(secret);
 
-  async function issue(playerId: string, name: string): Promise<string> {
-    return new SignJWT({ pid: playerId, name })
+  async function issue(playerId: string): Promise<string> {
+    return new SignJWT({ pid: playerId })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
       .setExpirationTime(expiresIn)
@@ -46,11 +45,10 @@ export function createGuestAuth(secret: string, expiresIn: string = "7d"): Guest
     try {
       const { payload } = await jwtVerify(token, encodedSecret);
       const pid = payload["pid"];
-      const name = payload["name"];
-      if (typeof pid !== "string" || typeof name !== "string") {
+      if (typeof pid !== "string") {
         return { ok: false, error: "invalid-token" };
       }
-      return { ok: true, playerId: pid, name };
+      return { ok: true, playerId: pid };
     } catch (err) {
       if (err instanceof errors.JWTExpired) {
         return { ok: false, error: "expired-token" };
@@ -64,7 +62,7 @@ export function createGuestAuth(secret: string, expiresIn: string = "7d"): Guest
     if (!result.ok) {
       return { ok: false, error: result.error };
     }
-    const newToken = await issue(result.playerId, result.name);
+    const newToken = await issue(result.playerId);
     return { ok: true, token: newToken };
   }
 

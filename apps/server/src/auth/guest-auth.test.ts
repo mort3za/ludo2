@@ -9,8 +9,8 @@ describe("guest auth", () => {
   });
 
   describe("issue", () => {
-    it("issues a JWT with playerId and name", async () => {
-      const token = await auth.issue("player-1", "Alice");
+    it("issues a JWT with playerId", async () => {
+      const token = await auth.issue("player-1");
       expect(typeof token).toBe("string");
       expect(token.split(".").length).toBe(3); // header.payload.signature
     });
@@ -18,16 +18,15 @@ describe("guest auth", () => {
 
   describe("verify", () => {
     it("verifies a valid token and returns claims", async () => {
-      const token = await auth.issue("player-1", "Alice");
+      const token = await auth.issue("player-1");
       const result = await auth.verify(token);
       expect(result.ok).toBe(true);
       if (!result.ok) return;
       expect(result.playerId).toBe("player-1");
-      expect(result.name).toBe("Alice");
     });
 
     it("rejects a tampered token", async () => {
-      const token = await auth.issue("player-1", "Alice");
+      const token = await auth.issue("player-1");
       const tampered = token.slice(0, -5) + "XXXXX";
       const result = await auth.verify(tampered);
       expect(result.ok).toBe(false);
@@ -37,7 +36,7 @@ describe("guest auth", () => {
 
     it("rejects a token signed with a different secret", async () => {
       const otherAuth = createGuestAuth("other-secret-key-at-least-32-chars!");
-      const token = await otherAuth.issue("player-1", "Alice");
+      const token = await otherAuth.issue("player-1");
       const result = await auth.verify(token);
       expect(result.ok).toBe(false);
     });
@@ -51,7 +50,7 @@ describe("guest auth", () => {
   describe("expired tokens", () => {
     it("rejects an expired token", async () => {
       const shortAuth = createGuestAuth("test-secret-key-at-least-32-chars!", "1s");
-      const token = await shortAuth.issue("player-1", "Alice");
+      const token = await shortAuth.issue("player-1");
       // Wait for token to expire
       await new Promise((r) => setTimeout(r, 1100));
       const result = await shortAuth.verify(token);
@@ -63,7 +62,7 @@ describe("guest auth", () => {
 
   describe("refresh", () => {
     it("issues a new token from an existing valid token", async () => {
-      const token = await auth.issue("player-1", "Alice");
+      const token = await auth.issue("player-1");
       const newToken = await auth.refresh(token);
       expect(newToken.ok).toBe(true);
       if (!newToken.ok) return;
@@ -73,7 +72,6 @@ describe("guest auth", () => {
       expect(result.ok).toBe(true);
       if (!result.ok) return;
       expect(result.playerId).toBe("player-1");
-      expect(result.name).toBe("Alice");
     });
 
     it("rejects refresh of invalid token", async () => {

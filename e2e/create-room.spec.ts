@@ -1,15 +1,11 @@
 import { test, expect, type Page } from "@playwright/test";
 
 /**
- * Helper: register a guest player and navigate to the home page.
+ * Helper: register a guest player and seed their token in localStorage.
  */
-async function guestLogin(page: Page, name: string) {
-  // Hit the API directly to get a token
-  const res = await page.request.post("http://localhost:3000/auth/guest", {
-    data: { name },
-  });
+async function guestLogin(page: Page) {
+  const res = await page.request.post("http://localhost:3000/auth/guest", {});
   const body = (await res.json()) as { token: string; playerId: string };
-  // Store in localStorage so the client picks it up
   await page.evaluate(({ token, playerId }) => {
     localStorage.setItem("ludo_token", token);
     localStorage.setItem("ludo_player", playerId);
@@ -29,7 +25,6 @@ test("create room → second player joins → both ready → game starts", async
   await expect(player1.locator("h1")).toHaveText("Ludo");
   await player1.getByTestId("play-btn").click();
 
-  await player1.getByTestId("name-input").fill("Alice");
   await player1.getByTestId("create-room-btn").click();
 
   // Should navigate to /room/:roomId
@@ -40,12 +35,16 @@ test("create room → second player joins → both ready → game starts", async
 
   // --- Player 2: Login then join via room URL ---
   await player2.goto("/");
-  await guestLogin(player2, "Bob");
+  await guestLogin(player2);
   await player2.goto(roomUrl);
 
   // Both should see the lobby
   await expect(player1.getByTestId("room-id")).toHaveText(roomId!);
   await expect(player2.getByTestId("room-id")).toHaveText(roomId!);
+
+  // Lobby should show Player1 and Player2
+  await expect(player1.getByTestId("player-list")).toContainText("Player1");
+  await expect(player1.getByTestId("player-list")).toContainText("Player2");
 
   // --- Both players ready up ---
   await player1.getByTestId("ready-btn").click();
@@ -64,7 +63,7 @@ test("create room → second player joins → both ready → game starts", async
   await ctx2.close();
 });
 
-test("room join clears stale session and shows join form", async ({ browser }) => {
+test("room join clears stale session and auto-joins", async ({ browser }) => {
   const hostCtx = await browser.newContext();
   const guestCtx = await browser.newContext();
   const host = await hostCtx.newPage();
@@ -72,7 +71,6 @@ test("room join clears stale session and shows join form", async ({ browser }) =
 
   await host.goto("/");
   await host.getByTestId("play-btn").click();
-  await host.getByTestId("name-input").fill("Alice");
   await host.getByTestId("create-room-btn").click();
   await host.waitForURL(/\/room\/.+/);
   const roomUrl = host.url();
@@ -85,7 +83,7 @@ test("room join clears stale session and shows join form", async ({ browser }) =
 
   await guest.goto(roomUrl);
 
-  await expect(guest.getByTestId("join-btn")).toBeVisible({ timeout: 5000 });
+  await expect(guest.getByTestId("room-id")).toBeVisible({ timeout: 5000 });
   await expect(guest.locator("text=Disconnected — reconnecting…")).toHaveCount(0);
 
   await hostCtx.close();

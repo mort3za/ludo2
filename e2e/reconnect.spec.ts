@@ -9,10 +9,8 @@ import { test, expect, type Page } from "@playwright/test";
  * - Game continues normally after reconnect
  */
 
-async function registerGuest(page: Page, name: string) {
-  const res = await page.request.post("http://localhost:3000/auth/guest", {
-    data: { name },
-  });
+async function registerGuest(page: Page) {
+  const res = await page.request.post("http://localhost:3000/auth/guest", {});
   const body = (await res.json()) as { token: string; playerId: string };
   await page.evaluate(({ token, playerId }) => {
     localStorage.setItem("ludo_token", token);
@@ -31,12 +29,11 @@ test.describe("reconnect mid-game", () => {
     // Create room and start game
     await p1.goto("/");
     await p1.getByTestId("play-btn").click();
-    await p1.getByTestId("name-input").fill("Alice");
     await p1.getByTestId("create-room-btn").click();
     await p1.waitForURL(/\/room\/.+/);
     const roomUrl = p1.url();
 
-    await registerGuest(p2, "Bob");
+    await registerGuest(p2);
     await p2.goto(roomUrl);
 
     await p1.getByTestId("ready-btn").click();

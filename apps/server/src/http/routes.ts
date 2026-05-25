@@ -1,6 +1,6 @@
 import type { GuestAuth } from "../auth/guest-auth.js";
 import type { Db } from "../db/connection.js";
-import { insertPlayer, insertRoom, getRoom, getGame, getGameLog } from "../db/repositories.js";
+import { insertRoom, getRoom, getGame, getGameLog } from "../db/repositories.js";
 
 export interface HttpDeps {
   auth: GuestAuth;
@@ -22,14 +22,8 @@ export function createHttpHandler(deps: HttpDeps) {
 
     // --- Guest Auth: Issue ---
     if (url.pathname === "/auth/guest" && method === "POST") {
-      const body = (await req.json()) as Record<string, unknown>;
-      const name = typeof body["name"] === "string" ? body["name"].trim() : "";
-      if (!name || name.length > 30) {
-        return Response.json({ error: "invalid-name" }, { status: 400 });
-      }
       const playerId = crypto.randomUUID();
-      const token = await auth.issue(playerId, name);
-      insertPlayer(db, playerId, name, new Date()).run();
+      const token = await auth.issue(playerId);
       return Response.json({ token, playerId });
     }
 
@@ -82,11 +76,11 @@ export function createHttpHandler(deps: HttpDeps) {
 async function extractAuth(
   req: Request,
   auth: GuestAuth,
-): Promise<{ playerId: string; name: string } | null> {
+): Promise<{ playerId: string } | null> {
   const header = req.headers.get("Authorization");
   if (!header?.startsWith("Bearer ")) return null;
   const token = header.slice(7);
   const result = await auth.verify(token);
   if (!result.ok) return null;
-  return { playerId: result.playerId, name: result.name };
+  return { playerId: result.playerId };
 }
