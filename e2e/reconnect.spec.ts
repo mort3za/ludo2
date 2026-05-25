@@ -29,7 +29,6 @@ test.describe("reconnect mid-game", () => {
     // Create room and start game
     await p1.goto("/");
     await p1.getByTestId("play-btn").click();
-    await p1.getByTestId("create-room-btn").click();
     await p1.waitForURL(/\/room\/.+/);
     const roomUrl = p1.url();
 

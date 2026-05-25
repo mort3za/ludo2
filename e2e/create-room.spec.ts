@@ -25,9 +25,7 @@ test("create room → second player joins → both ready → game starts", async
   await expect(player1.locator("h1")).toHaveText("Ludo");
   await player1.getByTestId("play-btn").click();
 
-  await player1.getByTestId("create-room-btn").click();
-
-  // Should navigate to /room/:roomId
+  // Should navigate straight to /room/:roomId
   await player1.waitForURL(/\/room\/.+/);
   const roomUrl = player1.url();
   const roomId = roomUrl.split("/room/")[1];
@@ -71,7 +69,6 @@ test("room join clears stale session and auto-joins", async ({ browser }) => {
 
   await host.goto("/");
   await host.getByTestId("play-btn").click();
-  await host.getByTestId("create-room-btn").click();
   await host.waitForURL(/\/room\/.+/);
   const roomUrl = host.url();
 
