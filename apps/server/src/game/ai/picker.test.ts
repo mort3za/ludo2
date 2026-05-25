@@ -9,8 +9,8 @@ function makeState(tokens: Token[], activeSeat = 1, diceValue = 3): GameState {
     gameId: "test",
     status: "moving",
     seats: [
-      { index: 1, state: "active", color: "blue", playerId: "p1" },
-      { index: 2, state: "active", color: "red", playerId: "p2" },
+      { index: 1, state: "active", color: "blue", playerId: "p1", isBot: false },
+      { index: 2, state: "active", color: "red", playerId: "p2", isBot: false },
     ],
     tokens,
     activeSeat,

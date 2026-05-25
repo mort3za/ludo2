@@ -5,8 +5,8 @@ import { HOME_COLUMN_LENGTH, TOKENS_PER_PLAYER, TIMINGS } from "@ludo/shared";
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
   const seats: Seat[] = [
-    { index: 1, state: "active", color: "blue", playerId: "p1" },
-    { index: 2, state: "active", color: "red", playerId: "p2" },
+    { index: 1, state: "active", color: "blue", playerId: "p1", isBot: false },
+    { index: 2, state: "active", color: "red", playerId: "p2", isBot: false },
   ];
   return {
     gameId: "test-game",
@@ -90,9 +90,9 @@ describe("handleMove — standings and finished", () => {
   it("does not emit finished if other seats still playing", () => {
     // 3-seat game: seat 1 finishes, seats 2 & 3 still active
     const seats: Seat[] = [
-      { index: 1, state: "active", color: "blue", playerId: "p1" },
-      { index: 2, state: "active", color: "red", playerId: "p2" },
-      { index: 3, state: "active", color: "green", playerId: "p3" },
+      { index: 1, state: "active", color: "blue", playerId: "p1", isBot: false },
+      { index: 2, state: "active", color: "red", playerId: "p2", isBot: false },
+      { index: 3, state: "active", color: "green", playerId: "p3", isBot: false },
     ];
     const tokens: Token[] = [
       finishedToken(1, 1, "blue"),
@@ -135,9 +135,9 @@ describe("handleMove — standings and finished", () => {
   it("skips finished seats in turn advancement", () => {
     // 3-seat game, seat 1 already finished, seat 2 moves
     const seats: Seat[] = [
-      { index: 1, state: "active", color: "blue", playerId: "p1" },
-      { index: 2, state: "active", color: "red", playerId: "p2" },
-      { index: 3, state: "active", color: "green", playerId: "p3" },
+      { index: 1, state: "active", color: "blue", playerId: "p1", isBot: false },
+      { index: 2, state: "active", color: "red", playerId: "p2", isBot: false },
+      { index: 3, state: "active", color: "green", playerId: "p3", isBot: false },
     ];
     const tokens: Token[] = [
       finishedToken(1, 1, "blue"),
@@ -295,9 +295,9 @@ describe("handleTimeout", () => {
 
   it("kick in 3-seat game advances turn to next active seat", () => {
     const seats: Seat[] = [
-      { index: 1, state: "active", color: "blue", playerId: "p1" },
-      { index: 2, state: "active", color: "red", playerId: "p2" },
-      { index: 3, state: "active", color: "green", playerId: "p3" },
+      { index: 1, state: "active", color: "blue", playerId: "p1", isBot: false },
+      { index: 2, state: "active", color: "red", playerId: "p2", isBot: false },
+      { index: 3, state: "active", color: "green", playerId: "p3", isBot: false },
     ];
     const tokens: Token[] = [
       { id: "1-1", color: "blue", cell: "T/1" },

@@ -12,5 +12,6 @@ export default defineProject({
   test: {
     globals: true,
     environment: "jsdom",
+    exclude: ["dist/**"],
   },
 });

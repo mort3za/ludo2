@@ -39,11 +39,9 @@ describe("legalMoves", () => {
 
     it("wraps around track end", () => {
       const tokens = [makeToken("t1", "T/43")];
-      // seat 1 entry is T/44, so from T/43 stepping 3 should go: T/44(entry) → H/1/1, H/1/2
-      // Actually: seat 1 entry = T/44 (=(1-1)*11=0, wrap to 4*11=44)
-      // From T/43, step 1 → T/44 (entry!), step 2 → H/1/1, step 3 → H/1/2
+      // Seat 1 skips the entry square when turning home, so 3 steps lands on H/1/3.
       const moves = legalMoves(tokens, 3, 1, S, []);
-      expect(moves[0]!.to).toBe("H/1/2");
+      expect(moves[0]!.to).toBe("H/1/3");
     });
   });
 
