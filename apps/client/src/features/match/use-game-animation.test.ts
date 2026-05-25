@@ -175,4 +175,50 @@ describe("useGameAnimation", () => {
 
     expect(lastRolledValue.value).toBe(4);
   });
+
+  it("keeps the moved token on top while a captured token animates back to yard", () => {
+    vi.useFakeTimers();
+    const applied = vi.fn();
+    const { gameState, animating, stackingTokenId, handleMessage } = useGameAnimation(applied);
+
+    handleMessage({
+      type: "state",
+      state: makeState({
+        status: "moving",
+        diceValue: 3,
+        tokens: [
+          { id: "b1", color: "blue", cell: "T/5" },
+          { id: "r1", color: "red", cell: "T/8" },
+        ],
+      }),
+    });
+    applied.mockClear();
+
+    handleMessage({
+      type: "moved",
+      tokenId: "b1",
+      to: "T/8",
+      path: ["T/6", "T/7", "T/8"],
+    });
+    handleMessage({ type: "captured", tokenId: "r1", to: "Y/2/0" });
+
+    expect(stackingTokenId.value).toBe("b1");
+
+    vi.advanceTimersByTime(2 * STEP_INTERVAL_MS + TOKEN_TRANSITION_MS);
+
+    expect(gameState.value?.tokens.find((token) => token.id === "r1")?.cell).toBe("Y/2/0");
+    expect(animating.value?.tokenId).toBe("r1");
+    expect(stackingTokenId.value).toBe("b1");
+
+    vi.advanceTimersByTime(TOKEN_TRANSITION_MS - 1);
+
+    expect(stackingTokenId.value).toBe("b1");
+    expect(animating.value?.tokenId).toBe("r1");
+
+    vi.advanceTimersByTime(1);
+
+    expect(animating.value).toBeNull();
+    expect(stackingTokenId.value).toBeNull();
+    expect(applied.mock.calls.map(([msg]) => msg.type)).toEqual(["moved", "captured"]);
+  });
 });

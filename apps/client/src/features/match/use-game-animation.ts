@@ -11,6 +11,7 @@ export interface AnimatingToken {
 export interface GameAnimationState {
   gameState: Ref<GameState | null>;
   animating: Ref<AnimatingToken | null>;
+  stackingTokenId: Ref<string | null>;
   lastRolledValue: Ref<number | null>;
   isActionLocked: Ref<boolean>;
   handleMessage: (msg: ServerMessage) => void;
@@ -31,6 +32,7 @@ export function useGameAnimation(
 ): GameAnimationState {
   const gameState = ref<GameState | null>(null);
   const animating = ref<AnimatingToken | null>(null);
+  const stackingTokenId = ref<string | null>(null);
   // Persists across turn changes — only replaced when next player rolls.
   const lastRolledValue = ref<number | null>(null);
   const isActionLocked = ref(false);
@@ -41,6 +43,7 @@ export function useGameAnimation(
   let turnPassEndsAt = 0;
   let pendingDiceTimer: ReturnType<typeof setTimeout> | null = null;
   let pendingActionTimer: ReturnType<typeof setTimeout> | null = null;
+  let pendingStackResetTimer: ReturnType<typeof setTimeout> | null = null;
   let pendingStepTimers: ReturnType<typeof setTimeout>[] = [];
   let queuedMessages: ServerMessage[] = [];
 
@@ -80,6 +83,14 @@ export function useGameAnimation(
     onAppliedMessage?.(msg);
   }
 
+  function clearStackingPriority() {
+    if (pendingStackResetTimer) {
+      clearTimeout(pendingStackResetTimer);
+      pendingStackResetTimer = null;
+    }
+    stackingTokenId.value = null;
+  }
+
   function clearPendingActions() {
     if (pendingActionTimer) {
       clearTimeout(pendingActionTimer);
@@ -89,6 +100,7 @@ export function useGameAnimation(
     movementEndsAt = 0;
     turnPassEndsAt = 0;
     isActionLocked.value = false;
+    clearStackingPriority();
   }
 
   function schedulePendingWork() {
@@ -168,6 +180,7 @@ export function useGameAnimation(
   }
 
   function applyTurn(msg: { seat: number }) {
+    clearStackingPriority();
     if (gameState.value) {
       gameState.value.activeSeat = msg.seat;
       gameState.value.diceValue = null;
@@ -191,6 +204,7 @@ export function useGameAnimation(
         lastRolledAt = 0;
         movementEndsAt = 0;
         turnPassEndsAt = 0;
+        clearStackingPriority();
         gameState.value = msg.state;
         animating.value = null;
         lastRolledValue.value = msg.state.diceValue;
@@ -208,6 +222,7 @@ export function useGameAnimation(
           to: msg.to,
           type: "move",
         };
+        stackingTokenId.value = msg.tokenId;
         movementEndsAt = Date.now() + animateAlongPath(token, msg.path, msg.to);
         schedulePendingWork();
         emitAppliedMessage(msg);
@@ -218,13 +233,24 @@ export function useGameAnimation(
         if (!gameState.value) break;
         const token = gameState.value.tokens.find((t) => t.id === msg.tokenId);
         if (token) {
+          const capturedFrom = token.cell;
+          const occupyingToken = gameState.value.tokens.find(
+            (candidate) => candidate.id !== token.id && candidate.cell === capturedFrom,
+          );
           animating.value = {
             tokenId: msg.tokenId,
-            from: token.cell,
+            from: capturedFrom,
             to: msg.to,
             type: "capture",
           };
+          stackingTokenId.value = occupyingToken?.id ?? stackingTokenId.value;
           token.cell = msg.to;
+          if (pendingStackResetTimer) clearTimeout(pendingStackResetTimer);
+          pendingStackResetTimer = setTimeout(() => {
+            pendingStackResetTimer = null;
+            animating.value = null;
+            stackingTokenId.value = null;
+          }, TOKEN_TRANSITION_MS);
         }
         emitAppliedMessage(msg);
         break;
@@ -256,6 +282,7 @@ export function useGameAnimation(
       }
 
       case "finished":
+        clearStackingPriority();
         if (gameState.value) {
           gameState.value.status = "finished";
           gameState.value.standings = msg.standings;
@@ -265,15 +292,18 @@ export function useGameAnimation(
 
       case "kicked":
         // Seat kicked — next "state" or "turn" will update
+        clearStackingPriority();
         emitAppliedMessage(msg);
         break;
 
       case "error":
         // Errors handled by caller
+        clearStackingPriority();
         emitAppliedMessage(msg);
         break;
 
       case "lobby":
+        clearStackingPriority();
         emitAppliedMessage(msg);
         break;
     }
@@ -292,5 +322,5 @@ export function useGameAnimation(
     applyMessage(msg);
   }
 
-  return { gameState, animating, lastRolledValue, isActionLocked, handleMessage };
+  return { gameState, animating, stackingTokenId, lastRolledValue, isActionLocked, handleMessage };
 }

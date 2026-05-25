@@ -17,8 +17,8 @@ const props = defineProps<{ roomId: string }>();
 const vueRouter = useRouter();
 const session = useSessionStore();
 const gameResultStore = useGameResultStore();
-const { gameState, animating, lastRolledValue, isActionLocked, handleMessage } = useGameAnimation(
-  (msg) => {
+const { gameState, animating, stackingTokenId, lastRolledValue, isActionLocked, handleMessage } =
+  useGameAnimation((msg) => {
     if (msg.type === "turn") {
       deadline.value = msg.deadline;
     }
@@ -29,8 +29,7 @@ const { gameState, animating, lastRolledValue, isActionLocked, handleMessage } =
       }
       vueRouter.push({ name: "post-game", params: { roomId: props.roomId } });
     }
-  },
-);
+  });
 
 const deadline = ref<number>(0);
 const pendingAction = ref(false);
@@ -138,6 +137,8 @@ onUnmounted(() => {
         :local-seat="mySeat ?? undefined"
         :tokens="gameState.tokens"
         :legal-token-ids="legalTokenIds"
+        :animating-token-id="stackingTokenId ?? animating?.tokenId"
+        :hidden-stack-badge-cell-id="animating?.type === 'capture' ? animating.from : undefined"
         :seats="gameState.seats"
         @move="onMove"
       />

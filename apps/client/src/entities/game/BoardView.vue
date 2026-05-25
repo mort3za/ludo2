@@ -9,6 +9,8 @@ const props = defineProps<{
   localSeat?: number;
   tokens?: Token[];
   legalTokenIds?: string[];
+  animatingTokenId?: string;
+  hiddenStackBadgeCellId?: string;
   seats?: Seat[];
 }>();
 
@@ -44,6 +46,16 @@ const cellPositions = computed(() => {
   return map;
 });
 
+const renderedTokens = computed(() => {
+  const tokens = props.tokens ?? [];
+  if (!props.animatingTokenId) return tokens;
+
+  const movingTokens = tokens.filter((token) => token.id === props.animatingTokenId);
+  if (movingTokens.length === 0) return tokens;
+
+  return [...tokens.filter((token) => token.id !== props.animatingTokenId), ...movingTokens];
+});
+
 /** Map seat index (1-based) → CSS hex color from actual seat data. */
 const seatColorMap = computed(() => {
   const map = new Map<number, string>();
@@ -66,7 +78,9 @@ const stackedCells = computed(() => {
   for (const token of props.tokens) {
     counts.set(token.cell, (counts.get(token.cell) ?? 0) + 1);
   }
-  return new Map([...counts].filter(([, v]) => v >= 2));
+  return new Map(
+    [...counts].filter(([cellId, count]) => count >= 2 && cellId !== props.hiddenStackBadgeCellId),
+  );
 });
 
 /** Track cells that are blocks (2+ same-color tokens): Map<cellId, hexColor>. */
@@ -176,7 +190,7 @@ function startSquareColor(cellId: string): string | null {
     <!-- Tokens -->
     <template v-if="tokens">
       <circle
-        v-for="token in tokens"
+        v-for="token in renderedTokens"
         :key="token.id"
         :cx="cellPositions.get(token.cell)?.x ?? 0"
         :cy="cellPositions.get(token.cell)?.y ?? 0"
