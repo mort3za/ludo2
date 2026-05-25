@@ -6,6 +6,7 @@ import { createHttpHandler } from "./http/routes.js";
 import { createDb, applySchema } from "./db/connection.js";
 import { getRoom } from "./db/repositories.js";
 import { SERVER_PORT, type ServerMessage } from "@ludo/shared";
+import { getDebugStartStateFilePath, loadDebugStartState } from "./config/debug-start-state.js";
 
 // --- Configuration ---
 const PORT = Number(process.env["PORT"] ?? SERVER_PORT);
@@ -17,7 +18,8 @@ const auth = createGuestAuth(JWT_SECRET);
 const db = createDb(); // in-memory SQLite
 applySchema(db);
 const rooms: RoomStore = new Map();
-const router = createRouter(rooms);
+const debugStartState = loadDebugStartState(getDebugStartStateFilePath());
+const router = createRouter(rooms, { debugStartState });
 const httpHandler = createHttpHandler({ auth, db, boardSize: BOARD_SIZE });
 
 // Map Bun WebSocket → WsClient for lifecycle management

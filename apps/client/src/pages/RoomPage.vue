@@ -14,10 +14,15 @@ const session = useSessionStore();
 
 const players = ref<LobbyPlayer[]>([]);
 const ownerId = ref("");
+const maxPlayers = ref(0);
 const gameStarted = ref(false);
 const joined = ref(false);
 const joinError = ref("");
 const connecting = ref(false);
+
+const botCount = computed(() => players.value.filter((p) => p.isBot).length);
+const canAddBot = computed(() => players.value.length < maxPlayers.value);
+const canRemoveBot = computed(() => botCount.value > 0);
 
 const myReady = computed(
   () => players.value.find((p) => p.playerId === session.playerId)?.ready ?? false,
@@ -42,6 +47,7 @@ function handleMessage(msg: ServerMessage) {
   if (msg.type === "lobby") {
     players.value = msg.players;
     ownerId.value = msg.ownerId;
+    maxPlayers.value = msg.maxPlayers;
   } else if (msg.type === "state") {
     gameStarted.value = true;
     router.push({ name: "match", params: { roomId: props.roomId } });
@@ -102,6 +108,14 @@ function toggleReady() {
 function startGame() {
   ws?.send({ type: "start" });
 }
+
+function addBot() {
+  ws?.send({ type: "add-bot" });
+}
+
+function removeBot() {
+  ws?.send({ type: "remove-bot" });
+}
 </script>
 
 <template>
@@ -143,6 +157,41 @@ function startGame() {
           <DButton class="w-1/3" variant="ghost" @click="copyLink">
             {{ copied ? "Copied!" : "Copy" }}
           </DButton>
+        </div>
+      </div>
+
+      <!-- Bot counter (owner only) -->
+      <div
+        v-if="isOwner"
+        class="mb-6 flex items-center justify-between p-2 rounded-sm bg-near-white"
+        data-testid="bot-counter"
+      >
+        <span class="text-body-sm font-sans text-midnight-ink">Bot Players</span>
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            class="flex h-7 w-7 items-center justify-center rounded-full bg-canvas-white text-midnight-ink text-body-sm font-sans border border-subtle-gray hover:bg-near-white disabled:opacity-40 disabled:cursor-not-allowed"
+            :disabled="!canRemoveBot"
+            data-testid="bot-minus"
+            @click="removeBot"
+          >
+            −
+          </button>
+          <span
+            class="min-w-6 text-center text-body-sm font-sans text-midnight-ink"
+            data-testid="bot-count"
+          >
+            {{ botCount }}
+          </span>
+          <button
+            type="button"
+            class="flex h-7 w-7 items-center justify-center rounded-full bg-canvas-white text-midnight-ink text-body-sm font-sans border border-subtle-gray hover:bg-near-white disabled:opacity-40 disabled:cursor-not-allowed"
+            :disabled="!canAddBot"
+            data-testid="bot-plus"
+            @click="addBot"
+          >
+            +
+          </button>
         </div>
       </div>
 

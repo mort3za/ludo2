@@ -82,6 +82,20 @@ export function addBotMember(room: Room): Result<{ room: Room }> {
   return { ok: true, room: { ...room, members } };
 }
 
+export function removeBotMember(room: Room): Result<{ room: Room }> {
+  if (room.phase !== "lobby") return { ok: false, error: "not-in-lobby" };
+
+  let lastBotId: string | null = null;
+  for (const [id, member] of room.members) {
+    if (member.kind === "bot") lastBotId = id;
+  }
+  if (!lastBotId) return { ok: false, error: "no-bots" };
+
+  const members = cloneMembers(room.members);
+  members.delete(lastBotId);
+  return { ok: true, room: { ...room, members } };
+}
+
 function nextPlayerName(members: Map<string, RoomMember>, boardSize: number): string {
   const used = new Set<string>();
   for (const m of members.values()) used.add(m.name);

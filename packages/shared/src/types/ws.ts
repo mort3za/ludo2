@@ -6,7 +6,9 @@ export type ClientMessage =
   | { type: "start" }
   | { type: "roll" }
   | { type: "move"; tokenId: string }
-  | { type: "rematch" };
+  | { type: "rematch" }
+  | { type: "add-bot" }
+  | { type: "remove-bot" };
 
 export interface LobbyPlayer {
   playerId: string;
@@ -18,7 +20,7 @@ export interface LobbyPlayer {
 /** Messages sent from server to client */
 export type ServerMessage =
   | { type: "error"; message: string }
-  | { type: "lobby"; players: LobbyPlayer[]; ownerId: string }
+  | { type: "lobby"; players: LobbyPlayer[]; ownerId: string; maxPlayers: number }
   | { type: "state"; state: GameState }
   | { type: "rolled"; seat: number; value: number }
   | { type: "moved"; tokenId: string; to: Cell; path: Cell[] }

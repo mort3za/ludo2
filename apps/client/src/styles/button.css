@@ -10,6 +10,19 @@
   @apply bg-transparent text-valley-green border border-valley-green rounded-pill px-4 py-1.5;
 }
 
+.d-btn--tertiary {
+  @apply px-4 py-1.5;
+  background: transparent;
+  color: var(--color-adaline-ink);
+  border: 1px solid var(--color-adaline-ink);
+  border-radius: 32px;
+}
+
+.d-btn--tertiary:hover {
+  color: var(--color-valley-green);
+  border-color: var(--color-valley-green);
+}
+
 .d-btn--disabled {
   @apply opacity-50 cursor-not-allowed;
 }

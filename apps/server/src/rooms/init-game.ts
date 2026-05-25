@@ -1,14 +1,20 @@
-import { drawPalette, yard, TOKENS_PER_PLAYER, MIN_SEATS } from "@ludo/shared";
+import { drawPalette, parseCell, yard, TOKENS_PER_PLAYER, MIN_SEATS } from "@ludo/shared";
 import type { GameState, Token, Seat } from "@ludo/shared";
 import type { PlayerColor } from "@ludo/shared";
 import type { Rng } from "../game/rng/rng.js";
 import type { Room } from "../rooms/room.js";
+import type { DebugStartState } from "../config/debug-start-state.js";
 
 /**
  * Create the initial GameState from a room's members.
  * Assigns seats, draws colors, creates tokens in yards.
  */
-export function initGame(room: Room, gameId: string, rng: Rng): GameState {
+export function initGame(
+  room: Room,
+  gameId: string,
+  rng: Rng,
+  debugStartState?: DebugStartState,
+): GameState {
   // Board always has MIN_SEATS corners; rooms with fewer players still use the full board layout.
   const S = Math.max(room.boardSize, MIN_SEATS);
   const colors = drawPalette(S, () => rng.random()) as PlayerColor[];
@@ -52,7 +58,7 @@ export function initGame(room: Room, gameId: string, rng: Rng): GameState {
     }
   }
 
-  return {
+  const state: GameState = {
     gameId,
     status: "rolling",
     seats,
@@ -62,4 +68,109 @@ export function initGame(room: Room, gameId: string, rng: Rng): GameState {
     consecutiveSixes: 0,
     standings: [],
   };
+
+  if (debugStartState) {
+    applyDebugStartState(state, debugStartState);
+  }
+
+  return state;
+}
+
+function applyDebugStartState(state: GameState, debugStartState: DebugStartState): void {
+  if (debugStartState.status !== undefined) {
+    state.status = debugStartState.status;
+  }
+
+  if (debugStartState.activeSeat !== undefined) {
+    const seat = state.seats.find((entry) => entry.index === debugStartState.activeSeat);
+    if (!seat || seat.state !== "active") {
+      throw new Error(`Invalid debug active seat: ${debugStartState.activeSeat}`);
+    }
+    state.activeSeat = debugStartState.activeSeat;
+  }
+
+  if (debugStartState.diceValue !== undefined) {
+    const { diceValue } = debugStartState;
+    if (diceValue !== null && (!Number.isInteger(diceValue) || diceValue < 1 || diceValue > 6)) {
+      throw new Error(`Invalid debug dice value: ${diceValue}`);
+    }
+    state.diceValue = diceValue;
+  }
+
+  if (debugStartState.consecutiveSixes !== undefined) {
+    if (
+      !Number.isInteger(debugStartState.consecutiveSixes) ||
+      debugStartState.consecutiveSixes < 0
+    ) {
+      throw new Error(`Invalid debug consecutiveSixes: ${debugStartState.consecutiveSixes}`);
+    }
+    state.consecutiveSixes = debugStartState.consecutiveSixes;
+  }
+
+  if (debugStartState.standings !== undefined) {
+    validateStandings(state, debugStartState.standings);
+    state.standings = [...debugStartState.standings];
+  }
+
+  if (debugStartState.tokens !== undefined) {
+    applyDebugTokenOverrides(state, debugStartState.tokens);
+  }
+}
+
+function validateStandings(state: GameState, standings: number[]): void {
+  const seen = new Set<number>();
+  for (const seatIndex of standings) {
+    if (!Number.isInteger(seatIndex)) {
+      throw new Error(`Invalid debug standings seat: ${seatIndex}`);
+    }
+    const seat = state.seats.find((entry) => entry.index === seatIndex);
+    if (!seat || seat.state !== "active") {
+      throw new Error(`Debug standings references inactive seat: ${seatIndex}`);
+    }
+    if (seen.has(seatIndex)) {
+      throw new Error(`Duplicate debug standings seat: ${seatIndex}`);
+    }
+    seen.add(seatIndex);
+  }
+}
+
+function applyDebugTokenOverrides(
+  state: GameState,
+  tokenOverrides: NonNullable<DebugStartState["tokens"]>,
+): void {
+  const seen = new Set<string>();
+
+  for (const override of tokenOverrides) {
+    if (seen.has(override.id)) {
+      throw new Error(`Duplicate debug token override: ${override.id}`);
+    }
+    seen.add(override.id);
+
+    const token = state.tokens.find((entry) => entry.id === override.id);
+    if (!token) {
+      throw new Error(`Unknown debug token: ${override.id}`);
+    }
+
+    validateDebugTokenCell(state, token, override.cell);
+    token.cell = override.cell;
+  }
+}
+
+function validateDebugTokenCell(state: GameState, token: Token, cell: string): void {
+  const parsed = parseCell(cell);
+
+  if (parsed.kind === "yard") {
+    const tokenSeat = Number(token.id.split("-")[0]);
+    if (parsed.seat !== tokenSeat) {
+      throw new Error(`Debug yard cell seat mismatch for token ${token.id}`);
+    }
+    return;
+  }
+
+  if (parsed.kind === "home") {
+    const seat = state.seats.find((entry) => entry.color === token.color);
+    if (!seat || parsed.seat !== seat.index) {
+      throw new Error(`Debug home cell seat mismatch for token ${token.id}`);
+    }
+  }
 }
