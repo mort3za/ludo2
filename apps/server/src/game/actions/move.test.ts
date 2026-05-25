@@ -53,13 +53,12 @@ describe("applyMove", () => {
       expect(result.captured).toBeNull();
     });
 
-    it("does not capture on safe square", () => {
-      // T/1 is seat 1's start square → safe
+    it("captures on a start square", () => {
       const tokens = [makeToken("t1", "T/42", "blue"), makeToken("e1", "T/1", "red")];
       const result = applyMove(tokens, "t1", "T/1", 1, S, colorToSeat);
       expect(result.tokens.find((t) => t.id === "t1")!.cell).toBe("T/1");
-      expect(result.tokens.find((t) => t.id === "e1")!.cell).toBe("T/1");
-      expect(result.captured).toBeNull();
+      expect(result.tokens.find((t) => t.id === "e1")!.cell).toMatch(/^Y\/2\//);
+      expect(result.captured).toBe("e1");
     });
 
     it("does not capture in home column", () => {
@@ -71,19 +70,16 @@ describe("applyMove", () => {
 
     it("captures on deploy to start square if opponent is there", () => {
       const tokens = [makeToken("t1", "Y/1/1", "blue"), makeToken("e1", "T/1", "red")];
-      // T/1 is seat 1 start square (safe), so no capture
       const result = applyMove(tokens, "t1", "T/1", 1, S, colorToSeat);
-      expect(result.captured).toBeNull();
+      expect(result.tokens.find((t) => t.id === "e1")!.cell).toMatch(/^Y\/2\//);
+      expect(result.captured).toBe("e1");
     });
 
-    it("captures opponent on non-safe square during deploy", () => {
-      // seat 2 start = T/12. If an opponent is on T/12 (non-safe for seat 2? No, T/12 is seat 2's start = safe)
-      // Use a different scenario: seat 1 deploys to T/1 (safe).
-      // Actually start squares are always safe, so deploy never captures. Let's verify.
+    it("captures opponent on another seat's start square during deploy", () => {
       const tokens = [makeToken("t1", "Y/2/1", "red"), makeToken("e1", "T/12", "blue")];
-      // T/12 is seat 2's start → safe
       const result = applyMove(tokens, "t1", "T/12", 2, S, colorToSeat);
-      expect(result.captured).toBeNull();
+      expect(result.tokens.find((t) => t.id === "e1")!.cell).toMatch(/^Y\/1\//);
+      expect(result.captured).toBe("e1");
     });
   });
 

@@ -196,6 +196,26 @@ describe("handleMove — capture", () => {
       expect(capturedMsg.to).toMatch(/^Y\/2\//);
     }
   });
+
+  it("captures a token standing on a start square", () => {
+    const tokens: Token[] = [
+      { id: "b1", color: "blue", cell: "Y/1/1" },
+      { id: "r1", color: "red", cell: "T/1" },
+      { id: "r2", color: "red", cell: "Y/2/1" },
+      { id: "r3", color: "red", cell: "Y/2/2" },
+      { id: "r4", color: "red", cell: "Y/2/3" },
+    ];
+    const state = makeState({ tokens, activeSeat: 1, status: "moving", diceValue: 6 });
+    const session = createGameSession(state);
+    const msgs = handleMove(session, "b1");
+
+    const capturedMsg = msgs.find((m) => m.type === "captured");
+    expect(capturedMsg).toBeDefined();
+    if (capturedMsg && capturedMsg.type === "captured") {
+      expect(capturedMsg.tokenId).toBe("r1");
+      expect(capturedMsg.to).toMatch(/^Y\/2\//);
+    }
+  });
 });
 
 describe("handleTimeout", () => {

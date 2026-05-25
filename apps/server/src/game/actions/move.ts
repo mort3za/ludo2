@@ -1,4 +1,4 @@
-import { parseCell, isSafeSquare, yard } from "@ludo/shared";
+import { parseCell, yard } from "@ludo/shared";
 import type { Token } from "@ludo/shared";
 
 export interface MoveResult {
@@ -11,7 +11,6 @@ export interface MoveResult {
  *
  * Capture rules:
  * - Only single opponent tokens can be captured
- * - Never capture on safe squares (start squares)
  * - Never capture own-color tokens
  * - Captured token returns to its seat's yard (next available slot)
  *
@@ -39,11 +38,6 @@ export function applyMove(
 
   // Capture check — only on track cells
   if (parsed.kind !== "track") {
-    return { tokens: newTokens, captured: null };
-  }
-
-  // Check if destination is a safe square
-  if (isSafeSquare(destination, S)) {
     return { tokens: newTokens, captured: null };
   }
 
