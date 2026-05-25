@@ -3,6 +3,7 @@ import type { GameState, Token } from "@ludo/shared";
 import { TIMINGS } from "@ludo/shared";
 import { useGameAnimation } from "./use-game-animation";
 
+const FIRST_STEP_DELAY_MS = 16;
 const STEP_INTERVAL_MS = 220;
 const TOKEN_TRANSITION_MS = 300;
 const TURN_PASS_MS = TIMINGS.turnPass;
@@ -68,7 +69,14 @@ describe("useGameAnimation", () => {
     expect(gameState.value?.tokens.find((t) => t.id === "b1")?.cell).toBe("T/5");
     expect(gameState.value?.activeSeat).toBe(1);
 
-    vi.advanceTimersByTime(1);
+    vi.advanceTimersByTime(FIRST_STEP_DELAY_MS);
+
+    expect(isActionLocked.value).toBe(true);
+    expect(gameState.value?.tokens.find((t) => t.id === "b1")?.cell).toBe("T/5");
+    expect(gameState.value?.activeSeat).toBe(1);
+    expect(applied.mock.calls.map(([msg]) => msg.type)).toEqual(["rolled", "moved"]);
+
+    vi.advanceTimersByTime(FIRST_STEP_DELAY_MS);
 
     expect(isActionLocked.value).toBe(true);
     expect(gameState.value?.tokens.find((t) => t.id === "b1")?.cell).toBe("T/6");
@@ -81,7 +89,7 @@ describe("useGameAnimation", () => {
     expect(gameState.value?.activeSeat).toBe(1);
     expect(isActionLocked.value).toBe(true);
 
-    vi.advanceTimersByTime(STEP_INTERVAL_MS + TOKEN_TRANSITION_MS - 1);
+    vi.advanceTimersByTime(STEP_INTERVAL_MS + TOKEN_TRANSITION_MS - FIRST_STEP_DELAY_MS);
 
     expect(gameState.value?.tokens.find((t) => t.id === "b1")?.cell).toBe("T/8");
     expect(gameState.value?.activeSeat).toBe(1);
@@ -151,7 +159,7 @@ describe("useGameAnimation", () => {
     expect(lastRolledValue.value).toBe(6);
     expect(applied.mock.calls.map(([msg]) => msg.type)).toEqual(["rolled", "moved"]);
 
-    vi.advanceTimersByTime(5 * STEP_INTERVAL_MS + TOKEN_TRANSITION_MS);
+    vi.advanceTimersByTime(FIRST_STEP_DELAY_MS + 5 * STEP_INTERVAL_MS + TOKEN_TRANSITION_MS);
 
     expect(isActionLocked.value).toBe(true);
     expect(gameState.value?.activeSeat).toBe(2);
@@ -204,7 +212,7 @@ describe("useGameAnimation", () => {
 
     expect(stackingTokenId.value).toBe("b1");
 
-    vi.advanceTimersByTime(2 * STEP_INTERVAL_MS + TOKEN_TRANSITION_MS);
+    vi.advanceTimersByTime(FIRST_STEP_DELAY_MS + 2 * STEP_INTERVAL_MS + TOKEN_TRANSITION_MS);
 
     expect(gameState.value?.tokens.find((token) => token.id === "r1")?.cell).toBe("Y/2/0");
     expect(animating.value?.tokenId).toBe("r1");
@@ -215,10 +223,40 @@ describe("useGameAnimation", () => {
     expect(stackingTokenId.value).toBe("b1");
     expect(animating.value?.tokenId).toBe("r1");
 
-    vi.advanceTimersByTime(1);
+    vi.advanceTimersByTime(FIRST_STEP_DELAY_MS);
 
     expect(animating.value).toBeNull();
     expect(stackingTokenId.value).toBeNull();
     expect(applied.mock.calls.map(([msg]) => msg.type)).toEqual(["moved", "captured"]);
+  });
+
+  it("keeps the token at its current cell until the first movement timer fires", () => {
+    vi.useFakeTimers();
+    const { gameState, handleMessage } = useGameAnimation();
+
+    handleMessage({
+      type: "state",
+      state: makeState({
+        status: "moving",
+        diceValue: 3,
+      }),
+    });
+
+    handleMessage({
+      type: "moved",
+      tokenId: "b1",
+      to: "T/8",
+      path: ["T/6", "T/7", "T/8"],
+    });
+
+    expect(gameState.value?.tokens.find((token) => token.id === "b1")?.cell).toBe("T/5");
+
+    vi.advanceTimersByTime(FIRST_STEP_DELAY_MS - 1);
+
+    expect(gameState.value?.tokens.find((token) => token.id === "b1")?.cell).toBe("T/5");
+
+    vi.advanceTimersByTime(1);
+
+    expect(gameState.value?.tokens.find((token) => token.id === "b1")?.cell).toBe("T/6");
   });
 });

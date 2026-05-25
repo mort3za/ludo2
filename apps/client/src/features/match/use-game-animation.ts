@@ -54,6 +54,14 @@ export function useGameAnimation(
   /** Delay between per-cell steps. Must roughly match the BoardView token CSS transition. */
   const STEP_INTERVAL_MS = 220;
   const TOKEN_TRANSITION_MS = 300;
+  /**
+   * Hold the token at its current cell for one animation frame before the
+   * first cell change. Without this, the DOM reorder from `stackingTokenId`
+   * (via BoardView's renderedTokens) coincides with the cx/cy update in the
+   * same browser paint, so the first hop's CSS transition has no starting
+   * state and the token appears to teleport to path[0].
+   */
+  const FIRST_STEP_DELAY_MS = 16;
 
   function getRemainingRollHoldMs(now = Date.now()) {
     if (lastRolledAt === 0) return 0;
@@ -160,17 +168,17 @@ export function useGameAnimation(
     }
 
     path.forEach((cell, i) => {
-      if (i === 0) {
-        token.cell = cell;
-        return;
-      }
-      const timer = setTimeout(() => {
-        token.cell = cell;
-      }, i * STEP_INTERVAL_MS);
+      const timer = setTimeout(
+        () => {
+          token.cell = cell;
+        },
+        FIRST_STEP_DELAY_MS + i * STEP_INTERVAL_MS,
+      );
       pendingStepTimers.push(timer);
     });
 
-    const totalMs = (path.length - 1) * STEP_INTERVAL_MS + TOKEN_TRANSITION_MS;
+    const totalMs =
+      FIRST_STEP_DELAY_MS + (path.length - 1) * STEP_INTERVAL_MS + TOKEN_TRANSITION_MS;
     const cleanupTimer = setTimeout(() => {
       animating.value = null;
     }, totalMs);
