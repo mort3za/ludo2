@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { computeBoardLayout, playerColorHex, type CellPos } from "./board-geometry";
-import { startSquare, findBlocks } from "@ludo/shared";
-import type { Token, Seat } from "@ludo/shared";
+import { HOME_COLUMN_LENGTH, findBlocks, parseCell, startSquare } from "@ludo/shared";
+import type { Seat, Token } from "@ludo/shared";
 
 const props = defineProps<{
   boardSize: number;
@@ -46,14 +46,55 @@ const cellPositions = computed(() => {
   return map;
 });
 
+/**
+ * Finished tokens (those that reached H/seat/L) share a single logical cell.
+ * Fan them out across any unoccupied cells in the home column so they don't
+ * visually stack.
+ */
+const homeDisplayOverrides = computed(() => {
+  const tokens = props.tokens ?? [];
+  const occupied = new Map<number, Set<number>>();
+  const finished = new Map<number, Token[]>();
+
+  for (const token of tokens) {
+    const p = parseCell(token.cell);
+    if (p.kind !== "home") continue;
+    if (p.index < HOME_COLUMN_LENGTH) {
+      let set = occupied.get(p.seat);
+      if (!set) occupied.set(p.seat, (set = new Set()));
+      set.add(p.index);
+    } else {
+      let group = finished.get(p.seat);
+      if (!group) finished.set(p.seat, (group = []));
+      group.push(token);
+    }
+  }
+
+  const overrides = new Map<string, string>();
+  for (const [seat, group] of finished) {
+    const taken = occupied.get(seat) ?? new Set<number>();
+    let slot = HOME_COLUMN_LENGTH;
+    for (const token of group) {
+      while (slot > 0 && taken.has(slot)) slot -= 1;
+      overrides.set(token.id, `H/${seat}/${slot > 0 ? slot : HOME_COLUMN_LENGTH}`);
+      slot -= 1;
+    }
+  }
+  return overrides;
+});
+
+function displayCellOf(token: Token): string {
+  return homeDisplayOverrides.value.get(token.id) ?? token.cell;
+}
+
 const renderedTokens = computed(() => {
   const tokens = props.tokens ?? [];
   if (!props.animatingTokenId) return tokens;
-
-  const movingTokens = tokens.filter((token) => token.id === props.animatingTokenId);
-  if (movingTokens.length === 0) return tokens;
-
-  return [...tokens.filter((token) => token.id !== props.animatingTokenId), ...movingTokens];
+  const animatingId = props.animatingTokenId;
+  return [
+    ...tokens.filter((token) => token.id !== animatingId),
+    ...tokens.filter((token) => token.id === animatingId),
+  ];
 });
 
 /** Map seat index (1-based) → CSS hex color from actual seat data. */
@@ -73,10 +114,11 @@ function resolvedSeatColor(seatIndex: number): string {
 
 /** Map cell ID → token count for cells with 2+ tokens (for stack badge). */
 const stackedCells = computed(() => {
-  if (!props.tokens) return new Map<string, number>();
+  const tokens = props.tokens ?? [];
   const counts = new Map<string, number>();
-  for (const token of props.tokens) {
-    counts.set(token.cell, (counts.get(token.cell) ?? 0) + 1);
+  for (const token of tokens) {
+    const cell = displayCellOf(token);
+    counts.set(cell, (counts.get(cell) ?? 0) + 1);
   }
   return new Map(
     [...counts].filter(([cellId, count]) => count >= 2 && cellId !== props.hiddenStackBadgeCellId),
@@ -192,8 +234,8 @@ function startSquareColor(cellId: string): string | null {
       <circle
         v-for="token in renderedTokens"
         :key="token.id"
-        :cx="cellPositions.get(token.cell)?.x ?? 0"
-        :cy="cellPositions.get(token.cell)?.y ?? 0"
+        :cx="cellPositions.get(displayCellOf(token))?.x ?? 0"
+        :cy="cellPositions.get(displayCellOf(token))?.y ?? 0"
         :r="layout.cellSize * 0.7"
         :fill="playerColorHex(token.color)"
         stroke="#1a1816"

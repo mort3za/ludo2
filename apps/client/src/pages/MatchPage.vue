@@ -31,6 +31,25 @@ const { gameState, animating, stackingTokenId, lastRolledValue, isActionLocked, 
     }
   });
 
+/**
+ * Cell whose stack badge should be suppressed: the destination cell during a
+ * capture handoff, including the brief window after the moving token arrives
+ * but before the captured-token message lands.
+ */
+const hiddenStackBadgeCellId = computed<string | undefined>(() => {
+  const anim = animating.value;
+  if (!anim) return undefined;
+  if (anim.type === "capture") return anim.from;
+  if (anim.type === "move") {
+    const mover = gameState.value?.tokens.find((t) => t.id === anim.tokenId);
+    const occupant = gameState.value?.tokens.find(
+      (t) => t.id !== anim.tokenId && t.cell === anim.to && t.color !== mover?.color,
+    );
+    if (occupant) return anim.to;
+  }
+  return undefined;
+});
+
 const deadline = ref<number>(0);
 const pendingAction = ref(false);
 let ws: WsConnection | null = null;
@@ -138,7 +157,7 @@ onUnmounted(() => {
         :tokens="gameState.tokens"
         :legal-token-ids="legalTokenIds"
         :animating-token-id="stackingTokenId ?? animating?.tokenId"
-        :hidden-stack-badge-cell-id="animating?.type === 'capture' ? animating.from : undefined"
+        :hidden-stack-badge-cell-id="hiddenStackBadgeCellId"
         :seats="gameState.seats"
         @move="onMove"
       />
