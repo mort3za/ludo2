@@ -17,7 +17,18 @@ const props = defineProps<{ roomId: string }>();
 const vueRouter = useRouter();
 const session = useSessionStore();
 const gameResultStore = useGameResultStore();
-const { gameState, animating, lastRolledValue, handleMessage } = useGameAnimation();
+const { gameState, animating, lastRolledValue, handleMessage } = useGameAnimation((msg) => {
+  if (msg.type === "turn") {
+    deadline.value = msg.deadline;
+  }
+
+  if (msg.type === "finished") {
+    if (gameState.value) {
+      gameResultStore.setResult(gameState.value);
+    }
+    vueRouter.push({ name: "post-game", params: { roomId: props.roomId } });
+  }
+});
 
 const deadline = ref<number>(0);
 const pendingAction = ref(false);
@@ -70,17 +81,6 @@ function onServerMessage(msg: ServerMessage) {
   if (msg.type === "error" && msg.message === "no-game") {
     vueRouter.push({ name: "room", params: { roomId: props.roomId } });
     return;
-  }
-
-  if (msg.type === "turn") {
-    deadline.value = msg.deadline;
-  }
-
-  if (msg.type === "finished") {
-    if (gameState.value) {
-      gameResultStore.setResult(gameState.value);
-    }
-    vueRouter.push({ name: "post-game", params: { roomId: props.roomId } });
   }
 }
 

@@ -25,7 +25,9 @@ export interface GameAnimationState {
  * - "captured" message: animate capture (token returns to yard)
  * - "rolled" / "turn" / "finished" / "kicked": update state directly
  */
-export function useGameAnimation(): GameAnimationState {
+export function useGameAnimation(
+  onAppliedMessage?: (msg: ServerMessage) => void,
+): GameAnimationState {
   const gameState = ref<GameState | null>(null);
   const animating = ref<AnimatingToken | null>(null);
   // Persists across turn changes — only replaced when next player rolls.
@@ -35,13 +37,73 @@ export function useGameAnimation(): GameAnimationState {
   let lastRolledAt = 0;
   let pendingDiceTimer: ReturnType<typeof setTimeout> | null = null;
   let pendingTurnTimer: ReturnType<typeof setTimeout> | null = null;
+  let pendingActionTimer: ReturnType<typeof setTimeout> | null = null;
   let pendingStepTimers: ReturnType<typeof setTimeout>[] = [];
+  let queuedMessages: ServerMessage[] = [];
 
   const DICE_REVEAL_MS = TIMINGS.diceReveal;
   const DICE_SHOW_MS = TIMINGS.diceShow;
 
   /** Delay between per-cell steps. Must roughly match the BoardView token CSS transition. */
   const STEP_INTERVAL_MS = 220;
+
+  function getRemainingRollHoldMs(now = Date.now()) {
+    if (lastRolledAt === 0) return 0;
+    const holdMs = DICE_REVEAL_MS + DICE_SHOW_MS;
+    return Math.max(0, holdMs - (now - lastRolledAt));
+  }
+
+  function emitAppliedMessage(msg: ServerMessage) {
+    onAppliedMessage?.(msg);
+  }
+
+  function clearPendingActions() {
+    if (pendingActionTimer) {
+      clearTimeout(pendingActionTimer);
+      pendingActionTimer = null;
+    }
+    queuedMessages = [];
+  }
+
+  function scheduleQueuedMessages() {
+    const delayMs = getRemainingRollHoldMs();
+    if (delayMs <= 0) {
+      flushQueuedMessages();
+      return;
+    }
+
+    if (pendingActionTimer) clearTimeout(pendingActionTimer);
+    pendingActionTimer = setTimeout(() => {
+      pendingActionTimer = null;
+      flushQueuedMessages();
+    }, delayMs);
+  }
+
+  function flushQueuedMessages() {
+    if (queuedMessages.length === 0) return;
+
+    const delayMs = getRemainingRollHoldMs();
+    if (delayMs > 0) {
+      scheduleQueuedMessages();
+      return;
+    }
+
+    const pending = queuedMessages;
+    queuedMessages = [];
+    for (const queuedMsg of pending) {
+      applyMessage(queuedMsg);
+    }
+  }
+
+  function shouldDelayMessage(msg: ServerMessage) {
+    return (
+      msg.type === "moved" ||
+      msg.type === "captured" ||
+      msg.type === "turn" ||
+      msg.type === "finished" ||
+      msg.type === "kicked"
+    );
+  }
 
   function animateAlongPath(token: Token, path: Cell[], finalCell: Cell) {
     for (const t of pendingStepTimers) clearTimeout(t);
@@ -72,13 +134,26 @@ export function useGameAnimation(): GameAnimationState {
     }
   }
 
-  function handleMessage(msg: ServerMessage) {
+  function applyMessage(msg: ServerMessage) {
     switch (msg.type) {
       case "state":
         // Full state replacement — reconnect or initial sync
+        clearPendingActions();
+        if (pendingDiceTimer) {
+          clearTimeout(pendingDiceTimer);
+          pendingDiceTimer = null;
+        }
+        if (pendingTurnTimer) {
+          clearTimeout(pendingTurnTimer);
+          pendingTurnTimer = null;
+        }
+        for (const t of pendingStepTimers) clearTimeout(t);
+        pendingStepTimers = [];
+        lastRolledAt = 0;
         gameState.value = msg.state;
         animating.value = null;
         lastRolledValue.value = msg.state.diceValue;
+        emitAppliedMessage(msg);
         break;
 
       case "moved": {
@@ -92,6 +167,7 @@ export function useGameAnimation(): GameAnimationState {
           type: "move",
         };
         animateAlongPath(token, msg.path, msg.to);
+        emitAppliedMessage(msg);
         break;
       }
 
@@ -107,6 +183,7 @@ export function useGameAnimation(): GameAnimationState {
           };
           token.cell = msg.to;
         }
+        emitAppliedMessage(msg);
         break;
       }
 
@@ -122,22 +199,14 @@ export function useGameAnimation(): GameAnimationState {
           lastRolledValue.value = rolledValue;
           pendingDiceTimer = null;
         }, DICE_REVEAL_MS);
+        emitAppliedMessage(msg);
         break;
       }
 
       case "turn": {
         if (pendingTurnTimer) clearTimeout(pendingTurnTimer);
-        const elapsed = Date.now() - lastRolledAt;
-        const holdMs = DICE_REVEAL_MS + DICE_SHOW_MS;
-        if (lastRolledAt > 0 && elapsed < holdMs) {
-          const turnMsg = msg;
-          pendingTurnTimer = setTimeout(() => {
-            applyTurn(turnMsg);
-            pendingTurnTimer = null;
-          }, holdMs - elapsed);
-        } else {
-          applyTurn(msg);
-        }
+        applyTurn(msg);
+        emitAppliedMessage(msg);
         break;
       }
 
@@ -146,16 +215,36 @@ export function useGameAnimation(): GameAnimationState {
           gameState.value.status = "finished";
           gameState.value.standings = msg.standings;
         }
+        emitAppliedMessage(msg);
         break;
 
       case "kicked":
         // Seat kicked — next "state" or "turn" will update
+        emitAppliedMessage(msg);
         break;
 
       case "error":
         // Errors handled by caller
+        emitAppliedMessage(msg);
+        break;
+
+      case "lobby":
+        emitAppliedMessage(msg);
         break;
     }
+  }
+
+  function handleMessage(msg: ServerMessage) {
+    if (shouldDelayMessage(msg)) {
+      const delayMs = getRemainingRollHoldMs();
+      if (delayMs > 0) {
+        queuedMessages.push(msg);
+        scheduleQueuedMessages();
+        return;
+      }
+    }
+
+    applyMessage(msg);
   }
 
   return { gameState, animating, lastRolledValue, handleMessage };

@@ -47,7 +47,7 @@ const statusText = computed(() => {
     case "forced":
       return "Only one move — auto-picking…";
     case "pick":
-      return `Rolled ${props.lastRolledValue} — pick a token`;
+      return "Your turn — move a token!";
   }
 });
 </script>
