@@ -156,6 +156,7 @@ function startGame() {
           <span class="text-midnight-ink">
             {{ p.name }}
             <span v-if="p.playerId === ownerId" class="text-caption text-subtle-gray">(host)</span>
+            <span v-if="p.isBot" class="text-caption text-subtle-gray">(AI)</span>
           </span>
           <span :class="p.ready ? 'text-green-600' : 'text-subtle-gray'" class="text-caption">
             {{ p.ready ? "Ready" : "Not ready" }}

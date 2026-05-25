@@ -6,6 +6,7 @@ export interface RoomMember {
   playerId: string;
   name: string;
   ready: boolean;
+  kind: "human" | "bot";
 }
 
 export interface Room {
@@ -57,7 +58,7 @@ export function joinRoom(room: Room, playerId: string): Result<{ room: Room }> {
 
   const members = cloneMembers(room.members);
   const name = nextPlayerName(members, room.boardSize);
-  members.set(playerId, { playerId, name, ready: false });
+  members.set(playerId, { playerId, name, ready: false, kind: "human" });
 
   return {
     ok: true,
@@ -67,6 +68,18 @@ export function joinRoom(room: Room, playerId: string): Result<{ room: Room }> {
       ownerId: room.ownerId ?? playerId,
     },
   };
+}
+
+export function addBotMember(room: Room): Result<{ room: Room }> {
+  if (room.phase !== "lobby") return { ok: false, error: "not-in-lobby" };
+  if (room.members.size >= room.boardSize) return { ok: false, error: "room-full" };
+
+  const botId = `bot:${room.members.size + 1}`;
+  const members = cloneMembers(room.members);
+  const name = nextPlayerName(members, room.boardSize);
+  members.set(botId, { playerId: botId, name, ready: true, kind: "bot" });
+
+  return { ok: true, room: { ...room, members } };
 }
 
 function nextPlayerName(members: Map<string, RoomMember>, boardSize: number): string {

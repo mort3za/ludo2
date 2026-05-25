@@ -97,6 +97,44 @@ describe("HTTP routes", () => {
       const res = await handler(new Request("http://localhost/rooms", { method: "POST" }));
       expect(res.status).toBe(401);
     });
+
+    it("accepts bots:1 and returns roomId", async () => {
+      const token = await auth.issue("p1");
+      const res = await handler(
+        new Request("http://localhost/rooms", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ bots: 1 }),
+        }),
+      );
+      expect(res.status).toBe(201);
+      const body = (await res.json()) as { roomId: string };
+      expect(body.roomId).toBeDefined();
+    });
+
+    it("rejects bots > 3", async () => {
+      const token = await auth.issue("p1");
+      const res = await handler(
+        new Request("http://localhost/rooms", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ bots: 4 }),
+        }),
+      );
+      expect(res.status).toBe(400);
+    });
+
+    it("rejects negative bots", async () => {
+      const token = await auth.issue("p1");
+      const res = await handler(
+        new Request("http://localhost/rooms", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ bots: -1 }),
+        }),
+      );
+      expect(res.status).toBe(400);
+    });
   });
 
   // --- Game History ---

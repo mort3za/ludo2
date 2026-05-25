@@ -32,8 +32,12 @@ export function refreshToken(token: string) {
   });
 }
 
-export function createRoom() {
-  return request<{ roomId: string }>("/rooms", { method: "POST" });
+export function createRoom(bots = 0) {
+  return request<{ roomId: string }>("/rooms", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(bots > 0 ? { bots } : {}),
+  });
 }
 
 export function getGameHistory(gameId: string) {

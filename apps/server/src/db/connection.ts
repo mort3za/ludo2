@@ -37,6 +37,7 @@ export function applySchema(db: Db) {
     id TEXT PRIMARY KEY,
     owner_id TEXT,
     board_size INTEGER NOT NULL,
+    bot_count INTEGER NOT NULL DEFAULT 0,
     phase TEXT NOT NULL,
     game_id TEXT,
     created_at INTEGER NOT NULL,

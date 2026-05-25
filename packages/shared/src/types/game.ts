@@ -16,6 +16,7 @@ export interface Seat {
   state: SeatState;
   color: PlayerColor;
   playerId: string | null;
+  isBot: boolean;
 }
 
 export interface GameState {

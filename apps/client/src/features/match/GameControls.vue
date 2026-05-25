@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import { DButton } from "@/shared/ui";
 import { playerColorHex } from "@/entities/game/board-geometry";
-import type { GameState, Token } from "@ludo/shared";
+import type { GameState } from "@ludo/shared";
 
 const props = defineProps<{
   state: GameState;
@@ -18,10 +18,11 @@ const emit = defineEmits<{
 
 const isMyTurn = computed(() => props.state.activeSeat === props.mySeat);
 
-const activeSeatColor = computed(() => {
-  const seat = props.state.seats.find((s) => s.index === props.state.activeSeat);
-  return seat ? playerColorHex(seat.color) : "#888";
-});
+const activeSeat = computed(() => props.state.seats.find((s) => s.index === props.state.activeSeat));
+
+const activeSeatColor = computed(() => activeSeat.value ? playerColorHex(activeSeat.value.color) : "#888");
+
+const activeSeatIsBot = computed(() => activeSeat.value?.isBot ?? false);
 
 const phase = computed(() => {
   if (!isMyTurn.value) return "waiting" as const;
@@ -37,6 +38,7 @@ const phase = computed(() => {
 const statusText = computed(() => {
   switch (phase.value) {
     case "waiting":
+      if (activeSeatIsBot.value) return `Player${activeSeat.value?.index ?? ""} (AI) is thinking…`;
       return "Their turn";
     case "roll":
       return "Your turn — roll the dice!";
@@ -55,6 +57,7 @@ const statusText = computed(() => {
     <p class="text-body-sm text-subtle-gray font-sans flex items-center gap-1.5 w-2/3">
       <span
         class="inline-block size-3 rounded-full"
+        :class="{ 'animate-pulse': activeSeatIsBot && phase === 'waiting' }"
         :style="{ backgroundColor: activeSeatColor }"
       ></span>
       {{ statusText }}

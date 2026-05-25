@@ -45,7 +45,7 @@ describe("repositories", () => {
 
   describe("rooms", () => {
     it("inserts and retrieves a room", () => {
-      insertRoom(db, "room-1", 4, new Date(1000)).run();
+      insertRoom(db, "room-1", 4, 0, new Date(1000)).run();
       const room = getRoom(db, "room-1");
       expect(room).toBeDefined();
       expect(room!.boardSize).toBe(4);
@@ -53,7 +53,7 @@ describe("repositories", () => {
     });
 
     it("updates room phase", () => {
-      insertRoom(db, "room-1", 4, new Date(1000)).run();
+      insertRoom(db, "room-1", 4, 0, new Date(1000)).run();
       updateRoomPhase(db, "room-1", "playing").run();
       const room = getRoom(db, "room-1");
       expect(room!.phase).toBe("playing");

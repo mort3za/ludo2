@@ -10,6 +10,7 @@ import {
   handleTimeout,
   type GameSession,
 } from "../rooms/game-session.js";
+import { scheduleBotTurn } from "../game/ai/driver.js";
 
 export interface WsClient {
   playerId: string;
@@ -62,11 +63,18 @@ export function createRouter(rooms: RoomStore): Router {
     }
   }
 
+  function scheduleBotIfNeeded(roomId: string, session: GameSession): void {
+    scheduleBotTurn(session, (msgs) => {
+      for (const msg of msgs) broadcast(roomId, msg);
+    });
+  }
+
   function broadcastLobby(roomId: string, room: Room): void {
     const players = [...room.members.values()].map((m) => ({
       playerId: m.playerId,
       name: m.name,
       ready: m.ready,
+      isBot: m.kind === "bot",
     }));
     broadcast(roomId, { type: "lobby", players, ownerId: room.ownerId ?? "" });
   }
@@ -120,6 +128,7 @@ export function createRouter(rooms: RoomStore): Router {
             deadline: Date.now() + TIMINGS.turnTimeout,
           });
           scheduleTurnTimeout(client.roomId);
+          scheduleBotIfNeeded(client.roomId, session);
         } else {
           client.send({ type: "error", message: startResult.error });
         }
@@ -140,9 +149,9 @@ export function createRouter(rooms: RoomStore): Router {
         }
         const rollMsgs = handleRoll(session);
         for (const msg of rollMsgs) broadcast(client.roomId, msg);
-        // Reschedule timeout after player action
         if (session.state.status !== "finished") {
           scheduleTurnTimeout(client.roomId);
+          scheduleBotIfNeeded(client.roomId, session);
         } else {
           clearTurnTimeout(client.roomId);
         }
@@ -162,9 +171,9 @@ export function createRouter(rooms: RoomStore): Router {
         }
         const moveMsgs = handleMove(session, message.tokenId);
         for (const msg of moveMsgs) broadcast(client.roomId, msg);
-        // Reschedule timeout after player action
         if (session.state.status !== "finished") {
           scheduleTurnTimeout(client.roomId);
+          scheduleBotIfNeeded(client.roomId, session);
         } else {
           clearTurnTimeout(client.roomId);
         }
@@ -187,7 +196,8 @@ export function createRouter(rooms: RoomStore): Router {
         rooms.set(client.roomId, rematchRoom);
         const rng = createCryptoRng();
         const newState = initGame(rematchRoom, newGameId, rng);
-        gameSessions.set(client.roomId, createGameSession(newState));
+        const newSession = createGameSession(newState);
+        gameSessions.set(client.roomId, newSession);
         broadcast(client.roomId, { type: "state", state: newState });
         broadcast(client.roomId, {
           type: "turn",
@@ -195,6 +205,7 @@ export function createRouter(rooms: RoomStore): Router {
           deadline: Date.now() + TIMINGS.turnTimeout,
         });
         scheduleTurnTimeout(client.roomId);
+        scheduleBotIfNeeded(client.roomId, newSession);
         break;
       }
     }

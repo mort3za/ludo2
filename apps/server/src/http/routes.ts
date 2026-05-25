@@ -47,8 +47,23 @@ export function createHttpHandler(deps: HttpDeps) {
       if (!identity) {
         return Response.json({ error: "unauthorized" }, { status: 401 });
       }
+
+      let bots = 0;
+      const contentType = req.headers.get("content-type") ?? "";
+      if (req.body && contentType.includes("application/json")) {
+        const body = (await req.json()) as Record<string, unknown>;
+        const rawBots = body["bots"];
+        if (rawBots !== undefined) {
+          if (typeof rawBots !== "number" || !Number.isInteger(rawBots) || rawBots < 0 || rawBots > 3) {
+            return Response.json({ error: "invalid-bots" }, { status: 400 });
+          }
+          bots = rawBots;
+        }
+      }
+
+      const roomSize = bots > 0 ? 1 + bots : boardSize;
       const roomId = crypto.randomUUID();
-      insertRoom(db, roomId, boardSize, new Date()).run();
+      insertRoom(db, roomId, roomSize, bots, new Date()).run();
       return Response.json({ roomId }, { status: 201 });
     }
 

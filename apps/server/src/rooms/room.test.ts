@@ -9,6 +9,7 @@ import {
   endGame,
   requestRematch,
   isExpired,
+  addBotMember,
   type Room,
   type RoomPhase,
 } from "./room.js";
@@ -342,5 +343,55 @@ describe("isExpired", () => {
     room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
     room = (startGame(room, "p1", "game-1") as { ok: true; room: Room }).room;
     expect(isExpired(room, 99999999999)).toBe(false);
+  });
+});
+
+describe("addBotMember", () => {
+  it("adds a bot member with auto-assigned name", () => {
+    const room = createRoom("room-1", 2, 1000);
+    const result = addBotMember(room);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.room.members.size).toBe(1);
+    const bot = [...result.room.members.values()][0]!;
+    expect(bot.kind).toBe("bot");
+    expect(bot.ready).toBe(true);
+    expect(bot.name).toBe("Player1");
+  });
+
+  it("bot does not claim Player1 if a human already has it", () => {
+    let room = createRoom("room-1", 4, 1000);
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room; // Player1
+    const result = addBotMember(room);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const members = [...result.room.members.values()];
+    const bot = members.find((m) => m.kind === "bot")!;
+    expect(bot.name).toBe("Player2");
+  });
+
+  it("two bots get sequential names", () => {
+    let room = createRoom("room-1", 4, 1000);
+    room = (addBotMember(room) as { ok: true; room: Room }).room;
+    room = (addBotMember(room) as { ok: true; room: Room }).room;
+    const names = [...room.members.values()].map((m) => m.name);
+    expect(names).toContain("Player1");
+    expect(names).toContain("Player2");
+  });
+
+  it("returns error when room is full", () => {
+    let room = createRoom("room-1", 1, 1000);
+    room = (addBotMember(room) as { ok: true; room: Room }).room;
+    const result = addBotMember(room);
+    expect(result.ok).toBe(false);
+  });
+
+  it("canStart counts bot ready state", () => {
+    let room = createRoom("room-1", 2, 1000);
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
+    room = (addBotMember(room) as { ok: true; room: Room }).room;
+    // Bot is auto-ready — owner can start
+    expect(canStart(room, "p1")).toBe(true);
   });
 });

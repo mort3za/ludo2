@@ -10,6 +10,7 @@ export const rooms = sqliteTable("rooms", {
   id: text("id").primaryKey(),
   ownerId: text("owner_id"),
   boardSize: integer("board_size").notNull(),
+  botCount: integer("bot_count").notNull().default(0),
   phase: text("phase", { enum: ["lobby", "playing", "post-game"] }).notNull(),
   gameId: text("game_id"),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),

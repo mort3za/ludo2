@@ -12,6 +12,7 @@ export interface LobbyPlayer {
   playerId: string;
   name: string;
   ready: boolean;
+  isBot: boolean;
 }
 
 /** Messages sent from server to client */

@@ -191,6 +191,10 @@ export function handleTimeout(session: GameSession): ServerMessage[] {
 
   if (state.status === "finished") return [];
 
+  // Bots never time out — the bot driver handles their turns.
+  const activeSeat = state.seats.find((s) => s.index === state.activeSeat);
+  if (activeSeat?.isBot) return [];
+
   const currentMisses = session.seatMisses.get(state.activeSeat) ?? 0;
   const missResult = handleMissedTurn(currentMisses, TIMINGS.kickAfterMisses);
   session.seatMisses.set(state.activeSeat, missResult.consecutiveMisses);

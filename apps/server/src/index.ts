@@ -1,9 +1,10 @@
 import { createGuestAuth } from "./auth/guest-auth.js";
-import { createRoom, joinRoom } from "./rooms/room.js";
+import { createRoom, joinRoom, addBotMember, type Room } from "./rooms/room.js";
 import { createRouter, type WsClient, type RoomStore } from "./ws/router.js";
 import { parseClientMessage } from "./ws/protocol.js";
 import { createHttpHandler } from "./http/routes.js";
 import { createDb, applySchema } from "./db/connection.js";
+import { getRoom } from "./db/repositories.js";
 import { SERVER_PORT, type ServerMessage } from "@ludo/shared";
 
 // --- Configuration ---
@@ -66,9 +67,17 @@ const server = Bun.serve<WsData>({
     open(ws) {
       const { playerId, roomId } = ws.data;
 
-      // Ensure room exists (link-only create)
+      // Ensure room exists in memory; read config from DB if persisted there.
       if (!rooms.has(roomId)) {
-        rooms.set(roomId, createRoom(roomId, BOARD_SIZE, Date.now()));
+        const dbRoom = getRoom(db, roomId);
+        const size = dbRoom?.boardSize ?? BOARD_SIZE;
+        const botCount = dbRoom?.botCount ?? 0;
+        let room: Room = createRoom(roomId, size, Date.now());
+        for (let i = 0; i < botCount; i++) {
+          const result = addBotMember(room);
+          if (result.ok) room = result.room;
+        }
+        rooms.set(roomId, room);
       }
 
       // Join room

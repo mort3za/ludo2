@@ -1,14 +1,20 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { ref, computed } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import { DButton, DCard } from "@/shared/ui";
 import { guestLogin, createRoom } from "@/shared/api/client";
 import { useSessionStore } from "@/stores/session";
 
 const router = useRouter();
+const route = useRoute();
 const session = useSessionStore();
 const loading = ref(false);
 const error = ref("");
+
+const botCount = computed(() => {
+  const raw = Number(route.query["bots"] ?? 0);
+  return Number.isInteger(raw) && raw > 0 ? raw : 0;
+});
 
 async function handleCreateRoom() {
   error.value = "";
@@ -16,7 +22,7 @@ async function handleCreateRoom() {
   try {
     const auth = await guestLogin();
     session.login(auth.token, auth.playerId);
-    const { roomId } = await createRoom();
+    const { roomId } = await createRoom(botCount.value);
     router.push({ name: "room", params: { roomId } });
   } catch (e) {
     error.value = e instanceof Error ? e.message : "Something went wrong";
