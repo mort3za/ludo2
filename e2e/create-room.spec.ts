@@ -1,11 +1,15 @@
 import { test, expect, type Page } from "@playwright/test";
+import { SERVER_PORT } from "../packages/shared/src/constants/network.ts";
+
+const serverOrigin = `http://127.0.0.1:${SERVER_PORT}`;
 
 /**
  * Helper: register a guest player and seed their token in localStorage.
  */
 async function guestLogin(page: Page) {
-  const res = await page.request.post("http://localhost:3000/auth/guest", {});
+  const res = await page.request.post(`${serverOrigin}/auth/guest`, {});
   const body = (await res.json()) as { token: string; playerId: string };
+  await page.goto("/");
   await page.evaluate(({ token, playerId }) => {
     localStorage.setItem("ludo_token", token);
     localStorage.setItem("ludo_player", playerId);
@@ -40,9 +44,9 @@ test("create room → second player joins → both ready → game starts", async
   await expect(player1.getByTestId("room-id")).toHaveText(roomId!);
   await expect(player2.getByTestId("room-id")).toHaveText(roomId!);
 
-  // Lobby should show Player1 and Player2
-  await expect(player1.getByTestId("player-list")).toContainText("Player1");
+  // The setup list shows joiners/bots and excludes the owner.
   await expect(player1.getByTestId("player-list")).toContainText("Player2");
+  await expect(player1.getByTestId("player-list")).not.toContainText("Player1");
 
   // --- Both players ready up ---
   await player1.getByTestId("ready-btn").click();

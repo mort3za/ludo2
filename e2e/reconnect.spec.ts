@@ -1,4 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
+import { SERVER_PORT } from "../packages/shared/src/constants/network.ts";
+
+const serverOrigin = `http://127.0.0.1:${SERVER_PORT}`;
 
 /**
  * E2E tests for reconnect mid-game scenarios.
@@ -10,8 +13,9 @@ import { test, expect, type Page } from "@playwright/test";
  */
 
 async function registerGuest(page: Page) {
-  const res = await page.request.post("http://localhost:3000/auth/guest", {});
+  const res = await page.request.post(`${serverOrigin}/auth/guest`, {});
   const body = (await res.json()) as { token: string; playerId: string };
+  await page.goto("/");
   await page.evaluate(({ token, playerId }) => {
     localStorage.setItem("ludo_token", token);
     localStorage.setItem("ludo_player", playerId);
@@ -37,9 +41,11 @@ test.describe("reconnect mid-game", () => {
 
     await p1.getByTestId("ready-btn").click();
     await p2.getByTestId("ready-btn").click();
+    await p1.getByTestId("start-btn").click();
 
     // Game starts
     await p1.waitForURL(/\/match\/.+/, { timeout: 5000 });
+    await p2.waitForURL(/\/match\/.+/, { timeout: 5000 });
 
     // Player 1 "disconnects" by navigating away
     await p1.goto("/");
@@ -47,9 +53,10 @@ test.describe("reconnect mid-game", () => {
     // Player 1 "reconnects" by navigating back to the room
     const matchUrl = roomUrl.replace("/room/", "/match/");
     await p1.goto(matchUrl);
+    await p1.waitForURL(/\/match\/.+/, { timeout: 5000 });
 
     // After reconnect, they should see the match page
-    await expect(p1.locator("h1")).toHaveText("Match", { timeout: 3000 });
+    await expect(p1.getByRole("button", { name: "Roll" })).toBeVisible({ timeout: 3000 });
 
     await ctx1.close();
     await ctx2.close();
