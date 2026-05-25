@@ -7,6 +7,7 @@ export type { ParsedCell, ParsedYard, ParsedTrack, ParsedHome } from "./board/ce
 // Constants
 export * from "./constants/board.js";
 export * from "./constants/rules.js";
+export * from "./constants/network.js";
 
 // Board helpers
 export { parseCell, yard, track, home } from "./board/cell.js";

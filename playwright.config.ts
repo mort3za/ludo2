@@ -1,4 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
+import { CLIENT_PORT, SERVER_PORT } from "./packages/shared/src/constants/network.ts";
+
+const clientOrigin = `http://localhost:${CLIENT_PORT}`;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -8,7 +11,7 @@ export default defineConfig({
   workers: process.env["CI"] ? 1 : undefined,
   reporter: "html",
   use: {
-    baseURL: "http://localhost:5173",
+    baseURL: clientOrigin,
     trace: "on-first-retry",
   },
   projects: [
@@ -20,12 +23,12 @@ export default defineConfig({
   webServer: [
     {
       command: "bun run --cwd apps/server src/index.ts",
-      url: "http://localhost:3000/health",
+      url: `http://localhost:${SERVER_PORT}/health`,
       reuseExistingServer: !process.env["CI"],
     },
     {
       command: "bun run --filter @ludo/client dev",
-      url: "http://localhost:5173",
+      url: clientOrigin,
       reuseExistingServer: !process.env["CI"],
     },
   ],

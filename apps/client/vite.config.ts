@@ -2,6 +2,10 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "node:path";
+import { CLIENT_PORT, SERVER_PORT } from "../../packages/shared/src/constants/network.ts";
+
+const serverOrigin = `http://localhost:${SERVER_PORT}`;
+const wsOrigin = `ws://localhost:${SERVER_PORT}`;
 
 export default defineConfig({
   plugins: [vue(), tailwindcss()],
@@ -11,14 +15,14 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5173,
+    port: CLIENT_PORT,
     proxy: {
-      "/auth": "http://localhost:3000",
-      "/rooms": "http://localhost:3000",
-      "/games": "http://localhost:3000",
-      "/health": "http://localhost:3000",
+      "/auth": serverOrigin,
+      "/rooms": serverOrigin,
+      "/games": serverOrigin,
+      "/health": serverOrigin,
       "/ws": {
-        target: "ws://localhost:3000",
+        target: wsOrigin,
         ws: true,
       },
     },

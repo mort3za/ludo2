@@ -4,10 +4,10 @@ import { createRouter, type WsClient, type RoomStore } from "./ws/router.js";
 import { parseClientMessage } from "./ws/protocol.js";
 import { createHttpHandler } from "./http/routes.js";
 import { createDb, applySchema } from "./db/connection.js";
-import type { ServerMessage } from "@ludo/shared";
+import { SERVER_PORT, type ServerMessage } from "@ludo/shared";
 
 // --- Configuration ---
-const PORT = Number(process.env["PORT"] ?? 3000);
+const PORT = Number(process.env["PORT"] ?? SERVER_PORT);
 const JWT_SECRET = process.env["JWT_SECRET"] ?? "dev-secret-change-in-production-32ch";
 const BOARD_SIZE = 4;
 
