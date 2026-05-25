@@ -8,6 +8,7 @@ const props = defineProps<{
   state: GameState;
   mySeat: number;
   legalTokenIds: string[];
+  lastRolledValue: number | null;
 }>();
 
 const emit = defineEmits<{
@@ -44,7 +45,7 @@ const statusText = computed(() => {
     case "forced":
       return "Only one move — auto-picking…";
     case "pick":
-      return `Rolled ${props.state.diceValue} — pick a token`;
+      return `Rolled ${props.lastRolledValue} — pick a token`;
   }
 });
 </script>
@@ -62,12 +63,12 @@ const statusText = computed(() => {
     <!-- Roll button + Dice result -->
     <div class="flex items-center gap-3 w-1/3 justify-end">
       <div
-        :class="{ invisible: !state.diceValue }"
+        :class="{ invisible: lastRolledValue === null }"
         class="flex items-center justify-center rounded-lg bg-onyx-button text-canvas-white text-heading font-sans font-bold"
       >
-        {{ state.diceValue }}
+        {{ lastRolledValue }}
       </div>
-      <DButton v-if="phase === 'roll'" @click="emit('roll')"> Roll </DButton>
+      <DButton :disabled="phase !== 'roll'" @click="emit('roll')"> Roll </DButton>
     </div>
 
     <!-- Token pick buttons -->

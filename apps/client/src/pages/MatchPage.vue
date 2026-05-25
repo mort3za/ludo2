@@ -17,7 +17,7 @@ const props = defineProps<{ roomId: string }>();
 const vueRouter = useRouter();
 const session = useSessionStore();
 const gameResultStore = useGameResultStore();
-const { gameState, animating, handleMessage } = useGameAnimation();
+const { gameState, animating, lastRolledValue, handleMessage } = useGameAnimation();
 
 const deadline = ref<number>(0);
 const pendingAction = ref(false);
@@ -122,6 +122,7 @@ onUnmounted(() => {
         :state="gameState"
         :my-seat="mySeat"
         :legal-token-ids="legalTokenIds"
+        :last-rolled-value="lastRolledValue"
         @roll="onRoll"
         @move="onMove"
       />

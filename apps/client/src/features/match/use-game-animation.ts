@@ -11,6 +11,7 @@ export interface AnimatingToken {
 export interface GameAnimationState {
   gameState: Ref<GameState | null>;
   animating: Ref<AnimatingToken | null>;
+  lastRolledValue: Ref<number | null>;
   handleMessage: (msg: ServerMessage) => void;
 }
 
@@ -27,6 +28,8 @@ export interface GameAnimationState {
 export function useGameAnimation(): GameAnimationState {
   const gameState = ref<GameState | null>(null);
   const animating = ref<AnimatingToken | null>(null);
+  // Persists across turn changes — only replaced when next player rolls.
+  const lastRolledValue = ref<number | null>(null);
 
   /** Timestamp of the last "rolled" message, used to keep dice visible briefly. */
   let lastRolledAt = 0;
@@ -46,6 +49,7 @@ export function useGameAnimation(): GameAnimationState {
         // Full state replacement — reconnect or initial sync
         gameState.value = msg.state;
         animating.value = null;
+        lastRolledValue.value = msg.state.diceValue;
         break;
 
       case "moved": {
@@ -83,6 +87,7 @@ export function useGameAnimation(): GameAnimationState {
         if (gameState.value) {
           gameState.value.diceValue = msg.value;
         }
+        lastRolledValue.value = msg.value;
         lastRolledAt = Date.now();
         break;
 
@@ -119,5 +124,5 @@ export function useGameAnimation(): GameAnimationState {
     }
   }
 
-  return { gameState, animating, handleMessage };
+  return { gameState, animating, lastRolledValue, handleMessage };
 }
