@@ -1,6 +1,14 @@
 import type { ClientMessage, ServerMessage } from "@ludo/shared";
 import { TIMINGS } from "@ludo/shared";
-import { setReady, canStart, startGame, leaveRoom, type Room } from "../rooms/room.js";
+import {
+  setReady,
+  canStart,
+  startGame,
+  leaveRoom,
+  addBotMember,
+  removeMember,
+  type Room,
+} from "../rooms/room.js";
 import { initGame } from "../rooms/init-game.js";
 import { createCryptoRng } from "../game/rng/rng.js";
 import {
@@ -76,7 +84,12 @@ export function createRouter(rooms: RoomStore): Router {
       ready: m.ready,
       isBot: m.kind === "bot",
     }));
-    broadcast(roomId, { type: "lobby", players, ownerId: room.ownerId ?? "" });
+    broadcast(roomId, {
+      type: "lobby",
+      players,
+      ownerId: room.ownerId ?? "",
+      capacity: room.boardSize,
+    });
   }
 
   function dispatch(client: WsClient, message: ClientMessage): void {
@@ -176,6 +189,44 @@ export function createRouter(rooms: RoomStore): Router {
           scheduleBotIfNeeded(client.roomId, session);
         } else {
           clearTurnTimeout(client.roomId);
+        }
+        break;
+      }
+
+      case "add_bot": {
+        if (room.phase !== "lobby") {
+          client.send({ type: "error", message: "not-in-lobby" });
+          break;
+        }
+        if (room.ownerId !== client.playerId) {
+          client.send({ type: "error", message: "not-owner" });
+          break;
+        }
+        const result = addBotMember(room);
+        if (result.ok) {
+          rooms.set(client.roomId, result.room);
+          broadcastLobby(client.roomId, result.room);
+        } else {
+          client.send({ type: "error", message: result.error });
+        }
+        break;
+      }
+
+      case "remove_player": {
+        if (room.phase !== "lobby") {
+          client.send({ type: "error", message: "not-in-lobby" });
+          break;
+        }
+        if (room.ownerId !== client.playerId) {
+          client.send({ type: "error", message: "not-owner" });
+          break;
+        }
+        const result = removeMember(room, message.playerId);
+        if (result.ok) {
+          rooms.set(client.roomId, result.room);
+          broadcastLobby(client.roomId, result.room);
+        } else {
+          client.send({ type: "error", message: result.error });
         }
         break;
       }

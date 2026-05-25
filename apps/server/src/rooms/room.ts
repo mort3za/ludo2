@@ -60,12 +60,15 @@ export function joinRoom(room: Room, playerId: string): Result<{ room: Room }> {
   const name = nextPlayerName(members, room.boardSize);
   members.set(playerId, { playerId, name, ready: false, kind: "human" });
 
+  const currentOwner = room.ownerId ? room.members.get(room.ownerId) : undefined;
+  const ownerId = currentOwner?.kind === "human" ? room.ownerId : playerId;
+
   return {
     ok: true,
     room: {
       ...room,
       members,
-      ownerId: room.ownerId ?? playerId,
+      ownerId,
     },
   };
 }
@@ -74,11 +77,24 @@ export function addBotMember(room: Room): Result<{ room: Room }> {
   if (room.phase !== "lobby") return { ok: false, error: "not-in-lobby" };
   if (room.members.size >= room.boardSize) return { ok: false, error: "room-full" };
 
-  const botId = `bot:${room.members.size + 1}`;
   const members = cloneMembers(room.members);
+  let n = 1;
+  while (members.has(`bot:${n}`)) n++;
+  const botId = `bot:${n}`;
   const name = nextPlayerName(members, room.boardSize);
   members.set(botId, { playerId: botId, name, ready: true, kind: "bot" });
 
+  return { ok: true, room: { ...room, members } };
+}
+
+export function removeMember(room: Room, playerId: string): Result<{ room: Room }> {
+  if (room.phase !== "lobby") return { ok: false, error: "not-in-lobby" };
+  const existing = room.members.get(playerId);
+  if (!existing) return { ok: false, error: "not-in-room" };
+  if (room.ownerId === playerId) return { ok: false, error: "cannot-remove-owner" };
+
+  const members = cloneMembers(room.members);
+  members.delete(playerId);
   return { ok: true, room: { ...room, members } };
 }
 
@@ -102,8 +118,14 @@ export function leaveRoom(room: Room, playerId: string): Result<{ room: Room }> 
 
   let ownerId = room.ownerId;
   if (ownerId === playerId) {
-    const firstRemaining = members.keys().next();
-    ownerId = firstRemaining.done ? null : firstRemaining.value;
+    let nextOwner: string | null = null;
+    for (const m of members.values()) {
+      if (m.kind === "human") {
+        nextOwner = m.playerId;
+        break;
+      }
+    }
+    ownerId = nextOwner;
   }
 
   return {

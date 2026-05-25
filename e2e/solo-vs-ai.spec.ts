@@ -13,17 +13,16 @@ async function registerGuest(page: Page) {
 }
 
 test.describe("solo match vs AI", () => {
-  test("full loop: home → create → lobby → match → winner", async ({ page }) => {
+  test("full loop: home → lobby → match → winner", async ({ page }) => {
     await registerGuest(page);
 
-    // 1. Navigate home and click "Play vs AI"
+    // 1. Navigate home and click "Play" — goes straight to the lobby
     await page.goto("/");
-    await page.getByTestId("play-vs-ai-btn").click();
-    await page.waitForURL(/\/create/);
-
-    // 2. Create the room (bots=1 from query param)
-    await page.getByTestId("create-room-btn").click();
+    await page.getByTestId("play-btn").click();
     await page.waitForURL(/\/room\/.+/);
+
+    // 2. Add a bot via the owner-only counter
+    await page.getByTestId("add-bot-btn").click();
 
     // 3. Lobby: verify bot seat shows "(AI)"
     await expect(page.getByTestId("player-list")).toContainText("(AI)", { timeout: 5000 });

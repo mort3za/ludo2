@@ -14,6 +14,7 @@ const session = useSessionStore();
 
 const players = ref<LobbyPlayer[]>([]);
 const ownerId = ref("");
+const capacity = ref(0);
 const gameStarted = ref(false);
 const joined = ref(false);
 const joinError = ref("");
@@ -26,6 +27,10 @@ const isOwner = computed(() => session.playerId === ownerId.value);
 const canStart = computed(
   () => isOwner.value && players.value.length >= 2 && players.value.every((p) => p.ready),
 );
+
+const visiblePlayers = computed(() => {
+  return players.value.filter((p) => p.playerId !== ownerId.value);
+});
 
 const shareLink = computed(() => `${globalThis.location.origin}/room/${props.roomId}`);
 const copied = ref(false);
@@ -42,6 +47,7 @@ function handleMessage(msg: ServerMessage) {
   if (msg.type === "lobby") {
     players.value = msg.players;
     ownerId.value = msg.ownerId;
+    capacity.value = msg.capacity;
   } else if (msg.type === "state") {
     gameStarted.value = true;
     router.push({ name: "match", params: { roomId: props.roomId } });
@@ -102,6 +108,18 @@ function toggleReady() {
 function startGame() {
   ws?.send({ type: "start" });
 }
+
+function addBot() {
+  ws?.send({ type: "add_bot" });
+}
+
+function removePlayer(playerId: string) {
+  ws?.send({ type: "remove_player", playerId });
+}
+
+const canAddBot = computed(
+  () => isOwner.value && capacity.value > 0 && players.value.length < capacity.value,
+);
 </script>
 
 <template>
@@ -124,45 +142,66 @@ function startGame() {
 
     <!-- Lobby view after joining -->
     <DCard v-else class="p-8 w-full max-w-sm">
-      <h2 class="text-heading font-sans text-midnight-ink text-center mb-2">Room Lobby</h2>
-      <p class="text-body-sm text-subtle-gray text-center mb-6 font-sans" data-testid="room-id">
-        {{ roomId }}
-      </p>
+      <h2 class="text-heading font-sans text-midnight-ink text-center mb-6">Setup the Game</h2>
 
       <div class="mb-6">
-        <p class="text-caption text-subtle-gray font-sans mb-2">
+        <p class="text-body-sm text-subtle-gray font-sans mb-2">
           Share this link to invite players:
         </p>
         <div class="flex items-center gap-2">
-          <code
-            class="flex-1 p-2 bg-near-white rounded-sm text-body-sm font-sans text-midnight-ink break-all"
-            data-testid="share-link w-2/3"
-          >
-            {{ shareLink }}
-          </code>
-          <DButton class="w-1/3" variant="ghost" @click="copyLink">
-            {{ copied ? "Copied!" : "Copy" }}
+          <DButton class="w-full" variant="ghost" @click="copyLink">
+            {{ copied ? "Copied!" : "Copy Link" }}
           </DButton>
         </div>
+        <p class="text-caption text-subtle-gray font-sans mt-4 mb-1">
+          Room ID:
+          <code
+            class="text-body-xs text-subtle-gray text-center mb-6 font-sans"
+            data-testid="room-id"
+          >
+            {{ roomId }}
+          </code>
+        </p>
       </div>
 
       <!-- Player list -->
-      <ul class="mb-6 flex flex-col gap-2" data-testid="player-list">
+      <ul class="mb-3 flex flex-col gap-2" data-testid="player-list">
         <li
-          v-for="p in players"
+          v-for="p in visiblePlayers"
           :key="p.playerId"
-          class="flex items-center justify-between p-2 rounded-sm bg-near-white font-sans text-body-sm"
+          class="flex items-center justify-between rounded-sm bg-near-white font-sans text-body-sm"
         >
           <span class="text-midnight-ink">
             {{ p.name }}
-            <span v-if="p.playerId === ownerId" class="text-caption text-subtle-gray">(host)</span>
             <span v-if="p.isBot" class="text-caption text-subtle-gray">(AI)</span>
           </span>
-          <span :class="p.ready ? 'text-green-600' : 'text-subtle-gray'" class="text-caption">
-            {{ p.ready ? "Ready" : "Not ready" }}
-          </span>
+          <div class="flex items-center gap-2">
+            <span :class="p.ready ? 'text-green-600' : 'text-subtle-gray'" class="text-caption">
+              {{ p.ready ? "Ready" : "Not ready" }}
+            </span>
+            <button
+              v-if="isOwner"
+              type="button"
+              class="d-btn d-btn--tertiary d-btn--circle"
+              :data-testid="`remove-player-${p.playerId}`"
+              :aria-label="p.isBot ? 'Remove AI player' : 'Remove player'"
+              @click="removePlayer(p.playerId)"
+            >
+              ×
+            </button>
+          </div>
         </li>
       </ul>
+
+      <DButton
+        v-if="canAddBot"
+        variant="ghost"
+        class="mb-6 w-full"
+        data-testid="add-bot-btn"
+        @click="addBot"
+      >
+        + Add AI Player
+      </DButton>
 
       <div class="flex flex-col gap-3">
         <DButton
@@ -170,7 +209,22 @@ function startGame() {
           data-testid="ready-btn"
           @click="toggleReady"
         >
-          {{ myReady ? "Not Ready" : "Ready" }}
+          <span class="inline-flex items-center justify-center gap-2">
+            <svg
+              v-if="myReady"
+              class="w-4 h-4 text-green-600"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M16.704 5.29a1 1 0 010 1.42l-7.5 7.5a1 1 0 01-1.42 0l-3.5-3.5a1 1 0 011.42-1.42L8.5 12.08l6.79-6.79a1 1 0 011.414 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            {{ myReady ? "You're Ready" : "I'm Ready" }}
+          </span>
         </DButton>
 
         <DButton
