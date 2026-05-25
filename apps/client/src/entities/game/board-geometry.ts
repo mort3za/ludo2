@@ -30,6 +30,7 @@ function computeClassicFourSeatLayout(): BoardLayout {
   const track: CellPos[] = [];
   const homes: CellPos[][] = [];
   const yards: CellPos[][] = [];
+  const flatTrack: Array<Pick<CellPos, "x" | "y">> = [];
 
   for (let a = 0; a < 4; a++) {
     const seat = a + 1;
@@ -38,7 +39,6 @@ function computeClassicFourSeatLayout(): BoardLayout {
     const dy = Math.sin(θ);
     const px = -Math.sin(θ);
     const py = Math.cos(θ);
-    const armStart = a * CELLS_PER_ARM;
 
     const armTrack: Array<Pick<CellPos, "x" | "y">> = [];
 
@@ -61,20 +61,13 @@ function computeClassicFourSeatLayout(): BoardLayout {
       });
     }
 
-    for (let i = 0; i < CELLS_PER_ARM; i++) {
-      const pos = armTrack[(i + startOffset) % CELLS_PER_ARM]!;
-      track.push({
-        x: pos.x,
-        y: pos.y,
-        id: `T/${armStart + i + 1}`,
-      });
-    }
+    flatTrack.push(...armTrack);
 
     const homeCol: CellPos[] = [];
     for (let i = 0; i < HOME_COLUMN_LENGTH; i++) {
       homeCol.push({
-        x: snap((armBase + i) * dx),
-        y: snap((armBase + i) * dy),
+        x: snap((armBase + HOME_COLUMN_LENGTH - 1 - i) * dx),
+        y: snap((armBase + HOME_COLUMN_LENGTH - 1 - i) * dy),
         id: `H/${seat}/${i + 1}`,
         seatIndex: seat,
       });
@@ -95,6 +88,16 @@ function computeClassicFourSeatLayout(): BoardLayout {
       });
     }
     yards.push(yardCells);
+  }
+
+  const trackLen = 4 * CELLS_PER_ARM;
+  for (let i = 0; i < trackLen; i++) {
+    const pos = flatTrack[(i + startOffset) % trackLen]!;
+    track.push({
+      x: pos.x,
+      y: pos.y,
+      id: `T/${i + 1}`,
+    });
   }
 
   const all = [...track, ...homes.flat(), ...yards.flat()];
