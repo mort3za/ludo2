@@ -49,3 +49,4 @@ mcp__plugin_linear_linear__save_issue
 - Issues are titled `Phase <n>: <task>`; phase order is the implementation order — do not jump phases without reason.
 - TDD: tests-first items are titled `... (TDD)` — write the failing test before the impl in the same issue.
 - Architecture, scaffold rationale, and deferred work live in [.claude/planning.md](.claude/planning.md). Do not duplicate that content into Linear.
+- Commiting: after finishing every Linear task, create a git commit using /commit-general
