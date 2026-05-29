@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import type { GuestAuth } from "../auth/guest-auth.js";
 import type { Db } from "../db/connection.js";
+import { logger } from "../lib/logger.js";
 import { insertRoom, getRoom, getGame, getGameLog } from "../db/repositories.js";
 
 // Simple in-memory token bucket for rate limiting
@@ -60,15 +61,22 @@ export function createHttpHandler(deps: HttpDeps) {
   return async function handle(req: Request): Promise<Response> {
     const url = new URL(req.url);
     const method = req.method;
+    const start = Date.now();
+
+    const logResponse = (response: Response) => {
+      const duration = Date.now() - start;
+      logger.info("HTTP request", { method, path: url.pathname, status: response.status, duration });
+      return response;
+    };
 
     // --- Health ---
     if (url.pathname === "/healthz" && method === "GET") {
       try {
         // Check DB connectivity with a simple query
         db.run(sql`SELECT 1`);
-        return Response.json({ ok: true });
+        return logResponse(Response.json({ ok: true }));
       } catch (error) {
-        return Response.json({ ok: false }, { status: 503 });
+        return logResponse(Response.json({ ok: false }, { status: 503 }));
       }
     }
 
@@ -76,11 +84,11 @@ export function createHttpHandler(deps: HttpDeps) {
     if (url.pathname === "/auth/guest" && method === "POST") {
       const clientIp = getClientIp(req);
       if (!authLimiter.isAllowed(clientIp)) {
-        return Response.json({ error: "rate-limited" }, { status: 429, headers: { "Retry-After": "60" } });
+        return logResponse(Response.json({ error: "rate-limited" }, { status: 429, headers: { "Retry-After": "60" } }));
       }
       const playerId = crypto.randomUUID();
       const token = await auth.issue(playerId);
-      return Response.json({ token, playerId });
+      return logResponse(Response.json({ token, playerId }));
     }
 
     // --- Guest Auth: Refresh ---
@@ -88,24 +96,24 @@ export function createHttpHandler(deps: HttpDeps) {
       const body = (await req.json()) as Record<string, unknown>;
       const token = typeof body["token"] === "string" ? body["token"] : "";
       if (!token) {
-        return Response.json({ error: "missing-token" }, { status: 400 });
+        return logResponse(Response.json({ error: "missing-token" }, { status: 400 }));
       }
       const result = await auth.refresh(token);
       if (!result.ok) {
-        return Response.json({ error: result.error }, { status: 401 });
+        return logResponse(Response.json({ error: result.error }, { status: 401 }));
       }
-      return Response.json({ token: result.token });
+      return logResponse(Response.json({ token: result.token }));
     }
 
     // --- Room Create ---
     if (url.pathname === "/rooms" && method === "POST") {
       const clientIp = getClientIp(req);
       if (!roomsLimiter.isAllowed(clientIp)) {
-        return Response.json({ error: "rate-limited" }, { status: 429, headers: { "Retry-After": "60" } });
+        return logResponse(Response.json({ error: "rate-limited" }, { status: 429, headers: { "Retry-After": "60" } }));
       }
       const identity = await extractAuth(req, auth);
       if (!identity) {
-        return Response.json({ error: "unauthorized" }, { status: 401 });
+        return logResponse(Response.json({ error: "unauthorized" }, { status: 401 }));
       }
 
       let bots = 0;
@@ -117,7 +125,7 @@ export function createHttpHandler(deps: HttpDeps) {
         const rawBots = body["bots"];
         if (rawBots !== undefined) {
           if (typeof rawBots !== "number" || !Number.isInteger(rawBots) || rawBots < 0 || rawBots > 3) {
-            return Response.json({ error: "invalid-bots" }, { status: 400 });
+            return logResponse(Response.json({ error: "invalid-bots" }, { status: 400 }));
           }
           bots = rawBots;
         }
@@ -125,7 +133,7 @@ export function createHttpHandler(deps: HttpDeps) {
         const rawBoardSize = body["boardSize"];
         if (rawBoardSize !== undefined) {
           if (typeof rawBoardSize !== "number" || !Number.isInteger(rawBoardSize) || rawBoardSize < 4 || rawBoardSize > 8) {
-            return Response.json({ error: "invalid-boardSize" }, { status: 400 });
+            return logResponse(Response.json({ error: "invalid-boardSize" }, { status: 400 }));
           }
           boardSize = rawBoardSize;
         }
@@ -134,7 +142,7 @@ export function createHttpHandler(deps: HttpDeps) {
       const roomSize = bots > 0 ? 1 + bots : boardSize;
       const roomId = crypto.randomUUID();
       insertRoom(db, roomId, roomSize, bots, new Date()).run();
-      return Response.json({ roomId }, { status: 201 });
+      return logResponse(Response.json({ roomId }, { status: 201 }));
     }
 
     // --- Game History ---
@@ -142,19 +150,19 @@ export function createHttpHandler(deps: HttpDeps) {
     if (historyMatch && method === "GET") {
       const identity = await extractAuth(req, auth);
       if (!identity) {
-        return Response.json({ error: "unauthorized" }, { status: 401 });
+        return logResponse(Response.json({ error: "unauthorized" }, { status: 401 }));
       }
       const gameId = historyMatch[1]!;
       const game = getGame(db, gameId);
       if (!game) {
-        return Response.json({ error: "not-found" }, { status: 404 });
+        return logResponse(Response.json({ error: "not-found" }, { status: 404 }));
       }
       const rows = getGameLog(db, gameId);
       const entries = rows.map((r: { entry: unknown }) => r.entry);
-      return Response.json({ entries });
+      return logResponse(Response.json({ entries }));
     }
 
-    return new Response("Not Found", { status: 404 });
+    return logResponse(new Response("Not Found", { status: 404 }));
   };
 }
 

@@ -6,6 +6,7 @@ import { createHttpHandler } from "./http/routes.js";
 import { createDb, applySchema } from "./db/connection.js";
 import { getRoom, purgeOldGames } from "./db/repositories.js";
 import { SERVER_PORT, TIMINGS, type ServerMessage } from "@ludo/shared";
+import { logger } from "./lib/logger.js";
 
 // --- Configuration ---
 const PORT = Number(process.env["PORT"] ?? SERVER_PORT);
@@ -168,7 +169,7 @@ const server = Bun.serve<WsData>({
   },
 });
 
-console.log(`Server listening on http://localhost:${server.port}`);
+logger.info("Server started", { port: server.port });
 
 // Schedule daily game retention purge
 const purgeIntervalMs = 24 * 60 * 60 * 1000; // 24 hours
@@ -176,7 +177,7 @@ let purgeInterval = setInterval(() => {
   const cutoff = new Date(Date.now() - TIMINGS.gameRetention);
   const result = purgeOldGames(db, cutoff);
   if (result.changes > 0) {
-    console.log(`[purge] Removed ${result.changes} old game records`);
+    logger.info("Purged old games", { count: result.changes });
   }
 }, purgeIntervalMs);
 
@@ -192,7 +193,7 @@ let expireInterval = setInterval(() => {
     }
   }
   if (expiredCount > 0) {
-    console.log(`[expire] Removed ${expiredCount} idle rooms`);
+    logger.info("Expired idle rooms", { count: expiredCount });
   }
 }, expireIntervalMs);
 
@@ -204,11 +205,11 @@ function shutdown(signal: string) {
   if (isShuttingDown) return;
   isShuttingDown = true;
 
-  console.log(`[${signal}] Graceful shutdown initiated...`);
+  logger.info("Graceful shutdown initiated", { signal });
 
   // Set hard timeout to force exit
   const hardTimeout = setTimeout(() => {
-    console.warn("Graceful shutdown timeout reached, force exiting...");
+    logger.warn("Graceful shutdown timeout reached, force exiting", {});
     process.exit(0);
   }, hardTimeoutMs);
 
@@ -234,7 +235,7 @@ function shutdown(signal: string) {
   // Give connections time to close, then exit
   setTimeout(() => {
     clearTimeout(hardTimeout);
-    console.log("Graceful shutdown complete");
+    logger.info("Graceful shutdown complete", {});
     process.exit(0);
   }, 100);
 }

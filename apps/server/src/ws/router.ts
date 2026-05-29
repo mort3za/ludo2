@@ -1,5 +1,6 @@
 import type { ClientMessage, ServerMessage } from "@ludo/shared";
 import { TIMINGS } from "@ludo/shared";
+import { logger } from "../lib/logger.js";
 import {
   setReady,
   canStart,
@@ -97,6 +98,8 @@ export function createRouter(rooms: RoomStore): Router {
   }
 
   function dispatch(client: WsClient, message: ClientMessage): void {
+    logger.info("WS message dispatch", { playerId: client.playerId, roomId: client.roomId, type: message.type });
+
     const room = rooms.get(client.roomId);
     if (!room) {
       client.send({ type: "error", message: "room-not-found" });
