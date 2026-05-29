@@ -1,27 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { pickMove } from "./picker.js";
-import type { GameState, LegalMove, Token, Seat } from "@ludo/shared";
-
-const S = 2;
+import type { GameState, LegalMove, Token } from "@ludo/shared";
+import { makeState as buildState, tok as t } from "../../test/make-state.js";
 
 function makeState(tokens: Token[], activeSeat = 1, diceValue = 3): GameState {
-  return {
-    gameId: "test",
-    status: "moving",
-    seats: [
-      { index: 1, state: "active", color: "blue", playerId: "p1", isBot: false },
-      { index: 2, state: "active", color: "red", playerId: "p2", isBot: false },
-    ],
-    tokens,
-    activeSeat,
-    diceValue,
-    consecutiveSixes: 0,
-    standings: [],
-  };
-}
-
-function t(id: string, color: "blue" | "red", cell: string): Token {
-  return { id, color, cell };
+  return buildState({ tokens, activeSeat, diceValue, status: "moving" });
 }
 
 function move(tokenId: string, from: string, to: string): LegalMove {

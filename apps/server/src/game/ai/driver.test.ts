@@ -2,28 +2,21 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { scheduleBotTurn } from "./driver.js";
 import type { GameSession } from "../../rooms/game-session.js";
 import { TIMINGS, type GameState, type ServerMessage, type Seat, type Token } from "@ludo/shared";
+import { makeState as buildState, seat, tok } from "../../test/make-state.js";
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
-  return {
-    gameId: "test",
-    status: "rolling",
+  return buildState({
     activeSeat: 2,
-    diceValue: null,
-    consecutiveSixes: 0,
-    standings: [],
-    seats: [
-      { index: 1, state: "active", color: "blue", playerId: "p1", isBot: false },
-      { index: 2, state: "active", color: "red", playerId: "bot:1", isBot: true },
-    ] as Seat[],
+    seats: [seat(1, "blue"), seat(2, "red", { playerId: "bot:1", isBot: true })],
     tokens: [
-      { id: "1-1", color: "blue", cell: "T/5" },
-      { id: "2-1", color: "red", cell: "T/5" },
-      { id: "2-2", color: "red", cell: "Y/2/2" },
-      { id: "2-3", color: "red", cell: "Y/2/3" },
-      { id: "2-4", color: "red", cell: "Y/2/4" },
-    ] as Token[],
+      tok("1-1", "blue", "T/5"),
+      tok("2-1", "red", "T/5"),
+      tok("2-2", "red", "Y/2/2"),
+      tok("2-3", "red", "Y/2/3"),
+      tok("2-4", "red", "Y/2/4"),
+    ],
     ...overrides,
-  };
+  });
 }
 
 function makeSession(stateOverrides: Partial<GameState> = {}): GameSession {

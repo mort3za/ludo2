@@ -2,23 +2,10 @@ import { describe, it, expect, vi } from "vitest";
 import { createGameSession, handleRoll, handleMove, handleTimeout } from "./game-session.js";
 import type { GameState, Seat, Token } from "@ludo/shared";
 import { HOME_COLUMN_LENGTH, TOKENS_PER_PLAYER, TIMINGS } from "@ludo/shared";
+import { makeState as buildState } from "../test/make-state.js";
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
-  const seats: Seat[] = [
-    { index: 1, state: "active", color: "blue", playerId: "p1", isBot: false },
-    { index: 2, state: "active", color: "red", playerId: "p2", isBot: false },
-  ];
-  return {
-    gameId: "test-game",
-    status: "rolling",
-    seats,
-    tokens: [],
-    activeSeat: 1,
-    diceValue: null,
-    consecutiveSixes: 0,
-    standings: [],
-    ...overrides,
-  };
+  return buildState({ gameId: "test-game", ...overrides });
 }
 
 /** Create a token already at home end (finished). */
