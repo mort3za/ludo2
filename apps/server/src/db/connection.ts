@@ -23,8 +23,24 @@ function createNodeDb(filename: string) {
   return drizzle(sqlite, { schema });
 }
 
-export function createDb(filename: string = ":memory:") {
-  return isBun ? createBunDb(filename) : createNodeDb(filename);
+export function createDb(filename?: string) {
+  // Determine filename: explicit arg > env var > default to :memory:
+  let dbPath = filename ?? process.env["DB_PATH"] ?? ":memory:";
+
+  // In production, create parent directory if using file path
+  if (process.env["NODE_ENV"] === "production" && dbPath !== ":memory:") {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { mkdirSync } = require("fs");
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { dirname } = require("path");
+      mkdirSync(dirname(dbPath), { recursive: true });
+    } catch (e) {
+      console.warn("Failed to create DB directory:", e);
+    }
+  }
+
+  return isBun ? createBunDb(dbPath) : createNodeDb(dbPath);
 }
 
 export function applySchema(db: Db) {
