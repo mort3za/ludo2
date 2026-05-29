@@ -1,5 +1,5 @@
 import { createGuestAuth } from "./auth/guest-auth.js";
-import { createRoom, joinRoom, joinAsSpectator, addBotMember, type Room } from "./rooms/room.js";
+import { createRoom, joinRoom, joinAsSpectator, addBotMember, isExpired, type Room } from "./rooms/room.js";
 import { createRouter, type WsClient, type RoomStore } from "./ws/router.js";
 import { parseClientMessage } from "./ws/protocol.js";
 import { createHttpHandler } from "./http/routes.js";
@@ -180,6 +180,22 @@ let purgeInterval = setInterval(() => {
   }
 }, purgeIntervalMs);
 
+// Schedule idle room expiry check (every 1 minute)
+const expireIntervalMs = 60 * 1000; // 1 minute
+let expireInterval = setInterval(() => {
+  const now = Date.now();
+  let expiredCount = 0;
+  for (const [roomId, room] of rooms) {
+    if (isExpired(room, now) && room.phase === "lobby" && room.members.size === 0 && room.spectators.size === 0) {
+      rooms.delete(roomId);
+      expiredCount++;
+    }
+  }
+  if (expiredCount > 0) {
+    console.log(`[expire] Removed ${expiredCount} idle rooms`);
+  }
+}, expireIntervalMs);
+
 // Graceful shutdown handler
 let isShuttingDown = false;
 const hardTimeoutMs = 5000;
@@ -198,6 +214,7 @@ function shutdown(signal: string) {
 
   // Clear scheduled tasks
   clearInterval(purgeInterval);
+  clearInterval(expireInterval);
 
   // Stop accepting new connections
   server.stop();
