@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import type { GuestAuth } from "../auth/guest-auth.js";
 import type { Db } from "../db/connection.js";
 import { insertRoom, getRoom, getGame, getGameLog } from "../db/repositories.js";
@@ -16,8 +17,14 @@ export function createHttpHandler(deps: HttpDeps) {
     const method = req.method;
 
     // --- Health ---
-    if (url.pathname === "/health" && method === "GET") {
-      return Response.json({ status: "ok" });
+    if (url.pathname === "/healthz" && method === "GET") {
+      try {
+        // Check DB connectivity with a simple query
+        db.run(sql`SELECT 1`);
+        return Response.json({ ok: true });
+      } catch (error) {
+        return Response.json({ ok: false }, { status: 503 });
+      }
     }
 
     // --- Guest Auth: Issue ---

@@ -17,12 +17,12 @@ describe("HTTP routes", () => {
   });
 
   // --- Health ---
-  describe("GET /health", () => {
-    it("returns ok", async () => {
-      const res = await handler(new Request("http://localhost/health"));
+  describe("GET /healthz", () => {
+    it("returns ok when db is healthy", async () => {
+      const res = await handler(new Request("http://localhost/healthz"));
       expect(res.status).toBe(200);
-      const body = await res.json();
-      expect(body).toEqual({ status: "ok" });
+      const body = (await res.json()) as { ok: boolean };
+      expect(body.ok).toBe(true);
     });
   });
 
