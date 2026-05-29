@@ -22,6 +22,8 @@ const httpHandler = createHttpHandler({ auth, db, boardSize: BOARD_SIZE });
 
 // Map Bun WebSocket → WsClient for lifecycle management
 const wsClients = new WeakMap<object, WsClient>();
+// Track all active WebSocket connections for graceful shutdown
+const wsConnections = new Set<object>();
 
 interface WsData {
   playerId: string;
@@ -66,6 +68,9 @@ const server = Bun.serve<WsData>({
   websocket: {
     open(ws) {
       const { playerId, roomId } = ws.data;
+
+      // Track this connection for graceful shutdown
+      wsConnections.add(ws);
 
       // Ensure room exists in memory; read config from DB if persisted there.
       if (!rooms.has(roomId)) {
@@ -137,6 +142,7 @@ const server = Bun.serve<WsData>({
       router.dispatch(client, parsed.message);
     },
     close(ws) {
+      wsConnections.delete(ws);
       const client = wsClients.get(ws);
       if (!client) return;
       router.handleClose(client);
@@ -146,3 +152,45 @@ const server = Bun.serve<WsData>({
 });
 
 console.log(`Server listening on http://localhost:${server.port}`);
+
+// Graceful shutdown handler
+let isShuttingDown = false;
+const hardTimeoutMs = 5000;
+
+function shutdown(signal: string) {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+
+  console.log(`[${signal}] Graceful shutdown initiated...`);
+
+  // Set hard timeout to force exit
+  const hardTimeout = setTimeout(() => {
+    console.warn("Graceful shutdown timeout reached, force exiting...");
+    process.exit(0);
+  }, hardTimeoutMs);
+
+  // Stop accepting new connections
+  server.stop();
+
+  // Send shutdown notification to all connected clients and close them
+  for (const ws of wsConnections) {
+    const client = wsClients.get(ws);
+    if (client) {
+      // Send shutdown message
+      client.send({ type: "error", message: "server-restart" });
+    }
+    // Close with code 1012 (service restart)
+    ws.close(1012);
+  }
+  wsConnections.clear();
+
+  // Give connections time to close, then exit
+  setTimeout(() => {
+    clearTimeout(hardTimeout);
+    console.log("Graceful shutdown complete");
+    process.exit(0);
+  }, 100);
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
