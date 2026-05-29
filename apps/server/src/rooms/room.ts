@@ -14,6 +14,7 @@ export interface Room {
   id: string;
   ownerId: string | null;
   members: Map<string, RoomMember>;
+  spectators: Set<string>;
   phase: RoomPhase;
   boardSize: number;
   createdAt: number;
@@ -33,11 +34,16 @@ function cloneMembers(members: Map<string, RoomMember>): Map<string, RoomMember>
   return copy;
 }
 
+function cloneSpectators(spectators: Set<string>): Set<string> {
+  return new Set(spectators);
+}
+
 export function createRoom(id: string, boardSize: number, now: number): Room {
   return {
     id,
     ownerId: null,
     members: new Map(),
+    spectators: new Set(),
     phase: "lobby",
     boardSize,
     createdAt: now,
@@ -51,6 +57,9 @@ export function joinRoom(room: Room, playerId: string): Result<{ room: Room }> {
     return { ok: false, error: "not-in-lobby" };
   }
   if (room.members.has(playerId)) {
+    return { ok: false, error: "already-joined" };
+  }
+  if (room.spectators.has(playerId)) {
     return { ok: false, error: "already-joined" };
   }
   if (room.members.size >= room.boardSize) {
@@ -70,6 +79,30 @@ export function joinRoom(room: Room, playerId: string): Result<{ room: Room }> {
       ...room,
       members,
       ownerId,
+    },
+  };
+}
+
+/**
+ * Allow a player to join an in-progress game as a spectator.
+ * Spectators watch read-only and cannot affect game state.
+ */
+export function joinAsSpectator(room: Room, playerId: string): Result<{ room: Room }> {
+  if (room.spectators.has(playerId)) {
+    return { ok: false, error: "already-joined" };
+  }
+  if (room.members.has(playerId)) {
+    return { ok: false, error: "already-joined" };
+  }
+
+  const spectators = cloneSpectators(room.spectators);
+  spectators.add(playerId);
+
+  return {
+    ok: true,
+    room: {
+      ...room,
+      spectators,
     },
   };
 }
@@ -115,7 +148,7 @@ export function removeMember(room: Room, playerId: string): Result<{ room: Room 
 
   const members = cloneMembers(room.members);
   members.delete(playerId);
-  return { ok: true, room: { ...room, members } };
+  return { ok: true, room: { ...room, members, spectators: cloneSpectators(room.spectators) } };
 }
 
 function nextPlayerName(members: Map<string, RoomMember>, boardSize: number): string {
@@ -129,12 +162,15 @@ function nextPlayerName(members: Map<string, RoomMember>, boardSize: number): st
 }
 
 export function leaveRoom(room: Room, playerId: string): Result<{ room: Room }> {
-  if (!room.members.has(playerId)) {
+  if (!room.members.has(playerId) && !room.spectators.has(playerId)) {
     return { ok: false, error: "not-in-room" };
   }
 
   const members = cloneMembers(room.members);
   members.delete(playerId);
+
+  const spectators = cloneSpectators(room.spectators);
+  spectators.delete(playerId);
 
   let ownerId = room.ownerId;
   if (ownerId === playerId) {
@@ -150,7 +186,7 @@ export function leaveRoom(room: Room, playerId: string): Result<{ room: Room }> 
 
   return {
     ok: true,
-    room: { ...room, members, ownerId },
+    room: { ...room, members, spectators, ownerId },
   };
 }
 
@@ -163,7 +199,7 @@ export function setReady(room: Room, playerId: string, ready: boolean): Result<{
   const members = cloneMembers(room.members);
   members.set(playerId, { ...existing, ready });
 
-  return { ok: true, room: { ...room, members } };
+  return { ok: true, room: { ...room, members, spectators: cloneSpectators(room.spectators) } };
 }
 
 export function canStart(room: Room, requesterId: string): boolean {
@@ -211,6 +247,7 @@ export function requestRematch(room: Room, requesterId: string): Result<{ room: 
     room: {
       ...room,
       members,
+      spectators: cloneSpectators(room.spectators),
       phase: "lobby",
       gameId: null,
       gameEndedAt: null,

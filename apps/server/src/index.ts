@@ -1,5 +1,5 @@
 import { createGuestAuth } from "./auth/guest-auth.js";
-import { createRoom, joinRoom, addBotMember, type Room } from "./rooms/room.js";
+import { createRoom, joinRoom, joinAsSpectator, addBotMember, type Room } from "./rooms/room.js";
 import { createRouter, type WsClient, type RoomStore } from "./ws/router.js";
 import { parseClientMessage } from "./ws/protocol.js";
 import { createHttpHandler } from "./http/routes.js";
@@ -82,8 +82,14 @@ const server = Bun.serve<WsData>({
 
       // Join room
       const room = rooms.get(roomId)!;
-      const joinResult = joinRoom(room, playerId);
-      const isExistingMember = room.members.has(playerId);
+      const isExistingMember = room.members.has(playerId) || room.spectators.has(playerId);
+      let joinResult = joinRoom(room, playerId);
+
+      // If room is full and game is running, allow as spectator
+      if (!joinResult.ok && joinResult.error === "room-full" && room.phase === "playing") {
+        joinResult = joinAsSpectator(room, playerId);
+      }
+
       if (joinResult.ok) {
         rooms.set(roomId, joinResult.room);
       }
@@ -101,14 +107,15 @@ const server = Bun.serve<WsData>({
 
       if (!joinResult.ok && !isExistingMember) {
         client.send({ type: "error", message: joinResult.error });
-      } else if (joinResult.ok) {
+      } else if (joinResult.ok && joinResult.room.phase === "lobby") {
         router.broadcastLobby(roomId, joinResult.room);
       }
 
-      // Re-emit game state for reconnecting players
+      // Re-emit game state for reconnecting players and spectators
       const session = router.getGameSession(roomId);
       if (session && session.state.status !== "finished") {
         client.send({ type: "state", state: session.state });
+        // Send turn message with current deadline
         client.send({
           type: "turn",
           seat: session.state.activeSeat,

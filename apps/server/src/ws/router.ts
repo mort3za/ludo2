@@ -154,6 +154,12 @@ export function createRouter(rooms: RoomStore): Router {
           client.send({ type: "error", message: "no-game" });
           break;
         }
+        // Check if spectator
+        const currentRoom = rooms.get(client.roomId);
+        if (currentRoom?.spectators.has(client.playerId)) {
+          client.send({ type: "error", message: "not-a-player" });
+          break;
+        }
         // Verify it's this player's turn
         const rollSeat = session.state.seats.find((s) => s.playerId === client.playerId);
         if (!rollSeat || rollSeat.index !== session.state.activeSeat) {
@@ -175,6 +181,12 @@ export function createRouter(rooms: RoomStore): Router {
         const session = gameSessions.get(client.roomId);
         if (!session) {
           client.send({ type: "error", message: "no-game" });
+          break;
+        }
+        // Check if spectator
+        const currentRoom = rooms.get(client.roomId);
+        if (currentRoom?.spectators.has(client.playerId)) {
+          client.send({ type: "error", message: "not-a-player" });
           break;
         }
         const moveSeat = session.state.seats.find((s) => s.playerId === client.playerId);
