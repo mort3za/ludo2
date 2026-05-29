@@ -10,6 +10,7 @@ const props = defineProps<{
   legalTokenIds: string[];
   lastRolledValue: number | null;
   actionLocked: boolean;
+  seatConnected?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -68,6 +69,13 @@ const statusText = computed(() => {
         :style="{ backgroundColor: activeSeatColor }"
       ></span>
       <span class="truncate">{{ statusText }}</span>
+      <span
+        v-if="!seatConnected"
+        class="ml-auto text-caption text-neutral-500 whitespace-nowrap"
+        title="Player disconnected"
+      >
+        (away)
+      </span>
     </p>
 
     <!-- Roll button + Dice result -->

@@ -15,6 +15,7 @@ export interface LobbyPlayer {
   name: string;
   ready: boolean;
   isBot: boolean;
+  connected: boolean;
 }
 
 /** Messages sent from server to client */
@@ -25,6 +26,7 @@ export type ServerMessage =
   | { type: "rolled"; seat: number; value: number }
   | { type: "moved"; tokenId: string; to: Cell; path: Cell[] }
   | { type: "captured"; tokenId: string; to: Cell }
+  | { type: "presence"; seat: number; connected: boolean }
   | { type: "turn"; seat: number; deadline: number }
   | { type: "finished"; standings: number[] }
   | { type: "kicked"; seat: number };

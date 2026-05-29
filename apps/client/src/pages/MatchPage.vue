@@ -19,10 +19,15 @@ const vueRouter = useRouter();
 const session = useSessionStore();
 const gameResultStore = useGameResultStore();
 const capturedColor = ref<PlayerColor | undefined>(undefined);
+const seatConnectionState = ref<Map<number, boolean>>(new Map());
 const { gameState, animating, stackingTokenId, lastRolledValue, isActionLocked, handleMessage } =
   useGameAnimation((msg) => {
     if (msg.type === "turn") {
       deadline.value = msg.deadline;
+    }
+
+    if (msg.type === "presence") {
+      seatConnectionState.value.set(msg.seat, msg.connected);
     }
 
     if (msg.type === "captured" && gameState.value) {
@@ -158,6 +163,7 @@ onUnmounted(() => {
         :legal-token-ids="legalTokenIds"
         :last-rolled-value="lastRolledValue"
         :action-locked="isActionLocked"
+        :seat-connected="seatConnectionState.get(gameState?.activeSeat ?? -1) ?? true"
         @roll="onRoll"
       />
 

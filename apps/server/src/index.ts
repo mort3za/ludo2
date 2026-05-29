@@ -138,6 +138,11 @@ const server = Bun.serve<WsData>({
           seat: session.state.activeSeat,
           deadline: Date.now() + 30000,
         });
+        // Broadcast reconnect presence to all players in room
+        const reconnectingSeat = session.state.seats.find((s) => s.playerId === playerId)?.index;
+        if (reconnectingSeat !== undefined) {
+          router.broadcast(roomId, { type: "presence", seat: reconnectingSeat, connected: true });
+        }
       }
     },
     message(ws, message) {

@@ -169,9 +169,14 @@ const canAddBot = computed(
         <li
           v-for="p in visiblePlayers"
           :key="p.playerId"
-          class="flex items-center justify-between rounded-sm bg-near-white font-sans text-body-sm"
+          class="flex items-center justify-between rounded-sm bg-near-white font-sans text-body-sm px-3 py-2"
         >
-          <span class="text-midnight-ink">
+          <span class="text-midnight-ink flex items-center gap-2">
+            <span
+              class="w-2 h-2 rounded-full shrink-0"
+              :class="p.connected ? 'bg-green-500' : 'bg-neutral-400'"
+              :title="p.connected ? 'Connected' : 'Disconnected'"
+            ></span>
             {{ p.name }}
             <span v-if="p.isBot" class="text-caption text-subtle-gray">(AI)</span>
           </span>

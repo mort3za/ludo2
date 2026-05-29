@@ -42,6 +42,8 @@ export function createRouter(rooms: RoomStore): Router {
   const clients = new Set<WsClient>();
   const gameSessions = new Map<string, GameSession>();
   const turnTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  // Track connected players per room: roomId -> Set of playerId
+  const connectedPlayers = new Map<string, Set<string>>();
 
   const isProduction = process.env["NODE_ENV"] === "production";
 
@@ -78,11 +80,13 @@ export function createRouter(rooms: RoomStore): Router {
   }
 
   function broadcastLobby(roomId: string, room: Room): void {
+    const connected = connectedPlayers.get(roomId) ?? new Set();
     const players = [...room.members.values()].map((m) => ({
       playerId: m.playerId,
       name: m.name,
       ready: m.ready,
       isBot: m.kind === "bot",
+      connected: connected.has(m.playerId) || m.kind === "bot",
     }));
     broadcast(roomId, {
       type: "lobby",
@@ -284,21 +288,39 @@ export function createRouter(rooms: RoomStore): Router {
 
   function addClient(client: WsClient): void {
     clients.add(client);
+    // Track as connected
+    const connected = connectedPlayers.get(client.roomId) ?? new Set();
+    connected.add(client.playerId);
+    connectedPlayers.set(client.roomId, connected);
   }
 
   function removeClient(client: WsClient): void {
     clients.delete(client);
+    // Mark as disconnected
+    const connected = connectedPlayers.get(client.roomId);
+    if (connected) {
+      connected.delete(client.playerId);
+    }
   }
 
   function handleClose(client: WsClient): void {
     removeClient(client);
     const room = rooms.get(client.roomId);
     if (!room) return;
+
     if (room.phase === "lobby") {
       const result = leaveRoom(room, client.playerId);
       if (result.ok) {
         rooms.set(client.roomId, result.room);
         broadcastLobby(client.roomId, result.room);
+      }
+    } else if (room.phase === "playing") {
+      // In-game disconnect: broadcast presence update
+      const seat = room.members.get(client.playerId)?.kind === "bot"
+        ? undefined
+        : gameSessions.get(client.roomId)?.state.seats.find((s) => s.playerId === client.playerId)?.index;
+      if (seat !== undefined) {
+        broadcast(client.roomId, { type: "presence", seat, connected: false });
       }
     }
   }
