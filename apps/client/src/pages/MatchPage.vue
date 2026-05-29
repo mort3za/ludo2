@@ -5,22 +5,31 @@ import { useSessionStore } from "@/stores/session";
 import { useGameResultStore } from "@/stores/game-result";
 import { createWsConnection, type WsConnection } from "@/shared/lib/ws";
 import { useGameAnimation } from "@/features/match/use-game-animation";
-import { legalMoves } from "@ludo/shared";
+import { legalMoves, type PlayerColor } from "@ludo/shared";
 import type { ServerMessage } from "@ludo/shared";
 import BoardView from "@/entities/game/BoardView.vue";
 import GameControls from "@/features/match/GameControls.vue";
 import TurnTimer from "@/features/match/TurnTimer.vue";
 import ReconnectBanner from "@/features/match/ReconnectBanner.vue";
 import SpectatorBadge from "@/features/match/SpectatorBadge.vue";
+import CaptureToast from "@/features/match/CaptureToast.vue";
 
 const props = defineProps<{ roomId: string }>();
 const vueRouter = useRouter();
 const session = useSessionStore();
 const gameResultStore = useGameResultStore();
+const capturedColor = ref<PlayerColor | undefined>(undefined);
 const { gameState, animating, stackingTokenId, lastRolledValue, isActionLocked, handleMessage } =
   useGameAnimation((msg) => {
     if (msg.type === "turn") {
       deadline.value = msg.deadline;
+    }
+
+    if (msg.type === "captured" && gameState.value) {
+      const token = gameState.value.tokens.find((t) => t.id === msg.tokenId);
+      if (token) {
+        capturedColor.value = token.color;
+      }
     }
 
     if (msg.type === "finished") {
@@ -135,6 +144,8 @@ onUnmounted(() => {
 
 <template>
   <main class="min-h-screen flex flex-col items-center bg-canvas-white p-4">
+    <CaptureToast :color="capturedColor" />
+
     <ReconnectBanner v-if="ws" :status="ws.status.value" />
 
     <SpectatorBadge v-if="isSpectator && gameState" />
