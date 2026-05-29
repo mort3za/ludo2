@@ -32,11 +32,14 @@ export function refreshToken(token: string) {
   });
 }
 
-export function createRoom(bots = 0) {
+export function createRoom(boardSize = 4, bots = 0) {
   return request<{ roomId: string }>("/rooms", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(bots > 0 ? { bots } : {}),
+    body: JSON.stringify({
+      ...(boardSize !== 4 && { boardSize }),
+      ...(bots > 0 && { bots }),
+    }),
   });
 }
 

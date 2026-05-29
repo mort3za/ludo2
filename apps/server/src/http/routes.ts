@@ -49,15 +49,25 @@ export function createHttpHandler(deps: HttpDeps) {
       }
 
       let bots = 0;
+      let boardSize = 4; // MOR-64: allow client to override
       const contentType = req.headers.get("content-type") ?? "";
       if (req.body && contentType.includes("application/json")) {
         const body = (await req.json()) as Record<string, unknown>;
+
         const rawBots = body["bots"];
         if (rawBots !== undefined) {
           if (typeof rawBots !== "number" || !Number.isInteger(rawBots) || rawBots < 0 || rawBots > 3) {
             return Response.json({ error: "invalid-bots" }, { status: 400 });
           }
           bots = rawBots;
+        }
+
+        const rawBoardSize = body["boardSize"];
+        if (rawBoardSize !== undefined) {
+          if (typeof rawBoardSize !== "number" || !Number.isInteger(rawBoardSize) || rawBoardSize < 4 || rawBoardSize > 8) {
+            return Response.json({ error: "invalid-boardSize" }, { status: 400 });
+          }
+          boardSize = rawBoardSize;
         }
       }
 
