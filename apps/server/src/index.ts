@@ -4,8 +4,8 @@ import { createRouter, type WsClient, type RoomStore } from "./ws/router.js";
 import { parseClientMessage } from "./ws/protocol.js";
 import { createHttpHandler } from "./http/routes.js";
 import { createDb, applySchema } from "./db/connection.js";
-import { getRoom } from "./db/repositories.js";
-import { SERVER_PORT, type ServerMessage } from "@ludo/shared";
+import { getRoom, purgeOldGames } from "./db/repositories.js";
+import { SERVER_PORT, TIMINGS, type ServerMessage } from "@ludo/shared";
 
 // --- Configuration ---
 const PORT = Number(process.env["PORT"] ?? SERVER_PORT);
@@ -170,6 +170,16 @@ const server = Bun.serve<WsData>({
 
 console.log(`Server listening on http://localhost:${server.port}`);
 
+// Schedule daily game retention purge
+const purgeIntervalMs = 24 * 60 * 60 * 1000; // 24 hours
+let purgeInterval = setInterval(() => {
+  const cutoff = new Date(Date.now() - TIMINGS.gameRetention);
+  const result = purgeOldGames(db, cutoff);
+  if (result.changes > 0) {
+    console.log(`[purge] Removed ${result.changes} old game records`);
+  }
+}, purgeIntervalMs);
+
 // Graceful shutdown handler
 let isShuttingDown = false;
 const hardTimeoutMs = 5000;
@@ -185,6 +195,9 @@ function shutdown(signal: string) {
     console.warn("Graceful shutdown timeout reached, force exiting...");
     process.exit(0);
   }, hardTimeoutMs);
+
+  // Clear scheduled tasks
+  clearInterval(purgeInterval);
 
   // Stop accepting new connections
   server.stop();
