@@ -9,8 +9,20 @@ import { SERVER_PORT, type ServerMessage } from "@ludo/shared";
 
 // --- Configuration ---
 const PORT = Number(process.env["PORT"] ?? SERVER_PORT);
-const JWT_SECRET = process.env["JWT_SECRET"] ?? "dev-secret-change-in-production-32ch";
+const DEFAULT_JWT_SECRET = "dev-secret-change-in-production-32ch";
+const JWT_SECRET = process.env["JWT_SECRET"] ?? DEFAULT_JWT_SECRET;
 const BOARD_SIZE = 4;
+
+// Validate JWT_SECRET in production
+if (process.env["NODE_ENV"] === "production") {
+  if (!JWT_SECRET || JWT_SECRET === DEFAULT_JWT_SECRET || JWT_SECRET.length < 32) {
+    console.error(
+      "FATAL: JWT_SECRET must be set to a 32+ character secret in production. " +
+        "Set the JWT_SECRET environment variable to a strong, random value.",
+    );
+    process.exit(1);
+  }
+}
 
 // --- Singletons ---
 const auth = createGuestAuth(JWT_SECRET);
