@@ -50,7 +50,7 @@ onUnmounted(() => {
 <template>
   <div
     v-if="!isDev && deadline && remaining > 0"
-    class="font-sans text-heading tabular-nums transition-colors"
+    class="font-sans text-body-sm sm:text-heading tabular-nums transition-colors"
     :class="isWarning ? 'text-red-500 animate-pulse' : 'text-subtle-gray'"
   >
     {{ displaySeconds }}s

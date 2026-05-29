@@ -143,14 +143,14 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <main class="min-h-screen flex flex-col items-center bg-canvas-white p-4">
+  <main class="min-h-screen flex flex-col items-center bg-canvas-white p-2 sm:p-4">
     <CaptureToast :color="capturedColor" />
 
     <ReconnectBanner v-if="ws" :status="ws.status.value" />
 
     <SpectatorBadge v-if="isSpectator && gameState" />
 
-    <div v-if="gameState" class="w-full max-w-lg flex flex-col items-center gap-4">
+    <div v-if="gameState" class="w-full max-w-lg flex flex-col items-center gap-3 sm:gap-4">
       <GameControls
         v-if="mySeat !== null"
         :state="gameState"
@@ -162,7 +162,7 @@ onUnmounted(() => {
       />
 
       <BoardView
-        class="h-[50vh]"
+        class="w-full aspect-square max-w-xs sm:max-w-sm"
         :board-size="gameState.seats.length"
         :local-seat="mySeat ?? undefined"
         :tokens="gameState.tokens"

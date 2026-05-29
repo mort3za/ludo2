@@ -60,21 +60,21 @@ const statusText = computed(() => {
 </script>
 
 <template>
-  <div class="flex items-center gap-3 w-full">
-    <p class="text-body-sm text-subtle-gray font-sans flex items-center gap-1.5 w-2/3">
+  <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full">
+    <p class="text-xs sm:text-body-sm text-subtle-gray font-sans flex items-center gap-1.5 flex-1 min-w-0">
       <span
-        class="inline-block size-3 rounded-full"
+        class="inline-block size-2 sm:size-3 rounded-full shrink-0"
         :class="{ 'animate-pulse': activeSeatIsBot && phase === 'waiting' }"
         :style="{ backgroundColor: activeSeatColor }"
       ></span>
-      {{ statusText }}
+      <span class="truncate">{{ statusText }}</span>
     </p>
 
     <!-- Roll button + Dice result -->
-    <div class="flex items-center gap-3 w-1/3 justify-end">
+    <div class="flex items-center gap-2 sm:gap-3 justify-end">
       <div
         :class="{ invisible: lastRolledValue === null }"
-        class="flex items-center justify-center rounded-lg bg-onyx-button text-canvas-white text-heading font-sans font-bold"
+        class="flex items-center justify-center rounded-lg bg-onyx-button text-canvas-white text-heading font-sans font-bold w-10 h-10 sm:w-12 sm:h-12"
       >
         {{ lastRolledValue }}
       </div>
