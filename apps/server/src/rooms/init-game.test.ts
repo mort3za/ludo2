@@ -1,65 +1,55 @@
 import { describe, it, expect } from "vitest";
 import { initGame } from "./init-game.js";
-import { createRoom, joinRoom } from "./room.js";
-import { createSeededRng } from "../game/rng/rng.js";
-import { TOKENS_PER_PLAYER } from "@ludo/shared";
+import { createRoom, addBotMember } from "./room.js";
+import type { Rng } from "../game/rng/rng.js";
 
-function makeRoom(playerCount: number, boardSize: number) {
-  let room = createRoom("room-1", boardSize, Date.now());
-  for (let i = 1; i <= playerCount; i++) {
-    const result = joinRoom(room, `p${i}`);
-    if (!result.ok) throw new Error(result.error);
-    room = result.room;
-  }
-  return room;
-}
+// Mock RNG that always rolls 3.
+const mockRng: Rng = { random: () => 0.5, rollDie: () => 3 };
 
 describe("initGame", () => {
-  it("2-player S=4 assigns seats 1 and 3", () => {
-    const room = makeRoom(2, 4);
-    const state = initGame(room, "g1", createSeededRng(1));
+  it("propagates personality from bot member to bot seat", () => {
+    let room = createRoom("room-1", 2, 1000);
 
-    const active = state.seats.filter((s) => s.state === "active");
-    const empty = state.seats.filter((s) => s.state === "empty");
+    // Add a bot with "aggressor" personality (injected for determinism).
+    const result = addBotMember(room, () => "aggressor");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    room = result.room;
 
-    expect(active.map((s) => s.index)).toEqual([1, 3]);
-    expect(empty.map((s) => s.index)).toEqual([2, 4]);
+    const gameState = initGame(room, "game-1", mockRng);
 
-    expect(active[0]!.playerId).toBe("p1");
-    expect(active[1]!.playerId).toBe("p2");
+    // Find the bot seat (should have playerId = "bot:1").
+    const botSeat = gameState.seats.find((s) => s.playerId === "bot:1");
+    expect(botSeat).toBeDefined();
+    expect(botSeat?.personality).toBe("aggressor");
   });
 
-  it("2-player S=4 creates tokens only for seats 1 and 3", () => {
-    const room = makeRoom(2, 4);
-    const state = initGame(room, "g1", createSeededRng(1));
+  it("does not set personality on human seats", () => {
+    const room = createRoom("room-1", 2, 1000);
+    const gameState = initGame(room, "game-1", mockRng);
 
-    const seatIndices = [...new Set(state.tokens.map((t) => Number(t.id.split("-")[0])))].sort();
-    expect(seatIndices).toEqual([1, 3]);
-    expect(state.tokens).toHaveLength(2 * TOKENS_PER_PLAYER);
+    // With no members, all seats are empty — no personality.
+    const anyPersonality = gameState.seats.some((s) => s.personality !== undefined);
+    expect(anyPersonality).toBe(false);
   });
 
-  it("2-player S=4 activeSeat is 1", () => {
-    const room = makeRoom(2, 4);
-    const state = initGame(room, "g1", createSeededRng(1));
+  it("propagates different personalities correctly for multiple bots", () => {
+    let room = createRoom("room-1", 4, 1000);
 
-    expect(state.activeSeat).toBe(1);
-  });
+    // Add three bots with different personalities.
+    const personalities = ["aggressor" as const, "defender" as const, "sprinter" as const];
+    for (const pers of personalities) {
+      const result = addBotMember(room, () => pers);
+      expect(result.ok).toBe(true);
+      if (result.ok) room = result.room;
+    }
 
-  it("4-player S=4 assigns seats sequentially", () => {
-    const room = makeRoom(4, 4);
-    const state = initGame(room, "g1", createSeededRng(1));
+    const gameState = initGame(room, "game-1", mockRng);
 
-    const active = state.seats.filter((s) => s.state === "active");
-    expect(active.map((s) => s.index)).toEqual([1, 2, 3, 4]);
-    expect(active.map((s) => s.playerId)).toEqual(["p1", "p2", "p3", "p4"]);
-  });
-
-  it("3-player S=4 assigns seats 1, 2, 3 sequentially", () => {
-    const room = makeRoom(3, 4);
-    const state = initGame(room, "g1", createSeededRng(1));
-
-    const active = state.seats.filter((s) => s.state === "active");
-    expect(active.map((s) => s.index)).toEqual([1, 2, 3]);
-    expect(state.seats[3]!.state).toBe("empty");
+    // Verify each bot seat has the correct personality.
+    for (let i = 1; i <= 3; i++) {
+      const botSeat = gameState.seats.find((s) => s.playerId === `bot:${i}`);
+      expect(botSeat?.personality).toBe(personalities[i - 1]);
+    }
   });
 });

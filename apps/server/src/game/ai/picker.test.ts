@@ -97,4 +97,71 @@ describe("pickMove", () => {
       expect(pickMove(moves, state, 1).tokenId).toBe("b2");
     });
   });
+
+  describe("personality profiles", () => {
+    it("aggressor prioritizes capture over escape", () => {
+      const state = makeState(
+        [
+          t("b1", "blue", "T/5"), // can escape (safe from opponent)
+          t("b2", "blue", "T/10"), // can capture
+          t("r1", "red", "T/13"), // lone opponent at T/13
+          t("r2", "red", "T/3"), // opponent 1–6 behind b1's T/5
+        ],
+        1,
+        3,
+      );
+      const moves = [
+        move("b1", "T/5", "T/8"), // escape danger
+        move("b2", "T/10", "T/13"), // capture r1
+      ];
+      expect(pickMove(moves, state, 1, "aggressor").tokenId).toBe("b2");
+    });
+
+    it("defender prioritizes escape over capture", () => {
+      const state = makeState(
+        [
+          t("b1", "blue", "T/5"), // can escape
+          t("b2", "blue", "T/10"), // can capture
+          t("r1", "red", "T/13"), // lone opponent
+          t("r2", "red", "T/3"), // opponent 1–6 behind b1's T/5
+        ],
+        1,
+        3,
+      );
+      const moves = [
+        move("b1", "T/5", "T/8"), // escape danger
+        move("b2", "T/10", "T/13"), // capture r1
+      ];
+      expect(pickMove(moves, state, 1, "defender").tokenId).toBe("b1");
+    });
+
+    it("sprinter prioritizes deploy and advance over capture", () => {
+      const state = makeState(
+        [
+          t("b1", "blue", "Y/1/1"), // can deploy
+          t("b2", "blue", "T/5"), // can capture
+          t("r1", "red", "T/8"), // lone opponent at T/8
+        ],
+        1,
+        6,
+      );
+      const moves = [
+        move("b1", "Y/1/1", "T/1"), // deploy (6-roll)
+        move("b2", "T/5", "T/8"), // capture
+      ];
+      expect(pickMove(moves, state, 1, "sprinter").tokenId).toBe("b1");
+    });
+
+    it("sprinter picks furthest token advance when no capture/deploy/escape", () => {
+      const state = makeState([
+        t("b1", "blue", "T/3"),
+        t("b2", "blue", "T/10"),
+      ]);
+      const moves = [
+        move("b1", "T/3", "T/6"), // minimal advance
+        move("b2", "T/10", "T/13"), // further advance (5x more weight with sprinter)
+      ];
+      expect(pickMove(moves, state, 1, "sprinter").tokenId).toBe("b2");
+    });
+  });
 });

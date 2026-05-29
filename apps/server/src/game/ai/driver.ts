@@ -56,7 +56,8 @@ export function scheduleBotTurn(
 
         if (moves.length === 0) return;
 
-        const chosen = pickMove(moves, session.state, session.state.activeSeat);
+        const currentActiveSeat = session.state.seats.find((s) => s.index === session.state.activeSeat);
+        const chosen = pickMove(moves, session.state, session.state.activeSeat, currentActiveSeat?.personality);
         const moveMsgs = handleMove(session, chosen.tokenId);
         broadcast(moveMsgs);
 

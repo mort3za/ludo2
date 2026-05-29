@@ -1,4 +1,4 @@
-import { TIMINGS } from "@ludo/shared";
+import { TIMINGS, type BotPersonality, BOT_PERSONALITIES } from "@ludo/shared";
 
 export type RoomPhase = "lobby" | "playing" | "post-game";
 
@@ -7,6 +7,7 @@ export interface RoomMember {
   name: string;
   ready: boolean;
   kind: "human" | "bot";
+  personality?: BotPersonality;
 }
 
 export interface Room {
@@ -73,7 +74,14 @@ export function joinRoom(room: Room, playerId: string): Result<{ room: Room }> {
   };
 }
 
-export function addBotMember(room: Room): Result<{ room: Room }> {
+/**
+ * Add a bot member to a room with a randomly-assigned personality.
+ * @param pickPersonality - Optional selector for personality (for testing). Defaults to random.
+ */
+export function addBotMember(
+  room: Room,
+  pickPersonality?: () => BotPersonality,
+): Result<{ room: Room }> {
   if (room.phase !== "lobby") return { ok: false, error: "not-in-lobby" };
   if (room.members.size >= room.boardSize) return { ok: false, error: "room-full" };
 
@@ -82,9 +90,21 @@ export function addBotMember(room: Room): Result<{ room: Room }> {
   while (members.has(`bot:${n}`)) n++;
   const botId = `bot:${n}`;
   const name = nextPlayerName(members, room.boardSize);
-  members.set(botId, { playerId: botId, name, ready: true, kind: "bot" });
+
+  // Assign a random personality: default uses crypto.getRandomValues for uniform selection.
+  const personality: BotPersonality =
+    pickPersonality?.() ?? BOT_PERSONALITIES[randomIndex(BOT_PERSONALITIES.length)]!;
+
+  members.set(botId, { playerId: botId, name, ready: true, kind: "bot", personality });
 
   return { ok: true, room: { ...room, members } };
+}
+
+/** Uniform random index in [0, n). */
+function randomIndex(n: number): number {
+  const bytes = new Uint8Array(1);
+  crypto.getRandomValues(bytes);
+  return bytes[0]! % n;
 }
 
 export function removeMember(room: Room, playerId: string): Result<{ room: Room }> {

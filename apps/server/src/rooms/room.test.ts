@@ -394,4 +394,29 @@ describe("addBotMember", () => {
     // Bot is auto-ready — owner can start
     expect(canStart(room, "p1")).toBe(true);
   });
+
+  it("assigns a personality to each bot", () => {
+    const room = createRoom("room-1", 2, 1000);
+    const result = addBotMember(room);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const bot = [...result.room.members.values()][0]!;
+    expect(bot.personality).toBeDefined();
+    expect(["aggressor", "defender", "sprinter"]).toContain(bot.personality);
+  });
+
+  it("uses injected personality selector for deterministic assignment", () => {
+    const personalities = ["aggressor" as const, "defender" as const, "sprinter" as const];
+    let room = createRoom("room-1", 4, 1000);
+
+    for (const pers of personalities) {
+      const picker = () => pers;
+      const result = addBotMember(room, picker);
+      expect(result.ok).toBe(true);
+      if (!result.ok) continue;
+      room = result.room;
+      const newBot = [...room.members.values()].find((m) => m.personality === pers)!;
+      expect(newBot.personality).toBe(pers);
+    }
+  });
 });

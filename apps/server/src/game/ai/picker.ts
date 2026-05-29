@@ -1,28 +1,59 @@
-import { parseCell, CELLS_PER_ARM } from "@ludo/shared";
+import { parseCell, CELLS_PER_ARM, type BotPersonality } from "@ludo/shared";
 import type { LegalMove, GameState } from "@ludo/shared";
 
+interface Weights {
+  capture: number;
+  deploy: number;
+  escape: number;
+  progress: number;
+}
+
+const PROFILES: Record<BotPersonality, Weights> = {
+  // Captures dominate; low regard for safety. Legacy behavior baseline.
+  aggressor: { capture: 1000, deploy: 500, escape: 300, progress: 1 },
+  // Escaping danger dominates; captures still valued; cautious advance.
+  defender: { capture: 500, deploy: 250, escape: 900, progress: 1 },
+  // Max advancement + eager deploy; captures incidental.
+  sprinter: { capture: 400, deploy: 800, escape: 200, progress: 5 },
+};
+
+const DEFAULT_PERSONALITY: BotPersonality = "aggressor";
+
 /**
- * Pick the best legal move for a bot seat using heuristics.
+ * Pick the best legal move for a bot seat using heuristics weighted by personality.
  *
- * Priority (highest first):
- *   1. Capture a lone opponent token on a track cell
- *   2. Deploy a token from yard (only possible on roll of 6)
- *   3. Escape a cell reachable by an opponent within 1–6 rolls
- *   4. Advance the most-progressed token toward home
+ * Uses a weighted scoring system where moves are evaluated on four dimensions:
+ * - Capture: landing on a lone opponent token
+ * - Deploy: moving a token from yard (roll of 6)
+ * - Escape: moving from a cell threatened by opponent within 1–6 rolls
+ * - Progress: advancement toward home
+ *
+ * The personality (aggressor/defender/sprinter) sets the weights; randomness is only
+ * in personality assignment, not move selection (deterministic given a personality).
  */
-export function pickMove(legalMoves: LegalMove[], state: GameState, mySeat: number): LegalMove {
+export function pickMove(
+  legalMoves: LegalMove[],
+  state: GameState,
+  mySeat: number,
+  personality?: BotPersonality,
+): LegalMove {
   if (legalMoves.length === 0) throw new Error("pickMove called with empty legalMoves");
   if (legalMoves.length === 1) return legalMoves[0]!;
 
+  // Use the active seat's personality, or default to aggressor.
+  const activeSeatPersonality =
+    personality ?? state.seats.find((s) => s.index === mySeat)?.personality ?? DEFAULT_PERSONALITY;
+
+  const weights = PROFILES[activeSeatPersonality];
   const myColor = state.seats.find((s) => s.index === mySeat)?.color;
   const trackLen = state.seats.length * CELLS_PER_ARM;
   const startIdx = (mySeat - 1) * CELLS_PER_ARM + 1;
 
   let best = legalMoves[0]!;
-  let bestScore = score(best, state, myColor, mySeat, trackLen, startIdx);
+  let bestScore = score(best, state, myColor, mySeat, trackLen, startIdx, weights);
 
   for (let i = 1; i < legalMoves.length; i++) {
-    const s = score(legalMoves[i]!, state, myColor, mySeat, trackLen, startIdx);
+    const s = score(legalMoves[i]!, state, myColor, mySeat, trackLen, startIdx, weights);
     if (s > bestScore) {
       bestScore = s;
       best = legalMoves[i]!;
@@ -39,17 +70,18 @@ function score(
   mySeat: number,
   trackLen: number,
   startIdx: number,
+  weights: Weights,
 ): number {
   const progress = tokenProgress(move.to, trackLen, startIdx);
 
-  if (isCapture(move.to, state, myColor)) return 1000 + progress;
+  if (isCapture(move.to, state, myColor)) return weights.capture + progress;
 
   const fromParsed = parseCell(move.from);
-  if (fromParsed.kind === "yard") return 500;
+  if (fromParsed.kind === "yard") return weights.deploy;
 
-  if (isInDanger(move.from, state, myColor, trackLen)) return 300 + progress;
+  if (isInDanger(move.from, state, myColor, trackLen)) return weights.escape + progress;
 
-  return progress;
+  return weights.progress * progress;
 }
 
 /** True when destination is a track cell with exactly one opponent token. */

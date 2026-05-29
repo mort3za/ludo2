@@ -38,6 +38,7 @@ export function initGame(room: Room, gameId: string, rng: Rng): GameState {
       color,
       playerId: member ? member[0] : null,
       isBot: member ? member[1].kind === "bot" : false,
+      personality: member && member[1].kind === "bot" ? member[1].personality : undefined,
     });
 
     if (!member) continue;

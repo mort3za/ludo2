@@ -1,4 +1,5 @@
 import type { PlayerColor, SeatState } from "./player.js";
+import type { BotPersonality } from "./ai.js";
 
 /** Cell ID — slash-delimited string: Y/<seat>/<slot>, T/<index>, H/<seat>/<i> */
 export type Cell = string;
@@ -17,6 +18,7 @@ export interface Seat {
   color: PlayerColor;
   playerId: string | null;
   isBot: boolean;
+  personality?: BotPersonality;
 }
 
 export interface GameState {
