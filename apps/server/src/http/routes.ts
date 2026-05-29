@@ -3,6 +3,51 @@ import type { GuestAuth } from "../auth/guest-auth.js";
 import type { Db } from "../db/connection.js";
 import { insertRoom, getRoom, getGame, getGameLog } from "../db/repositories.js";
 
+// Simple in-memory token bucket for rate limiting
+interface TokenBucket {
+  tokens: number;
+  lastRefill: number;
+}
+
+class RateLimiter {
+  private buckets = new Map<string, TokenBucket>();
+  private readonly capacity: number;
+  private readonly refillRate: number; // tokens per second
+
+  constructor(capacity: number, requestsPerMinute: number) {
+    this.capacity = capacity;
+    this.refillRate = requestsPerMinute / 60;
+  }
+
+  isAllowed(key: string): boolean {
+    const now = Date.now() / 1000;
+    let bucket = this.buckets.get(key);
+
+    if (!bucket) {
+      bucket = { tokens: this.capacity, lastRefill: now };
+      this.buckets.set(key, bucket);
+    }
+
+    // Refill tokens based on elapsed time
+    const elapsed = now - bucket.lastRefill;
+    bucket.tokens = Math.min(this.capacity, bucket.tokens + elapsed * this.refillRate);
+    bucket.lastRefill = now;
+
+    if (bucket.tokens >= 1) {
+      bucket.tokens -= 1;
+      return true;
+    }
+    return false;
+  }
+}
+
+const authLimiter = new RateLimiter(10, 10); // 10 requests per minute
+const roomsLimiter = new RateLimiter(5, 5); // 5 requests per minute
+
+function getClientIp(req: Request): string {
+  return req.headers.get("x-forwarded-for") ?? "unknown";
+}
+
 export interface HttpDeps {
   auth: GuestAuth;
   db: Db;
@@ -29,6 +74,10 @@ export function createHttpHandler(deps: HttpDeps) {
 
     // --- Guest Auth: Issue ---
     if (url.pathname === "/auth/guest" && method === "POST") {
+      const clientIp = getClientIp(req);
+      if (!authLimiter.isAllowed(clientIp)) {
+        return Response.json({ error: "rate-limited" }, { status: 429, headers: { "Retry-After": "60" } });
+      }
       const playerId = crypto.randomUUID();
       const token = await auth.issue(playerId);
       return Response.json({ token, playerId });
@@ -50,6 +99,10 @@ export function createHttpHandler(deps: HttpDeps) {
 
     // --- Room Create ---
     if (url.pathname === "/rooms" && method === "POST") {
+      const clientIp = getClientIp(req);
+      if (!roomsLimiter.isAllowed(clientIp)) {
+        return Response.json({ error: "rate-limited" }, { status: 429, headers: { "Retry-After": "60" } });
+      }
       const identity = await extractAuth(req, auth);
       if (!identity) {
         return Response.json({ error: "unauthorized" }, { status: 401 });
