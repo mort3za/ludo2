@@ -7,6 +7,7 @@ import { createDb, applySchema } from "./db/connection.js";
 import { getRoom, purgeOldGames } from "./db/repositories.js";
 import { SERVER_PORT, TIMINGS, type ServerMessage } from "@ludo/shared";
 import { logger } from "./lib/logger.js";
+import type { ServerWebSocket } from "bun";
 
 // --- Configuration ---
 const PORT = Number(process.env["PORT"] ?? SERVER_PORT);
@@ -36,7 +37,7 @@ const httpHandler = createHttpHandler({ auth, db, boardSize: BOARD_SIZE });
 // Map Bun WebSocket → WsClient for lifecycle management
 const wsClients = new WeakMap<object, WsClient>();
 // Track all active WebSocket connections for graceful shutdown
-const wsConnections = new Set<object>();
+const wsConnections = new Set<ServerWebSocket<WsData>>();
 
 interface WsData {
   playerId: string;

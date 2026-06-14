@@ -46,14 +46,14 @@ export function botDecisionState(botSeat: number, diceValue: number): GameState 
   const colors: PlayerColor[] = ["blue", "red", "yellow", "green"];
   const numSeats = 2;
   const seats = Array.from({ length: numSeats }, (_, i) =>
-    seat(i, colors[i], { isBot: i === botSeat })
+    seat(i, colors[i]!, { isBot: i === botSeat })
   );
 
   // Create 4 tokens per player, all in home (before "S/0")
   const tokens: Token[] = [];
   for (let i = 0; i < numSeats; i++) {
     for (let j = 0; j < 4; j++) {
-      tokens.push(tok(`${colors[i][0]}${j}`, colors[i], "H"));
+      tokens.push(tok(`${colors[i]![0]}${j}`, colors[i]!, "H"));
     }
   }
 
