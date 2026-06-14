@@ -168,7 +168,7 @@ onUnmounted(() => {
       />
 
       <BoardView
-        class="w-full aspect-square max-w-xs sm:max-w-sm"
+        class="w-full aspect-square max-w-xs sm:max-w-lg"
         :board-size="gameState.seats.length"
         :local-seat="mySeat ?? undefined"
         :tokens="gameState.tokens"
