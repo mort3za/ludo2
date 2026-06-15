@@ -1,0 +1,28 @@
+services:
+  ludo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ludo2
+    container_name: ludo
+    restart: unless-stopped
+    # Bound to localhost only — cloudflared connects to it locally.
+    ports:
+      - "127.0.0.1:8200:8200"
+    environment:
+      NODE_ENV: production
+      PORT: "8200"
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env (32+ chars)}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      DB_PATH: /app/data/ludo.db
+    volumes:
+      - ludo-data:/app/data
+    healthcheck:
+      test: ["CMD", "bun", "-e", "fetch('http://localhost:8200/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  ludo-data:

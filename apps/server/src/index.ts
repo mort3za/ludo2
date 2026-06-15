@@ -8,12 +8,20 @@ import { getRoom, purgeOldGames } from "./db/repositories.js";
 import { SERVER_PORT, TIMINGS, type ServerMessage } from "@ludo/shared";
 import { logger } from "./lib/logger.js";
 import type { ServerWebSocket } from "bun";
+import { join, resolve, normalize } from "node:path";
 
 // --- Configuration ---
 const PORT = Number(process.env["PORT"] ?? SERVER_PORT);
 const DEFAULT_JWT_SECRET = "dev-secret-change-in-production-32ch";
 const JWT_SECRET = process.env["JWT_SECRET"] ?? DEFAULT_JWT_SECRET;
 const BOARD_SIZE = 4;
+
+// Optional: serve the built client (SPA) so the server is the single origin.
+// Unset in dev (Vite serves the client); set to the client dist dir in production.
+const STATIC_DIR = process.env["STATIC_DIR"];
+const STATIC_ROOT = STATIC_DIR ? resolve(STATIC_DIR) : null;
+const API_PREFIXES = ["/healthz", "/auth", "/rooms", "/games"];
+const isApiPath = (p: string) => API_PREFIXES.some((a) => p === a || p.startsWith(a + "/"));
 
 // Validate JWT_SECRET in production
 if (process.env["NODE_ENV"] === "production") {
@@ -74,6 +82,20 @@ const server = Bun.serve<WsData>({
         return new Response("WebSocket upgrade failed", { status: 400 });
       }
       return undefined;
+    }
+
+    // --- Static client (SPA) ---
+    if (STATIC_ROOT && req.method === "GET" && !isApiPath(url.pathname)) {
+      const rel = normalize(decodeURIComponent(url.pathname)).replace(/^(\.\.[/\\])+/, "");
+      const candidate = resolve(STATIC_ROOT, "." + (rel.startsWith("/") ? rel : "/" + rel));
+      if (candidate.startsWith(STATIC_ROOT) && !url.pathname.endsWith("/")) {
+        const file = Bun.file(candidate);
+        if (await file.exists()) return new Response(file);
+      }
+      // SPA fallback: serve index.html for client-side routes
+      return new Response(Bun.file(join(STATIC_ROOT, "index.html")), {
+        headers: { "content-type": "text/html; charset=utf-8" },
+      });
     }
 
     // Delegate all other HTTP requests to the handler

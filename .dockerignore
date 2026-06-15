@@ -1,0 +1,17 @@
+node_modules
+**/node_modules
+**/dist
+.deploy-build
+.git
+.github
+.vscode
+.claude
+e2e
+playwright-report
+test-results
+*.db
+*.sqlite
+.env
+.env.*
+!.env.example
+**/*.test.ts
