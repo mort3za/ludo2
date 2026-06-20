@@ -2,43 +2,29 @@
 import { useRoute } from "vue-router";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { type LocaleCode } from "@/shared/i18n";
 import { useLocale } from "@/shared/i18n/useLocale";
 import { useSound } from "@/shared/lib/use-sound";
+import LocaleSelect from "./LocaleSelect.vue";
 
 const { t } = useI18n();
-const { locale, dir, availableLocales, setLocale } = useLocale();
+const { dir } = useLocale();
 const { muted, toggleMuted } = useSound();
 const route = useRoute();
 const isHome = computed(() => route.name === "home");
 /** Sound toggle is only meaningful on the board (game) page. */
 const showSound = computed(() => route.name === "match");
+/** Language switching is hidden on the board (game) page. */
+const showLanguage = computed(() => route.name !== "match");
 
 /** Back arrow points toward the page start, which flips under RTL. */
 const backArrow = computed(() => (dir.value === "rtl" ? "→" : "←"));
-
-const localeLabels: Record<LocaleCode, string> = {
-  en: "English",
-  fa: "فارسی",
-  de: "Deutsch",
-  ar: "العربية",
-  es: "Español",
-  fr: "Français",
-  hi: "हिन्दी",
-  it: "Italiano",
-  ja: "日本語",
-  ko: "한국어",
-  nl: "Nederlands",
-  pt: "Português",
-  ru: "Русский",
-  tr: "Türkçe",
-  zh: "中文",
-};
 </script>
 
 <template>
   <header v-if="!isHome" class="flex items-center gap-3 px-4 py-2">
-    <router-link to="/" class="d-btn d-btn--tertiary">{{ backArrow }} {{ t("nav.home") }}</router-link>
+    <router-link to="/" class="d-btn d-btn--tertiary"
+      >{{ backArrow }} {{ t("nav.home") }}</router-link
+    >
 
     <div class="ms-auto flex items-center gap-3">
       <button
@@ -83,16 +69,7 @@ const localeLabels: Record<LocaleCode, string> = {
           <line x1="17" y1="9" x2="23" y2="15" />
         </svg>
       </button>
-      <select
-        class="d-btn d-btn--tertiary"
-        :value="locale"
-        :aria-label="t('nav.language')"
-        @change="setLocale(($event.target as HTMLSelectElement).value as LocaleCode)"
-      >
-        <option v-for="code in availableLocales" :key="code" :value="code">
-          {{ localeLabels[code] }}
-        </option>
-      </select>
+      <LocaleSelect v-if="showLanguage" />
     </div>
   </header>
 </template>

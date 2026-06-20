@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { DButton } from "@/shared/ui";
+import { DButton, LocaleSelect } from "@/shared/ui";
 import { guestLogin, createRoom } from "@/shared/api/client";
 import { useSessionStore } from "@/stores/session";
 
@@ -29,26 +29,32 @@ async function play() {
 </script>
 
 <template>
-  <main class="min-h-screen flex flex-col items-center justify-center gap-4">
-    <h1 class="text-display font-sans text-midnight-ink tracking-tight mb-6">Ludo</h1>
+  <main class="mt-0! min-h-screen flex flex-col">
+    <header class="flex items-center px-4 py-2">
+      <LocaleSelect class="ms-auto" />
+    </header>
 
-    <DButton
-      :disabled="loading"
-      data-testid="play-btn"
-      class="px-10 py-3 text-heading-sm min-w-40"
-      @click="play"
-    >
-      {{ loading ? t("home.creating") : t("common.play") }}
-    </DButton>
-    <p v-if="error" class="text-caption text-red-500 font-sans text-center">{{ error }}</p>
+    <div class="flex-1 flex flex-col items-center justify-center gap-4">
+      <h1 class="text-display font-sans text-midnight-ink tracking-tight mb-6">Ludo</h1>
 
-    <nav class="mt-2 flex items-center gap-3">
-      <router-link to="/how-to-play" class="d-btn d-btn--ghost" data-testid="how-to-play-btn">
-        {{ t("common.howToPlay") }}
-      </router-link>
-      <router-link to="/about" class="d-btn d-btn--ghost" data-testid="about-btn">
-        {{ t("common.about") }}
-      </router-link>
-    </nav>
+      <DButton
+        :disabled="loading"
+        data-testid="play-btn"
+        class="px-10 py-3 text-heading-sm min-w-40"
+        @click="play"
+      >
+        {{ loading ? t("home.creating") : t("common.play") }}
+      </DButton>
+      <p v-if="error" class="text-caption text-red-500 font-sans text-center">{{ error }}</p>
+
+      <nav class="mt-2 flex items-center gap-3">
+        <router-link to="/how-to-play" class="d-btn d-btn--ghost" data-testid="how-to-play-btn">
+          {{ t("common.howToPlay") }}
+        </router-link>
+        <router-link to="/about" class="d-btn d-btn--ghost" data-testid="about-btn">
+          {{ t("common.about") }}
+        </router-link>
+      </nav>
+    </div>
   </main>
 </template>
