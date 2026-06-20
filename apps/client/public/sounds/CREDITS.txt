@@ -1,0 +1,20 @@
+Game sound effects
+==================
+
+All files in this folder are from Kenney's Sound Pack (https://kenney.nl),
+released under the Creative Commons Zero (CC0) license — public domain.
+You may use, modify, and redistribute them freely, including commercially,
+with no attribution required.
+
+Event mapping (renamed from the original Kenney files):
+
+  dice-roll.ogg     Casino Audio / diceThrow1
+  token-select.ogg  Interface Sounds / click_003
+  token-step.ogg    Digital Audio / pepSound1   (play once per step)
+  turn-change.ogg   Interface Sounds / bong_001
+  game-start.ogg    Music Jingles (Retro) / jingles-retro_00
+  win.ogg           Music Jingles (Retro) / jingles-retro_07
+  game-over.ogg     Digital Audio / lowThreeTone
+
+Swap any file for a different one from the same CC0 pack if a clip
+doesn't fit; keep the filename so no code changes are needed.
