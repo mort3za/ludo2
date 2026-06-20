@@ -5,6 +5,7 @@ import { useSessionStore } from "@/stores/session";
 import { useGameResultStore } from "@/stores/game-result";
 import { createWsConnection, type WsConnection } from "@/shared/lib/ws";
 import { DButton } from "@/shared/ui";
+import { TIMINGS } from "@ludo/shared";
 import PostGameStandings from "@/features/match/PostGameStandings.vue";
 
 const props = defineProps<{ roomId: string }>();
@@ -16,6 +17,11 @@ const isOwner = computed(() => {
   if (!gameResult.state) return false;
   const seat = gameResult.state.seats.find((s) => s.index === 1);
   return seat?.playerId === session.playerId;
+});
+
+const rematchAvailable = computed(() => {
+  if (!isOwner.value || !gameResult.endedAt) return false;
+  return Date.now() < gameResult.endedAt + TIMINGS.postGameWindow * 1000;
 });
 
 let ws: WsConnection | null = null;
@@ -49,13 +55,17 @@ onUnmounted(() => {
     <PostGameStandings
       v-if="gameResult.state"
       :state="gameResult.state"
-      :is-owner="isOwner"
-      :game-ended-at="gameResult.endedAt"
+      :player-id="session.playerId"
     />
 
     <p v-else class="text-body-sm text-subtle-gray font-sans">No game data available.</p>
 
-    <DButton v-if="isOwner" class="mt-4" @click="sendRematch">Rematch</DButton>
-    <DButton variant="ghost" class="mt-4" @click="goToLobby">Back to Lobby</DButton>
+    <div class="mt-4 flex flex-col items-center gap-2 w-full max-w-sm">
+      <DButton v-if="rematchAvailable" class="w-full" @click="sendRematch">Rematch</DButton>
+      <p v-else-if="isOwner" class="text-caption text-subtle-gray text-center font-sans">
+        Rematch window expired
+      </p>
+      <DButton variant="ghost" class="w-full" @click="goToLobby">Back to Lobby</DButton>
+    </div>
   </main>
 </template>

@@ -1,34 +1,31 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { DButton, DCard } from "@/shared/ui";
+import { DCard } from "@/shared/ui";
 import { playerColorHex } from "@/entities/game/board-geometry";
 import type { GameState, Seat } from "@ludo/shared";
-import { TIMINGS } from "@ludo/shared";
 
 const props = defineProps<{
   state: GameState;
-  isOwner: boolean;
-  /** Unix ms when the game ended — rematch available until gameEndedAt + postGameWindow. */
-  gameEndedAt?: number;
+  /** Current viewer's player id — used to show "You won!" when they placed first. */
+  playerId?: string | null;
 }>();
 
-const emit = defineEmits<{
-  rematch: [];
-}>();
-
-/** Seats sorted by standings position (1st, 2nd, etc.). */
+/** Occupied seats sorted by standings position (1st, 2nd, etc.); empty seats excluded. */
 const rankedSeats = computed(() => {
   const result: { seat: Seat; rank: number }[] = [];
   for (const seat of props.state.seats) {
+    if (seat.state === "empty") continue;
     const rank = props.state.standings.indexOf(seat.index);
     result.push({ seat, rank: rank >= 0 ? rank + 1 : props.state.seats.length });
   }
   return result.sort((a, b) => a.rank - b.rank);
 });
 
-const rematchAvailable = computed(() => {
-  if (!props.isOwner || !props.gameEndedAt) return false;
-  return Date.now() < props.gameEndedAt + TIMINGS.postGameWindow * 1000;
+/** True when the viewer's seat placed first. */
+const didWin = computed(() => {
+  if (!props.playerId) return false;
+  const mySeat = props.state.seats.find((s) => s.playerId === props.playerId);
+  return mySeat != null && props.state.standings[0] === mySeat.index;
 });
 
 const ordinalSuffix = (n: number) => {
@@ -41,7 +38,9 @@ const ordinalSuffix = (n: number) => {
 
 <template>
   <DCard class="p-6 max-w-sm mx-auto">
-    <h2 class="text-heading font-sans text-midnight-ink mb-4 text-center">Game Over</h2>
+    <h2 class="text-heading font-sans text-midnight-ink mb-4 text-center">
+      {{ didWin ? "You won!" : "Game Over" }}
+    </h2>
 
     <ol class="space-y-2 mb-6">
       <li
@@ -57,10 +56,5 @@ const ordinalSuffix = (n: number) => {
         <span class="text-deep-charcoal">Seat {{ seat.index }}</span>
       </li>
     </ol>
-
-    <DButton v-if="rematchAvailable" class="w-full" @click="emit('rematch')"> Rematch </DButton>
-    <p v-else-if="isOwner" class="text-caption text-subtle-gray text-center font-sans">
-      Rematch window expired
-    </p>
   </DCard>
 </template>
