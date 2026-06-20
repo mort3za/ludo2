@@ -54,7 +54,7 @@ onUnmounted(() => {
   <div
     v-if="!isDev && deadline && remaining > 0"
     class="font-sans text-body-sm sm:text-heading tabular-nums transition-colors"
-    :class="isWarning ? 'text-red-500 animate-pulse' : 'text-subtle-gray'"
+    :class="isWarning ? 'text-danger animate-pulse' : 'text-text-muted'"
   >
     {{ displaySeconds }}{{ t("match.secondsSuffix") }}
   </div>

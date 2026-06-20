@@ -7,6 +7,7 @@ const SOUND_SRC = {
   tokenSelect: "/sounds/token-select.ogg",
   tokenStep: "/sounds/token-step.ogg",
   turnChange: "/sounds/turn-change.ogg",
+  myTurn: "/sounds/my-turn.ogg",
   tokenCaptureWin: "/sounds/token-capture-win.ogg",
   tokenCaptureSad: "/sounds/token-capture-sad.ogg",
   gameStart: "/sounds/game-start.ogg",
@@ -19,6 +20,7 @@ export type SoundName = keyof typeof SOUND_SRC;
 /** Per-sound volume; jingles are mastered louder than the UI blips. */
 const VOLUME: Partial<Record<SoundName, number>> = {
   diceRoll: 0.7,
+  myTurn: 0.5,
   tokenStep: 0.5,
   win: 0.5,
   gameStart: 0.5,

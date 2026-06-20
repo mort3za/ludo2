@@ -53,20 +53,20 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <main class="min-h-screen flex flex-col items-center justify-center bg-canvas-white p-4">
+  <main class="min-h-screen flex flex-col items-center justify-center p-4">
     <PostGameStandings
       v-if="gameResult.state"
       :state="gameResult.state"
       :player-id="session.playerId"
     />
 
-    <p v-else class="text-body-sm text-subtle-gray font-sans">{{ t("postgame.noData") }}</p>
+    <p v-else class="text-body-sm text-text-muted font-sans">{{ t("postgame.noData") }}</p>
 
     <div class="mt-4 flex flex-col items-center gap-2 w-full max-w-sm">
       <DButton v-if="rematchAvailable" class="w-full" @click="sendRematch">
         {{ t("postgame.rematch") }}
       </DButton>
-      <p v-else-if="isOwner" class="text-caption text-subtle-gray text-center font-sans">
+      <p v-else-if="isOwner" class="text-caption text-text-muted text-center font-sans">
         {{ t("postgame.rematchExpired") }}
       </p>
       <DButton variant="ghost" class="w-full" @click="goToLobby">

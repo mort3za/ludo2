@@ -138,17 +138,17 @@ const canAddBot = computed(
 </script>
 
 <template>
-  <main class="flex items-center justify-center bg-canvas-white">
+  <main class="flex items-center justify-center">
     <ReconnectBanner v-if="ws" :status="ws.status.value" />
 
     <DCard v-if="connecting && !joined" class="p-8 w-full max-w-sm">
-      <p class="text-body-sm text-subtle-gray font-sans text-center">{{ t("room.joining") }}</p>
+      <p class="text-body-sm text-text-muted font-sans text-center">{{ t("room.joining") }}</p>
     </DCard>
 
     <DCard v-else-if="!joined" class="p-8 w-full max-w-sm">
       <p
         v-if="joinError"
-        class="text-caption text-red-500 font-sans text-center"
+        class="text-caption text-danger font-sans text-center"
         data-testid="join-error"
       >
         {{ joinError }}
@@ -157,12 +157,12 @@ const canAddBot = computed(
 
     <!-- Lobby view after joining -->
     <DCard v-else class="bg-frost rounded-lg p-8 w-full max-w-sm">
-      <h2 class="text-heading font-sans text-midnight-ink text-center mb-6">
+      <h2 class="text-heading font-sans text-text-primary text-center mb-6">
         {{ t("room.title") }}
       </h2>
 
       <div class="mb-6">
-        <p class="text-body-sm text-subtle-gray font-sans mb-2">
+        <p class="text-body-sm text-text-muted font-sans mb-2">
           {{ t("room.sharePrompt") }}
         </p>
         <div class="flex items-center gap-2">
@@ -177,19 +177,19 @@ const canAddBot = computed(
         <li
           v-for="p in visiblePlayers"
           :key="p.playerId"
-          class="flex items-center justify-between rounded-sm bg-near-white font-sans text-body-sm px-3 py-2"
+          class="flex items-center justify-between rounded-sm bg-surface-muted font-sans text-body-sm px-3 py-2"
         >
-          <span class="text-midnight-ink flex items-center gap-2">
+          <span class="text-text-primary flex items-center gap-2">
             <span
               class="w-2 h-2 rounded-full shrink-0"
-              :class="p.connected ? 'bg-green-500' : 'bg-neutral-400'"
+              :class="p.connected ? 'bg-success' : 'bg-text-muted'"
               :title="p.connected ? t('room.connected') : t('room.disconnected')"
             ></span>
             {{ p.name }}
-            <span v-if="p.isBot" class="text-caption text-subtle-gray">{{ t("common.bot") }}</span>
+            <span v-if="p.isBot" class="text-caption text-text-muted">{{ t("common.bot") }}</span>
           </span>
           <div class="flex items-center gap-2">
-            <span :class="p.ready ? 'text-green-600' : 'text-subtle-gray'" class="text-caption">
+            <span :class="p.ready ? 'text-success' : 'text-text-muted'" class="text-caption">
               {{ p.ready ? t("common.ready") : t("common.notReady") }}
             </span>
             <button
@@ -238,14 +238,14 @@ const canAddBot = computed(
       <div class="mb-6">
         <button
           type="button"
-          class="flex w-full items-center justify-between font-sans text-body-sm text-midnight-ink"
+          class="flex w-full items-center justify-between font-sans text-body-sm text-text-primary"
           :aria-expanded="showSettings"
           data-testid="settings-toggle"
           @click="showSettings = !showSettings"
         >
           <span>{{ t("room.settings") }}</span>
           <svg
-            class="w-4 h-4 text-subtle-gray transition-transform"
+            class="w-4 h-4 text-text-muted transition-transform"
             :class="showSettings ? 'rotate-180' : ''"
             viewBox="0 0 20 20"
             fill="currentColor"
@@ -265,8 +265,8 @@ const canAddBot = computed(
             :class="isOwner ? 'cursor-pointer' : 'opacity-60'"
           >
             <span class="font-sans">
-              <span class="block text-body-sm text-midnight-ink">{{ t("room.wallFeature") }}</span>
-              <span class="block text-caption text-subtle-gray">{{
+              <span class="block text-body-sm text-text-primary">{{ t("room.wallFeature") }}</span>
+              <span class="block text-caption text-text-muted">{{
                 t("room.wallFeatureHint")
               }}</span>
             </span>
@@ -279,7 +279,7 @@ const canAddBot = computed(
               @change="setOption('wallEnabled', ($event.target as HTMLInputElement).checked)"
             />
             <span
-              class="relative h-6 w-11 shrink-0 rounded-full bg-neutral-300 transition-colors after:absolute after:top-0.5 after:inset-s-0.5 after:size-5 after:rounded-full after:bg-white after:transition-transform peer-checked:bg-green-500 peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5"
+              class="relative h-6 w-11 shrink-0 rounded-full bg-border transition-colors after:absolute after:top-0.5 after:inset-s-0.5 after:size-5 after:rounded-full after:bg-on-accent after:transition-transform peer-checked:bg-success peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5"
             ></span>
           </label>
 
@@ -288,8 +288,8 @@ const canAddBot = computed(
             :class="isOwner ? 'cursor-pointer' : 'opacity-60'"
           >
             <span class="font-sans">
-              <span class="block text-body-sm text-midnight-ink">{{ t("room.autoMove") }}</span>
-              <span class="block text-caption text-subtle-gray">{{ t("room.autoMoveHint") }}</span>
+              <span class="block text-body-sm text-text-primary">{{ t("room.autoMove") }}</span>
+              <span class="block text-caption text-text-muted">{{ t("room.autoMoveHint") }}</span>
             </span>
             <input
               type="checkbox"
@@ -300,7 +300,7 @@ const canAddBot = computed(
               @change="setOption('autoMoveEnabled', ($event.target as HTMLInputElement).checked)"
             />
             <span
-              class="relative h-6 w-11 shrink-0 rounded-full bg-neutral-300 transition-colors after:absolute after:top-0.5 after:inset-s-0.5 after:size-5 after:rounded-full after:bg-white after:transition-transform peer-checked:bg-green-500 peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5"
+              class="relative h-6 w-11 shrink-0 rounded-full bg-border transition-colors after:absolute after:top-0.5 after:inset-s-0.5 after:size-5 after:rounded-full after:bg-on-accent after:transition-transform peer-checked:bg-success peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5"
             ></span>
           </label>
 
@@ -309,8 +309,8 @@ const canAddBot = computed(
             :class="isOwner ? 'cursor-pointer' : 'opacity-60'"
           >
             <span class="font-sans">
-              <span class="block text-body-sm text-midnight-ink">{{ t("room.turnTimer") }}</span>
-              <span class="block text-caption text-subtle-gray">{{ t("room.turnTimerHint") }}</span>
+              <span class="block text-body-sm text-text-primary">{{ t("room.turnTimer") }}</span>
+              <span class="block text-caption text-text-muted">{{ t("room.turnTimerHint") }}</span>
             </span>
             <input
               type="checkbox"
@@ -321,7 +321,7 @@ const canAddBot = computed(
               @change="setOption('timerEnabled', ($event.target as HTMLInputElement).checked)"
             />
             <span
-              class="relative h-6 w-11 shrink-0 rounded-full bg-neutral-300 transition-colors after:absolute after:top-0.5 after:inset-s-0.5 after:size-5 after:rounded-full after:bg-white after:transition-transform peer-checked:bg-green-500 peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5"
+              class="relative h-6 w-11 shrink-0 rounded-full bg-border transition-colors after:absolute after:top-0.5 after:inset-s-0.5 after:size-5 after:rounded-full after:bg-on-accent after:transition-transform peer-checked:bg-success peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5"
             ></span>
           </label>
         </div>
@@ -336,7 +336,7 @@ const canAddBot = computed(
           <span class="inline-flex items-center justify-center gap-2">
             <svg
               v-if="myReady"
-              class="w-4 h-4 text-green-600"
+              class="w-4 h-4 text-success"
               viewBox="0 0 20 20"
               fill="currentColor"
               aria-hidden="true"

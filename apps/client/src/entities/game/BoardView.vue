@@ -162,9 +162,9 @@ function startSquareColor(cellId: string): string | null {
         :cx="cell.x"
         :cy="cell.y"
         :r="layout.cellSize"
-        :fill="startSquareColor(cell.id) ?? '#edece7'"
+        :fill="startSquareColor(cell.id) ?? 'var(--color-board-cell)'"
         :opacity="startSquareColor(cell.id) ? 0.7 : 1"
-        :stroke="startSquareColor(cell.id) ?? '#b2afae'"
+        :stroke="startSquareColor(cell.id) ?? 'var(--color-board-cell-edge)'"
         :stroke-width="layout.cellSize * 0.15"
       />
       <!-- Block indicator ring (2 same-color tokens on this cell) -->
@@ -182,7 +182,7 @@ function startSquareColor(cellId: string): string | null {
       <path
         v-if="safeSquares.has(cell.id)"
         :d="STAR_PATH"
-        fill="rgba(255, 255, 255, 0.8)"
+        fill="var(--color-board-star)"
         :opacity="startSquareColor(cell.id) ? 0.7 : 1"
         :transform="`translate(${cell.x} ${cell.y}) rotate(${-rotation}) scale(${layout.cellSize * 0.05})`"
       />
@@ -229,7 +229,7 @@ function startSquareColor(cellId: string): string | null {
         :cy="cellPositions.get(displayCellOf(token))?.y ?? 0"
         :r="layout.cellSize * 0.7"
         :fill="playerColorHex(token.color)"
-        stroke="#1a1816"
+        stroke="var(--color-board-ink)"
         :stroke-width="layout.cellSize * 0.12"
         :class="['transition-all duration-300', legalSet.has(token.id) && 'legal-token']"
         @click="legalSet.has(token.id) && emit('move', token.id)"
@@ -243,7 +243,7 @@ function startSquareColor(cellId: string): string | null {
           :cx="(cellPositions.get(cellId)?.x ?? 0) + layout.cellSize * 0.5"
           :cy="(cellPositions.get(cellId)?.y ?? 0) - layout.cellSize * 0.5"
           :r="layout.cellSize * 0.35"
-          fill="#1a1816"
+          fill="var(--color-board-ink)"
         />
         <text
           :x="(cellPositions.get(cellId)?.x ?? 0) + layout.cellSize * 0.5"

@@ -36,7 +36,7 @@ async function play() {
     </header>
 
     <div class="flex-1 flex flex-col items-center justify-center gap-4">
-      <h1 class="text-display font-sans text-midnight-ink tracking-tight mb-6">
+      <h1 class="text-display font-sans text-text-primary tracking-tight mb-6">
         {{ t("common.title") }}
       </h1>
 
@@ -49,7 +49,7 @@ async function play() {
         >
           {{ loading ? t("home.creating") : t("common.play") }}
         </DButton>
-        <p v-if="error" class="text-caption text-red-500 font-sans text-center">{{ error }}</p>
+        <p v-if="error" class="text-caption text-danger font-sans text-center">{{ error }}</p>
 
         <router-link
           to="/how-to-play"

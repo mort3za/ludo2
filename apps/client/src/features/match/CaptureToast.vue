@@ -37,7 +37,7 @@ watch(
     <Transition name="slide-down">
       <div
         v-if="isVisible"
-        class="bg-neutral-900 text-white px-6 py-3 mt-4 rounded-lg text-body-sm font-sans font-medium shadow-lg"
+        class="bg-surface-inverse text-text-inverse px-6 py-3 mt-4 rounded-lg text-body-sm font-sans font-medium shadow-lg"
       >
         {{ t("match.captureSentHome", { color: displayName }) }}
       </div>

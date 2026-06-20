@@ -64,7 +64,7 @@ const statusText = computed(() => {
 <template>
   <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full">
     <p
-      class="text-xs sm:text-body-sm text-subtle-gray font-sans flex items-center gap-1.5 flex-1 min-w-0"
+      class="text-xs sm:text-body-sm text-text-muted font-sans flex items-center gap-1.5 flex-1 min-w-0"
     >
       <span
         class="inline-block size-2 sm:size-3 rounded-full shrink-0"
@@ -74,7 +74,7 @@ const statusText = computed(() => {
       <span class="truncate">{{ statusText }}</span>
       <span
         v-if="!seatConnected"
-        class="ms-auto text-caption text-neutral-500 whitespace-nowrap"
+        class="ms-auto text-caption text-text-muted whitespace-nowrap"
         :title="t('match.playerDisconnected')"
       >
         {{ t("match.away") }}

@@ -13,9 +13,7 @@ const { t } = useI18n();
   <div
     v-if="status === 'disconnected' || status === 'connecting'"
     class="fixed top-0 inset-x-0 z-50 flex items-center justify-center py-2 text-caption font-sans"
-    :class="
-      status === 'disconnected' ? 'bg-red-500 text-canvas-white' : 'bg-yellow-400 text-midnight-ink'
-    "
+    :class="status === 'disconnected' ? 'bg-danger text-on-danger' : 'bg-warning text-on-warning'"
   >
     {{ status === "disconnected" ? t("connection.reconnecting") : t("connection.connecting") }}
   </div>

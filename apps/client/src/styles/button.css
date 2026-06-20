@@ -3,25 +3,25 @@
 }
 
 .d-btn--primary {
-  @apply bg-valley-green text-canvas-ice rounded-pill px-4 py-1.5;
+  @apply bg-accent text-on-accent rounded-pill px-4 py-1.5;
 }
 
 .d-btn--ghost {
-  @apply bg-transparent text-valley-green border border-valley-green rounded-pill px-4 py-1.5;
+  @apply bg-transparent text-accent border border-accent rounded-pill px-4 py-1.5;
 }
 
 .d-btn--tertiary {
   @apply px-4 py-1.5;
-  background: var(--color-canvas-ice);
-  color: var(--color-adaline-ink);
-  border: 1px solid var(--color-adaline-ink);
+  background: var(--color-surface-card);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
   border-radius: 32px;
 }
 
 .d-btn--tertiary:hover {
-  background: var(--color-valley-green);
-  color: var(--color-canvas-ice);
-  border-color: var(--color-valley-green);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  border-color: var(--color-accent);
 }
 
 .d-btn--circle {

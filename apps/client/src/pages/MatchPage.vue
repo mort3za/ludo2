@@ -43,7 +43,9 @@ const { gameState, animating, stackingTokenId, lastRolledValue, isActionLocked, 
 
       if (msg.type === "turn") {
         deadline.value = msg.deadline;
-        playSound("turnChange");
+        // A distinct soft cue when it becomes our turn, so it's recognizable
+        // without watching the board; everyone else hears the generic change.
+        playSound(msg.seat === mySeat.value ? "myTurn" : "turnChange");
       }
 
       // Fresh game (every token still in its yard) — announce the start.
@@ -270,7 +272,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <main class="min-h-screen flex flex-col items-center bg-canvas-white p-2 sm:p-4">
+  <main class="min-h-screen flex flex-col items-center p-2 sm:p-4">
     <CaptureToast :color="capturedColor" />
 
     <ReconnectBanner v-if="ws" :status="ws.status.value" />
@@ -314,25 +316,25 @@ onUnmounted(() => {
       <TurnTimer :deadline="deadline" />
     </div>
 
-    <p v-else class="text-body-sm text-subtle-gray font-sans">{{ t("match.loadingGame") }}</p>
+    <p v-else class="text-body-sm text-text-muted font-sans">{{ t("match.loadingGame") }}</p>
 
     <details
       v-if="isDev && mySeat !== null"
       class="fixed bottom-4 left-4 z-50 font-sans text-body-sm"
     >
       <summary
-        class="cursor-pointer list-none rounded border border-subtle-gray bg-canvas-white px-3 py-1.5 text-subtle-gray shadow-sm"
+        class="cursor-pointer list-none rounded border border-border bg-surface-card px-3 py-1.5 text-text-muted shadow-sm"
       >
         🐛 Debug
       </summary>
       <div
-        class="mt-1 flex flex-col gap-1 rounded border border-subtle-gray bg-canvas-white p-1 shadow-sm"
+        class="mt-1 flex flex-col gap-1 rounded border border-border bg-surface-card p-1 shadow-sm"
       >
         <button
           v-for="scenario in debugScenarios"
           :key="scenario"
           type="button"
-          class="rounded px-3 py-1.5 text-left text-subtle-gray hover:bg-subtle-gray/10"
+          class="rounded px-3 py-1.5 text-left text-text-muted hover:bg-surface-muted"
           @click="onDebugScenario(scenario)"
         >
           {{ scenario }}

@@ -12,16 +12,16 @@ const version = __APP_VERSION__;
 <template>
   <main class="min-h-screen flex flex-col items-center p-4">
     <article class="w-full max-w-2xl flex flex-col gap-4 py-2">
-      <h1 class="text-body-lg font-sans font-medium text-adaline-ink tracking-tight">
+      <h1 class="text-body-lg font-sans font-medium text-text-primary tracking-tight">
         {{ t("about.title") }}
       </h1>
-      <p class="text-body-sm font-sans text-adaline-ink">{{ t("about.description") }}</p>
+      <p class="text-body-sm font-sans text-text-primary">{{ t("about.description") }}</p>
 
       <DCard elevated class="p-4 flex flex-col gap-2">
-        <h2 class="text-body font-sans font-medium text-adaline-ink">
+        <h2 class="text-body font-sans font-medium text-text-primary">
           {{ t("about.openSourceTitle") }}
         </h2>
-        <p class="text-body-sm font-sans text-adaline-ink">{{ t("about.openSource") }}</p>
+        <p class="text-body-sm font-sans text-text-primary">{{ t("about.openSource") }}</p>
         <a
           :href="REPO_URL"
           target="_blank"
@@ -34,10 +34,10 @@ const version = __APP_VERSION__;
       </DCard>
 
       <DCard elevated class="p-4 flex flex-col gap-2">
-        <h2 class="text-body font-sans font-medium text-adaline-ink">
+        <h2 class="text-body font-sans font-medium text-text-primary">
           {{ t("about.issuesTitle") }}
         </h2>
-        <p class="text-body-sm font-sans text-adaline-ink">{{ t("about.issues") }}</p>
+        <p class="text-body-sm font-sans text-text-primary">{{ t("about.issues") }}</p>
         <a
           :href="ISSUES_URL"
           target="_blank"
@@ -50,10 +50,10 @@ const version = __APP_VERSION__;
       </DCard>
 
       <DCard elevated class="p-4 flex flex-col gap-2">
-        <h2 class="text-body font-sans font-medium text-adaline-ink">
+        <h2 class="text-body font-sans font-medium text-text-primary">
           {{ t("about.detailsTitle") }}
         </h2>
-        <dl class="text-body-sm font-sans text-adaline-ink flex flex-col gap-1">
+        <dl class="text-body-sm font-sans text-text-primary flex flex-col gap-1">
           <div class="flex gap-2">
             <dt class="font-medium">{{ t("about.versionLabel") }}:</dt>
             <dd class="font-mono">{{ version }}</dd>

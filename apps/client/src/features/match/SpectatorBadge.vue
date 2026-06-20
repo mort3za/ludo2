@@ -8,7 +8,7 @@ const { t } = useI18n();
 <template>
   <div class="flex flex-col items-center gap-2">
     <DPill>{{ t("spectator.badge") }}</DPill>
-    <p class="text-body-sm text-subtle-gray font-sans">
+    <p class="text-body-sm text-text-muted font-sans">
       {{ t("spectator.description") }}
     </p>
   </div>

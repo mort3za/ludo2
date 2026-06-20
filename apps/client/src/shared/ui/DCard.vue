@@ -5,7 +5,7 @@ defineProps<{
 </script>
 
 <template>
-  <div :class="['rounded-card', elevated ? 'bg-canvas-white shadow-subtle' : 'bg-card-wash']">
+  <div :class="['rounded-card', elevated ? 'bg-surface-card shadow-subtle' : 'bg-surface-muted']">
     <slot />
   </div>
 </template>

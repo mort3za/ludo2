@@ -71,9 +71,9 @@ describe("BoardView", () => {
       ],
     });
 
-    const tokenPositions = [...container.querySelectorAll('circle[stroke="#1a1816"]')].map(
-      (element) => `${element.getAttribute("cx")},${element.getAttribute("cy")}`,
-    );
+    const tokenPositions = [
+      ...container.querySelectorAll('circle[stroke="var(--color-board-ink)"]'),
+    ].map((element) => `${element.getAttribute("cx")},${element.getAttribute("cy")}`);
     const expectedPositions = computeBoardLayout(4).homes[0]!.map((cell) => `${cell.x},${cell.y}`);
 
     expect(new Set(tokenPositions)).toEqual(new Set(expectedPositions));
@@ -89,9 +89,9 @@ describe("BoardView", () => {
       ],
     });
 
-    const tokenPositions = [...container.querySelectorAll('circle[stroke="#1a1816"]')].map(
-      (element) => `${element.getAttribute("cx")},${element.getAttribute("cy")}`,
-    );
+    const tokenPositions = [
+      ...container.querySelectorAll('circle[stroke="var(--color-board-ink)"]'),
+    ].map((element) => `${element.getAttribute("cx")},${element.getAttribute("cy")}`);
     const homeCells = computeBoardLayout(4).homes[0]!;
     const expectedPositions = [homeCells[1]!, homeCells[2]!, homeCells[3]!].map(
       (cell) => `${cell.x},${cell.y}`,

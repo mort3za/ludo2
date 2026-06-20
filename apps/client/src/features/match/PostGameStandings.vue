@@ -34,7 +34,7 @@ const didWin = computed(() => {
 
 <template>
   <DCard class="p-6 max-w-sm mx-auto">
-    <h2 class="text-heading font-sans text-midnight-ink mb-4 text-center">
+    <h2 class="text-heading font-sans text-text-primary mb-4 text-center">
       {{ didWin ? t("postgame.youWon") : t("postgame.gameOver") }}
     </h2>
 
@@ -44,12 +44,12 @@ const didWin = computed(() => {
         :key="seat.index"
         class="flex items-center gap-3 font-sans text-body-sm"
       >
-        <span class="w-8 text-end text-subtle-gray">{{ t(`postgame.ordinal.${rank}`) }}</span>
+        <span class="w-8 text-end text-text-muted">{{ t(`postgame.ordinal.${rank}`) }}</span>
         <span
           class="w-4 h-4 rounded-full inline-block"
           :style="{ backgroundColor: playerColorHex(seat.color) }"
         />
-        <span class="text-deep-charcoal">{{ t("postgame.seat", { index: seat.index }) }}</span>
+        <span class="text-text-primary">{{ t("postgame.seat", { index: seat.index }) }}</span>
       </li>
     </ol>
   </DCard>

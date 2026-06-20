@@ -141,8 +141,8 @@ onUnmounted(() => {
     <svg viewBox="0 0 100 100" class="dice__svg" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="dice-face" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#ffffff" />
-          <stop offset="100%" stop-color="#e7e4dd" />
+          <stop offset="0%" stop-color="var(--color-dice-face-top)" />
+          <stop offset="100%" stop-color="var(--color-dice-face-bottom)" />
         </linearGradient>
       </defs>
       <rect
@@ -152,12 +152,27 @@ onUnmounted(() => {
         height="88"
         rx="20"
         fill="url(#dice-face)"
-        stroke="#cfccc4"
+        stroke="var(--color-dice-edge)"
         stroke-width="2"
       />
       <!-- top highlight for a subtle 3D feel -->
-      <rect x="14" y="13" width="72" height="20" rx="10" fill="#ffffff" opacity="0.55" />
-      <circle v-for="([cx, cy], i) in PIPS[face]" :key="i" :cx="cx" :cy="cy" r="9" fill="#1a1816" />
+      <rect
+        x="14"
+        y="13"
+        width="72"
+        height="20"
+        rx="10"
+        fill="var(--color-dice-face-top)"
+        opacity="0.55"
+      />
+      <circle
+        v-for="([cx, cy], i) in PIPS[face]"
+        :key="i"
+        :cx="cx"
+        :cy="cy"
+        r="9"
+        fill="var(--color-dice-pip)"
+      />
     </svg>
   </button>
 </template>

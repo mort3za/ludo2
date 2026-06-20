@@ -3,16 +3,25 @@
 @import "./background.css";
 
 @theme {
-  /* — Colors — */
-  --color-canvas-ice: #fbfdf6;
-  --color-adaline-ink: #0a1d08;
-  --color-mist-gray: #c5ccb6;
-  --color-deep-earth: #31200b;
-  --color-valley-green: #203b14;
-  --color-stone-moss: #e0e5d5;
-  --color-amber-seed: #4a3212;
-  --color-forest-dew: #d7e8b5;
-  --color-blackest-night: #000000;
+  /* — Semantic color tokens (Layer 2) —
+     Role-named; the ONLY colors components reference. Default to light
+     primitives (defined in :root below); the dark flip remaps them. */
+  --color-text-primary: var(--color-midnight-ink);
+  --color-text-muted: var(--color-subtle-gray);
+  --color-text-inverse: var(--color-canvas-ice);
+  --color-surface: var(--color-canvas-white);
+  --color-surface-card: var(--color-canvas-white);
+  --color-surface-muted: var(--color-card-wash);
+  --color-surface-inverse: var(--color-muted-slate);
+  --color-border: var(--color-mist-gray);
+  --color-accent: var(--color-valley-green);
+  --color-on-accent: var(--color-canvas-ice);
+  --color-danger: #d64545;
+  --color-on-danger: #ffffff;
+  --color-warning: #f5c518;
+  --color-on-warning: #16230f;
+  --color-success: #2f9e44;
+  --color-focus: var(--color-valley-green);
 
   /* — Type Scale — */
   --text-caption: 12px;
@@ -55,6 +64,54 @@
   --header-height: 36px;
 }
 
+/* — Primitives (Layer 1) —
+   Raw, appearance-named colors; theme-agnostic. Referenced only by the
+   semantic layer (and the board/dice vars), never by components directly.
+   Kept in :root (not @theme) so they emit reliably without generating
+   appearance-named utilities. */
+:root {
+  /* light raws */
+  --color-canvas-ice: #fbfdf6;
+  --color-adaline-ink: #0a1d08;
+  --color-mist-gray: #c5ccb6;
+  --color-deep-earth: #31200b;
+  --color-valley-green: #203b14;
+  --color-stone-moss: #e0e5d5;
+  --color-amber-seed: #4a3212;
+  --color-forest-dew: #d7e8b5;
+  --color-blackest-night: #000000;
+  --color-midnight-ink: #16230f;
+  --color-subtle-gray: #5f6b54;
+  --color-canvas-white: #ffffff;
+  --color-near-white: #f3f6ec;
+  --color-card-wash: #e8eedd;
+  --color-input-fill: #ffffff;
+  --color-medium-gray: #7c8473;
+  --color-deep-charcoal: #2c3327;
+  --color-muted-slate: #49513f;
+
+  /* dark raws (referenced by the dark flip) */
+  --color-night-fg: #e7ece0;
+  --color-night-muted: #99a48d;
+  --color-night-card: #1c2117;
+  --color-night-muted-surface: #242a1e;
+  --color-night-inverse-surface: #e7ece0;
+  --color-night-inverse-fg: #16230f;
+  --color-night-border: #353d2d;
+  --color-night-accent: #5b8a45;
+
+  /* board / dice surface colors (consumed by SVG via var(); flip with theme) */
+  --color-frost: rgba(255, 255, 255, 0.3);
+  --color-board-cell: #edece7;
+  --color-board-cell-edge: #b2afae;
+  --color-board-ink: #1a1816;
+  --color-board-star: rgba(255, 255, 255, 0.8);
+  --color-dice-face-top: #ffffff;
+  --color-dice-face-bottom: #e7e4dd;
+  --color-dice-edge: #cfccc4;
+  --color-dice-pip: #1a1816;
+}
+
 html {
   background-image: url("../assets/bg-1.png");
   background-size: cover;
@@ -64,8 +121,28 @@ html {
   min-height: 100%;
 }
 
+/* — The flip — remap only the semantic layer (and board/dice surfaces) to
+   dark primitives. No `dark:` variants in markup, no JS color logic. */
 html[data-theme="dark"] {
   background-image: url("../assets/bg-1-dark.png");
+
+  --color-text-primary: var(--color-night-fg);
+  --color-text-muted: var(--color-night-muted);
+  --color-text-inverse: var(--color-night-inverse-fg);
+  --color-surface: var(--color-night-card);
+  --color-surface-card: var(--color-night-card);
+  --color-surface-muted: var(--color-night-muted-surface);
+  --color-surface-inverse: var(--color-night-inverse-surface);
+  --color-border: var(--color-night-border);
+  --color-accent: var(--color-night-accent);
+  --color-on-accent: var(--color-night-fg);
+  --color-danger: #f06565;
+  --color-success: #51cf66;
+  --color-focus: var(--color-night-accent);
+
+  --color-frost: rgba(16, 20, 12, 0.5);
+  --color-board-cell: #242a1d;
+  --color-board-cell-edge: #3a4230;
 }
 
 main {
