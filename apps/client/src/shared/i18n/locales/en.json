@@ -10,7 +10,7 @@
   },
   "nav": {
     "home": "Home",
-    "logout": "Log out"
+    "language": "Language"
   },
   "home": {
     "creating": "Creating…",
@@ -26,6 +26,10 @@
     "removeAi": "Remove AI player",
     "removePlayer": "Remove player",
     "addAi": "+ Add AI Player",
+    "wallFeature": "Walls",
+    "wallFeatureHint": "Two tokens on a cell block opponents from passing or capturing.",
+    "autoMove": "Auto-move",
+    "autoMoveHint": "Play your move automatically when only one is possible.",
     "imReady": "I'm Ready",
     "youreReady": "You're Ready",
     "startGame": "Start Game"

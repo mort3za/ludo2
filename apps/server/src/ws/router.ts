@@ -1,8 +1,9 @@
-import type { ClientMessage, ServerMessage } from "@ludo/shared";
+import type { ClientMessage, ServerMessage, GameOptions } from "@ludo/shared";
 import { TIMINGS } from "@ludo/shared";
 import { logger } from "../lib/logger.js";
 import {
   setReady,
+  setOptions,
   canStart,
   startGame,
   leaveRoom,
@@ -30,6 +31,11 @@ export interface WsClient {
 
 export type RoomStore = Map<string, Room>;
 
+export interface RouterDeps {
+  /** Persist a room's options so they survive across server restarts. */
+  persistOptions?: (roomId: string, options: GameOptions) => void;
+}
+
 export interface Router {
   dispatch: (client: WsClient, message: ClientMessage) => void;
   broadcast: (roomId: string, msg: ServerMessage) => void;
@@ -40,7 +46,7 @@ export interface Router {
   getGameSession: (roomId: string) => GameSession | undefined;
 }
 
-export function createRouter(rooms: RoomStore): Router {
+export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
   const clients = new Set<WsClient>();
   const gameSessions = new Map<string, GameSession>();
   const turnTimers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -95,6 +101,7 @@ export function createRouter(rooms: RoomStore): Router {
       players,
       ownerId: room.ownerId ?? "",
       capacity: room.boardSize,
+      options: room.options,
     });
   }
 
@@ -122,6 +129,18 @@ export function createRouter(rooms: RoomStore): Router {
         const result = setReady(room, client.playerId, !(current?.ready ?? false));
         if (result.ok) {
           rooms.set(client.roomId, result.room);
+          broadcastLobby(client.roomId, result.room);
+        } else {
+          client.send({ type: "error", message: result.error });
+        }
+        break;
+      }
+
+      case "set_options": {
+        const result = setOptions(room, client.playerId, message.options);
+        if (result.ok) {
+          rooms.set(client.roomId, result.room);
+          deps.persistOptions?.(client.roomId, result.room.options);
           broadcastLobby(client.roomId, result.room);
         } else {
           client.send({ type: "error", message: result.error });

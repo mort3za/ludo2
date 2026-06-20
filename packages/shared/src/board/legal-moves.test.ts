@@ -169,5 +169,13 @@ describe("legalMoves (shared)", () => {
       const moves = legalMoves(seatTokens, 6, 1, S, allTokens);
       expect(moves.find((m) => m.tokenId === "t1")).toBeDefined();
     });
+
+    it("ignores opponent blocks entirely when wallEnabled is false", () => {
+      const seatTokens = [makeToken("t1", "T/3", "blue")];
+      const allTokens: Token[] = [makeToken("r1", "T/5", "red"), makeToken("r2", "T/5", "red")];
+      // Same setup as "cannot land on an opponent block" — but the wall is off.
+      const moves = legalMoves(seatTokens, 2, 1, S, allTokens, false);
+      expect(moves.find((m) => m.tokenId === "t1")?.to).toBe("T/5");
+    });
   });
 });

@@ -1,3 +1,4 @@
+import { DEFAULT_GAME_OPTIONS } from "@ludo/shared";
 import type { GameState, PlayerColor, Seat, Token } from "@ludo/shared";
 
 /** Token shorthand: `tok("b1", "blue", "T/5")`. */
@@ -32,6 +33,7 @@ export function makeState(overrides: Partial<GameState> = {}): GameState {
     diceValue: null,
     consecutiveSixes: 0,
     standings: [],
+    options: { ...DEFAULT_GAME_OPTIONS },
     ...overrides,
   };
 }

@@ -20,6 +20,7 @@ export interface LegalMove {
  * @param seat - the seat index (1-based)
  * @param S - total number of seats in the game
  * @param allTokens - all tokens on the board (for block checks)
+ * @param wallEnabled - when false, the wall (block) rule is ignored entirely
  */
 export function legalMoves(
   seatTokens: Token[],
@@ -27,12 +28,15 @@ export function legalMoves(
   seat: number,
   S: number,
   allTokens: Token[],
+  wallEnabled = true,
 ): LegalMove[] {
   const moves: LegalMove[] = [];
-  const blocks = findBlocks([
-    ...seatTokens,
-    ...allTokens.filter((t) => !seatTokens.some((st) => st.id === t.id)),
-  ]);
+  const blocks = wallEnabled
+    ? findBlocks([
+        ...seatTokens,
+        ...allTokens.filter((t) => !seatTokens.some((st) => st.id === t.id)),
+      ])
+    : new Map<string, string>();
 
   for (const token of seatTokens) {
     const parsed = parseCell(token.cell);

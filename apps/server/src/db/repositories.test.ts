@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { sql } from "drizzle-orm";
 import { createDb, applySchema, type Db } from "./connection.js";
 import {
   insertPlayer,
@@ -6,6 +7,7 @@ import {
   insertRoom,
   getRoom,
   updateRoomPhase,
+  updateRoomOptions,
   insertGame,
   getGame,
   completeGame,
@@ -57,6 +59,43 @@ describe("repositories", () => {
       updateRoomPhase(db, "room-1", "playing").run();
       const room = getRoom(db, "room-1");
       expect(room!.phase).toBe("playing");
+    });
+
+    it("defaults game options (wall off, auto-move on)", () => {
+      insertRoom(db, "room-1", 4, 0, new Date(1000)).run();
+      const room = getRoom(db, "room-1");
+      expect(room!.wallEnabled).toBe(false);
+      expect(room!.autoMoveEnabled).toBe(true);
+    });
+
+    it("persists updated game options", () => {
+      insertRoom(db, "room-1", 4, 0, new Date(1000)).run();
+      updateRoomOptions(db, "room-1", { wallEnabled: true, autoMoveEnabled: false }).run();
+      const room = getRoom(db, "room-1");
+      expect(room!.wallEnabled).toBe(true);
+      expect(room!.autoMoveEnabled).toBe(false);
+    });
+
+    it("migrates a legacy rooms table missing the option columns", () => {
+      const legacy = createDb();
+      // Simulate a pre-existing file DB created before the option columns existed.
+      legacy.run(sql`CREATE TABLE rooms (
+        id TEXT PRIMARY KEY,
+        owner_id TEXT,
+        board_size INTEGER NOT NULL,
+        bot_count INTEGER NOT NULL DEFAULT 0,
+        phase TEXT NOT NULL,
+        game_id TEXT,
+        created_at INTEGER NOT NULL,
+        game_ended_at INTEGER
+      )`);
+
+      applySchema(legacy);
+
+      insertRoom(legacy, "room-1", 4, 0, new Date(1000)).run();
+      const room = getRoom(legacy, "room-1");
+      expect(room!.wallEnabled).toBe(false);
+      expect(room!.autoMoveEnabled).toBe(true);
     });
   });
 

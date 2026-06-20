@@ -36,6 +36,17 @@ export function updateRoomPhase(db: Db, id: string, phase: "lobby" | "playing" |
   return db.update(rooms).set({ phase }).where(eq(rooms.id, id));
 }
 
+export function updateRoomOptions(
+  db: Db,
+  id: string,
+  options: { wallEnabled: boolean; autoMoveEnabled: boolean },
+) {
+  return db
+    .update(rooms)
+    .set({ wallEnabled: options.wallEnabled, autoMoveEnabled: options.autoMoveEnabled })
+    .where(eq(rooms.id, id));
+}
+
 // --- Games ---
 
 export function insertGame(db: Db, id: string, roomId: string, now: Date) {

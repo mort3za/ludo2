@@ -12,14 +12,15 @@
 
 .d-btn--tertiary {
   @apply px-4 py-1.5;
-  background: transparent;
+  background: var(--color-canvas-ice);
   color: var(--color-adaline-ink);
   border: 1px solid var(--color-adaline-ink);
   border-radius: 32px;
 }
 
 .d-btn--tertiary:hover {
-  color: var(--color-valley-green);
+  background: var(--color-valley-green);
+  color: var(--color-canvas-ice);
   border-color: var(--color-valley-green);
 }
 

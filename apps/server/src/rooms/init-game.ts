@@ -63,5 +63,6 @@ export function initGame(room: Room, gameId: string, rng: Rng): GameState {
     diceValue: null,
     consecutiveSixes: 0,
     standings: [],
+    options: { ...room.options },
   };
 }

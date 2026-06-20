@@ -101,6 +101,7 @@ const legalTokenIds = computed(() => {
     mySeat.value,
     state.seats.length,
     state.tokens,
+    state.options.wallEnabled,
   );
   return moves.map((m) => m.tokenId);
 });

@@ -21,6 +21,20 @@ export interface Seat {
   personality?: BotPersonality;
 }
 
+/** Per-game options chosen in the lobby before the game starts. */
+export interface GameOptions {
+  /**
+   * When true, two same-color tokens on a track cell form a wall: opponents
+   * can neither pass over it nor capture those tokens. Default off.
+   */
+  wallEnabled: boolean;
+  /**
+   * When true, a human's turn is resolved automatically when only one legal
+   * move exists. Default on. Bots always auto-resolve regardless.
+   */
+  autoMoveEnabled: boolean;
+}
+
 export interface GameState {
   gameId: string;
   status: GameStatus;
@@ -30,4 +44,5 @@ export interface GameState {
   diceValue: number | null;
   consecutiveSixes: number;
   standings: number[];
+  options: GameOptions;
 }

@@ -1,0 +1,81 @@
+{
+  "common": {
+    "play": "Spielen",
+    "copyLink": "Link kopieren",
+    "copied": "Kopiert!",
+    "ready": "Bereit",
+    "notReady": "Nicht bereit",
+    "ai": "(KI)",
+    "loading": "Lädt…"
+  },
+  "nav": {
+    "home": "Startseite",
+    "language": "Sprache"
+  },
+  "home": {
+    "creating": "Wird erstellt…",
+    "error": "Etwas ist schiefgelaufen"
+  },
+  "room": {
+    "joining": "Raum wird betreten…",
+    "title": "Spiel einrichten",
+    "sharePrompt": "Teile diesen Link, um Spieler einzuladen:",
+    "roomId": "Raum-ID:",
+    "connected": "Verbunden",
+    "disconnected": "Getrennt",
+    "removeAi": "KI-Spieler entfernen",
+    "removePlayer": "Spieler entfernen",
+    "addAi": "+ KI-Spieler hinzufügen",
+    "wallFeature": "Mauern",
+    "wallFeatureHint": "Zwei Spielsteine auf einem Feld hindern Gegner am Passieren oder Schlagen.",
+    "autoMove": "Automatischer Zug",
+    "autoMoveHint": "Führe deinen Zug automatisch aus, wenn nur einer möglich ist.",
+    "imReady": "Ich bin bereit",
+    "youreReady": "Du bist bereit",
+    "startGame": "Spiel starten"
+  },
+  "match": {
+    "theirTurn": "Gegner ist am Zug",
+    "waitingForDice": "Warte auf Würfel…",
+    "yourTurnRoll": "Du bist dran — würfle!",
+    "noLegalMoves": "Keine gültigen Züge — wird übersprungen…",
+    "onlyOneMove": "Nur ein Zug — wird automatisch gewählt…",
+    "yourTurnMove": "Du bist dran — ziehe einen Stein!",
+    "aiThinking": "Spieler{seat} (KI) denkt nach…",
+    "away": "(abwesend)",
+    "playerDisconnected": "Spieler getrennt",
+    "roll": "Würfeln",
+    "loadingGame": "Spiel wird geladen…",
+    "captureSentHome": "{color}s Stein wurde nach Hause geschickt",
+    "secondsSuffix": "s"
+  },
+  "spectator": {
+    "badge": "Zuschauen",
+    "description": "Du siehst diesem Spiel als Zuschauer zu."
+  },
+  "connection": {
+    "reconnecting": "Getrennt — Verbindung wird wiederhergestellt…",
+    "connecting": "Verbindung wird hergestellt…"
+  },
+  "postgame": {
+    "youWon": "Du hast gewonnen!",
+    "gameOver": "Spiel vorbei",
+    "noData": "Keine Spieldaten verfügbar.",
+    "rematch": "Revanche",
+    "rematchExpired": "Revanche-Zeitfenster abgelaufen",
+    "backToLobby": "Zurück zur Lobby",
+    "seat": "Platz {index}",
+    "ordinal": {
+      "1": "1.",
+      "2": "2.",
+      "3": "3.",
+      "4": "4."
+    }
+  },
+  "colors": {
+    "blue": "Blau",
+    "red": "Rot",
+    "green": "Grün",
+    "yellow": "Gelb"
+  }
+}

@@ -4,7 +4,7 @@ import { createRouter, type WsClient, type RoomStore } from "./ws/router.js";
 import { parseClientMessage } from "./ws/protocol.js";
 import { createHttpHandler } from "./http/routes.js";
 import { createDb, applySchema } from "./db/connection.js";
-import { getRoom, purgeOldGames } from "./db/repositories.js";
+import { getRoom, purgeOldGames, updateRoomOptions } from "./db/repositories.js";
 import { SERVER_PORT, TIMINGS, MAX_SEATS, type ServerMessage } from "@ludo/shared";
 import { logger } from "./lib/logger.js";
 import type { ServerWebSocket } from "bun";
@@ -40,7 +40,9 @@ const auth = createGuestAuth(JWT_SECRET);
 const db = createDb(); // in-memory SQLite
 applySchema(db);
 const rooms: RoomStore = new Map();
-const router = createRouter(rooms);
+const router = createRouter(rooms, {
+  persistOptions: (roomId, options) => updateRoomOptions(db, roomId, options).run(),
+});
 const httpHandler = createHttpHandler({ auth, db });
 
 // Map Bun WebSocket → WsClient for lifecycle management
@@ -115,6 +117,13 @@ const server = Bun.serve<WsData>({
         const size = dbRoom?.boardSize ?? ROOM_CAPACITY;
         const botCount = dbRoom?.botCount ?? 0;
         let room: Room = createRoom(roomId, size, Date.now());
+        if (dbRoom) {
+          // Restore lobby-chosen options so they survive a server restart.
+          room.options = {
+            wallEnabled: dbRoom.wallEnabled,
+            autoMoveEnabled: dbRoom.autoMoveEnabled,
+          };
+        }
         for (let i = 0; i < botCount; i++) {
           const result = addBotMember(room);
           if (result.ok) room = result.room;

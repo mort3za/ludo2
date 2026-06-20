@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import type { GameState, Token } from "@ludo/shared";
-import { TIMINGS } from "@ludo/shared";
+import { TIMINGS, DEFAULT_GAME_OPTIONS } from "@ludo/shared";
 import { useGameAnimation } from "./use-game-animation";
 
 const FIRST_STEP_DELAY_MS = 16;
@@ -16,6 +16,7 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
     diceValue: null,
     consecutiveSixes: 0,
     standings: [],
+    options: { ...DEFAULT_GAME_OPTIONS },
     seats: [
       { index: 1, state: "active", color: "blue", playerId: "p1", isBot: false },
       { index: 2, state: "active", color: "red", playerId: "p2", isBot: false },

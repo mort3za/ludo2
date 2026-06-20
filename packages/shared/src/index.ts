@@ -1,6 +1,6 @@
 // Shared types
 export type { Player, PlayerColor, SeatState } from "./types/player.js";
-export type { GameState, GameStatus, Token, Cell, Seat } from "./types/game.js";
+export type { GameState, GameStatus, GameOptions, Token, Cell, Seat } from "./types/game.js";
 export type { ClientMessage, ServerMessage, LobbyPlayer } from "./types/ws.js";
 export type { BotPersonality } from "./types/ai.js";
 export { BOT_PERSONALITIES, PERSONALITY_TITLES } from "./types/ai.js";

@@ -330,6 +330,68 @@ describe("handleTimeout", () => {
   });
 });
 
+describe("auto-move option (single legal move)", () => {
+  // One blue token on the track, the rest in the yard; with a roll of 3 only the
+  // track token can move, so there is exactly one legal move.
+  const singleMoveTokens: Token[] = [
+    { id: "1-1", color: "blue", cell: "T/5" },
+    { id: "1-2", color: "blue", cell: "Y/1/2" },
+    { id: "1-3", color: "blue", cell: "Y/1/3" },
+    { id: "1-4", color: "blue", cell: "Y/1/4" },
+    { id: "2-1", color: "red", cell: "T/14" },
+    { id: "2-2", color: "red", cell: "Y/2/2" },
+    { id: "2-3", color: "red", cell: "Y/2/3" },
+    { id: "2-4", color: "red", cell: "Y/2/4" },
+  ];
+
+  it("auto-picks the only move for a human when auto-move is on (default)", () => {
+    const state = makeState({ tokens: singleMoveTokens, activeSeat: 1, status: "rolling" });
+    const session = createGameSession(state);
+    session.rng = { random: () => 0.5, rollDie: () => 3 };
+
+    const msgs = handleRoll(session);
+
+    expect(msgs.some((m) => m.type === "moved")).toBe(true);
+    expect(session.state.status).not.toBe("moving");
+  });
+
+  it("waits for a human pick when auto-move is off", () => {
+    const state = makeState({
+      tokens: singleMoveTokens,
+      activeSeat: 1,
+      status: "rolling",
+      options: { wallEnabled: false, autoMoveEnabled: false },
+    });
+    const session = createGameSession(state);
+    session.rng = { random: () => 0.5, rollDie: () => 3 };
+
+    const msgs = handleRoll(session);
+
+    expect(msgs.some((m) => m.type === "moved")).toBe(false);
+    expect(session.state.status).toBe("moving");
+  });
+
+  it("still auto-picks for a bot even when auto-move is off", () => {
+    const state = makeState({
+      seats: [
+        { index: 1, state: "active", color: "blue", playerId: "p1", isBot: true },
+        { index: 2, state: "active", color: "red", playerId: "p2", isBot: false },
+      ],
+      tokens: singleMoveTokens,
+      activeSeat: 1,
+      status: "rolling",
+      options: { wallEnabled: false, autoMoveEnabled: false },
+    });
+    const session = createGameSession(state);
+    session.rng = { random: () => 0.5, rollDie: () => 3 };
+
+    const msgs = handleRoll(session);
+
+    expect(msgs.some((m) => m.type === "moved")).toBe(true);
+    expect(session.state.status).not.toBe("moving");
+  });
+});
+
 describe("turn timing", () => {
   it("extends the next turn deadline while a no-move roll is still visible", () => {
     vi.useFakeTimers();

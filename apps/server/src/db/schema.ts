@@ -11,6 +11,8 @@ export const rooms = sqliteTable("rooms", {
   ownerId: text("owner_id"),
   boardSize: integer("board_size").notNull(),
   botCount: integer("bot_count").notNull().default(0),
+  wallEnabled: integer("wall_enabled", { mode: "boolean" }).notNull().default(false),
+  autoMoveEnabled: integer("auto_move_enabled", { mode: "boolean" }).notNull().default(true),
   phase: text("phase", { enum: ["lobby", "playing", "post-game"] }).notNull(),
   gameId: text("game_id"),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),

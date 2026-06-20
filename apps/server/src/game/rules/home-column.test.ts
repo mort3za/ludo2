@@ -21,15 +21,16 @@ describe("home-column rules", () => {
       expect(t1Move).toBeUndefined();
     });
 
-    it("cannot move through an occupied home cell", () => {
+    it("can jump over an occupied home cell to land on an empty one", () => {
       const seatTokens = [
         makeToken("t1", "H/1/1", "blue"),
         makeToken("t2", "H/1/2", "blue"), // occupies H/1/2
       ];
-      // t1 wants to move 3 steps → path: H/1/2(occupied!), H/1/3, H/1/4
+      // t1 moves 3 steps → passes over H/1/2(occupied), lands on H/1/4(empty)
       const moves = legalMoves(seatTokens, 3, 1, S, seatTokens);
       const t1Move = moves.find((m) => m.tokenId === "t1");
-      expect(t1Move).toBeUndefined();
+      expect(t1Move).toBeDefined();
+      expect(t1Move!.to).toBe("H/1/4");
     });
 
     it("allows move to empty home cell", () => {
@@ -70,15 +71,16 @@ describe("home-column rules", () => {
       expect(moves[0]!.to).toBe("H/1/3");
     });
 
-    it("cannot enter home if first home cell is occupied", () => {
+    it("can enter home jumping over an occupied first home cell", () => {
       const seatTokens = [
         makeToken("t1", "T/43", "blue"),
         makeToken("t2", "H/1/1", "blue"), // occupies H/1/1
       ];
-      // From T/43, step 2: T/44(entry)→H/1/1(occupied!)
+      // From T/43, step 2: passes over H/1/1(occupied), lands on H/1/2(empty)
       const moves = legalMoves(seatTokens, 2, 1, S, seatTokens);
       const t1Move = moves.find((m) => m.tokenId === "t1");
-      expect(t1Move).toBeUndefined();
+      expect(t1Move).toBeDefined();
+      expect(t1Move!.to).toBe("H/1/2");
     });
   });
 

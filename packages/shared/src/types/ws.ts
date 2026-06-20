@@ -1,4 +1,4 @@
-import type { Cell, GameState } from "./game.js";
+import type { Cell, GameState, GameOptions } from "./game.js";
 
 /** Messages sent from client to server */
 export type ClientMessage =
@@ -9,6 +9,8 @@ export type ClientMessage =
   | { type: "rematch" }
   | { type: "add_bot" }
   | { type: "remove_player"; playerId: string }
+  /** Lobby-only, owner-only: set the game options for the upcoming game. */
+  | { type: "set_options"; options: GameOptions }
   /** Dev-only: replace the live game state with a named test scenario. Ignored in production. */
   | { type: "debug_set_state"; scenario: string };
 
@@ -23,7 +25,7 @@ export interface LobbyPlayer {
 /** Messages sent from server to client */
 export type ServerMessage =
   | { type: "error"; message: string }
-  | { type: "lobby"; players: LobbyPlayer[]; ownerId: string; capacity: number }
+  | { type: "lobby"; players: LobbyPlayer[]; ownerId: string; capacity: number; options: GameOptions }
   | { type: "state"; state: GameState }
   | { type: "rolled"; seat: number; value: number }
   | { type: "moved"; tokenId: string; to: Cell; path: Cell[] }

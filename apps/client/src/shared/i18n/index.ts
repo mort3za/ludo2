@@ -1,8 +1,9 @@
 import { createI18n } from "vue-i18n";
 import en from "./locales/en.json";
 import fa from "./locales/fa.json";
+import de from "./locales/de.json";
 
-export const SUPPORTED_LOCALES = ["en", "fa"] as const;
+export const SUPPORTED_LOCALES = ["en", "fa", "de"] as const;
 export type LocaleCode = (typeof SUPPORTED_LOCALES)[number];
 
 /** localStorage key for the persisted locale choice. */
@@ -27,7 +28,7 @@ export const i18n = createI18n({
   legacy: false,
   locale: resolveInitialLocale(),
   fallbackLocale: "en",
-  messages: { en, fa },
+  messages: { en, fa, de },
 });
 
 // For strings outside component setup (e.g. `.ts` modules), use `i18n.global.t`.

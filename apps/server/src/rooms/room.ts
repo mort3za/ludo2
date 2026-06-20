@@ -1,4 +1,10 @@
-import { TIMINGS, type BotPersonality, BOT_PERSONALITIES } from "@ludo/shared";
+import {
+  TIMINGS,
+  DEFAULT_GAME_OPTIONS,
+  type BotPersonality,
+  type GameOptions,
+  BOT_PERSONALITIES,
+} from "@ludo/shared";
 
 export type RoomPhase = "lobby" | "playing" | "post-game";
 
@@ -17,6 +23,7 @@ export interface Room {
   spectators: Set<string>;
   phase: RoomPhase;
   boardSize: number;
+  options: GameOptions;
   createdAt: number;
   gameId: string | null;
   gameEndedAt: number | null;
@@ -46,6 +53,7 @@ export function createRoom(id: string, boardSize: number, now: number): Room {
     spectators: new Set(),
     phase: "lobby",
     boardSize,
+    options: { ...DEFAULT_GAME_OPTIONS },
     createdAt: now,
     gameId: null,
     gameEndedAt: null,
@@ -200,6 +208,28 @@ export function setReady(room: Room, playerId: string, ready: boolean): Result<{
   members.set(playerId, { ...existing, ready });
 
   return { ok: true, room: { ...room, members, spectators: cloneSpectators(room.spectators) } };
+}
+
+export function setOptions(
+  room: Room,
+  requesterId: string,
+  options: GameOptions,
+): Result<{ room: Room }> {
+  if (room.phase !== "lobby") return { ok: false, error: "not-in-lobby" };
+  if (room.ownerId !== requesterId) return { ok: false, error: "not-owner" };
+
+  return {
+    ok: true,
+    room: {
+      ...room,
+      options: {
+        wallEnabled: options.wallEnabled,
+        autoMoveEnabled: options.autoMoveEnabled,
+      },
+      members: cloneMembers(room.members),
+      spectators: cloneSpectators(room.spectators),
+    },
+  };
 }
 
 export function canStart(room: Room, requesterId: string): boolean {

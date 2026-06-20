@@ -7,7 +7,7 @@ import { useSessionStore } from "@/stores/session";
 import { guestLogin, refreshToken } from "@/shared/api/client";
 import { createWsConnection, type WsConnection } from "@/shared/lib/ws";
 import ReconnectBanner from "@/features/match/ReconnectBanner.vue";
-import type { ServerMessage, LobbyPlayer } from "@ludo/shared";
+import type { ServerMessage, LobbyPlayer, GameOptions } from "@ludo/shared";
 
 const props = defineProps<{ roomId: string }>();
 const { t } = useI18n();
@@ -17,6 +17,7 @@ const session = useSessionStore();
 const players = ref<LobbyPlayer[]>([]);
 const ownerId = ref("");
 const capacity = ref(0);
+const options = ref<GameOptions>({ wallEnabled: false, autoMoveEnabled: true });
 const gameStarted = ref(false);
 const joined = ref(false);
 const joinError = ref("");
@@ -50,6 +51,7 @@ function handleMessage(msg: ServerMessage) {
     players.value = msg.players;
     ownerId.value = msg.ownerId;
     capacity.value = msg.capacity;
+    options.value = msg.options;
   } else if (msg.type === "state") {
     gameStarted.value = true;
     router.push({ name: "match", params: { roomId: props.roomId } });
@@ -113,6 +115,12 @@ function startGame() {
 
 function addBot() {
   ws?.send({ type: "add_bot" });
+}
+
+function setOption(key: keyof GameOptions, value: boolean) {
+  // Optimistic local update; server echoes the authoritative state via lobby.
+  options.value = { ...options.value, [key]: value };
+  ws?.send({ type: "set_options", options: options.value });
 }
 
 function removePlayer(playerId: string) {
@@ -212,6 +220,51 @@ const canAddBot = computed(
       >
         {{ t("room.addAi") }}
       </DButton>
+
+      <!-- Game options -->
+      <div class="mb-6 flex flex-col gap-4" data-testid="game-options">
+        <label
+          class="flex items-center justify-between gap-3"
+          :class="isOwner ? 'cursor-pointer' : 'opacity-60'"
+        >
+          <span class="font-sans">
+            <span class="block text-body-sm text-midnight-ink">{{ t("room.wallFeature") }}</span>
+            <span class="block text-caption text-subtle-gray">{{ t("room.wallFeatureHint") }}</span>
+          </span>
+          <input
+            type="checkbox"
+            class="peer sr-only"
+            :checked="options.wallEnabled"
+            :disabled="!isOwner"
+            data-testid="wall-toggle"
+            @change="setOption('wallEnabled', ($event.target as HTMLInputElement).checked)"
+          />
+          <span
+            class="relative h-6 w-11 shrink-0 rounded-full bg-neutral-300 transition-colors after:absolute after:top-0.5 after:inset-s-0.5 after:size-5 after:rounded-full after:bg-white after:transition-transform peer-checked:bg-green-500 peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5"
+          ></span>
+        </label>
+
+        <label
+          class="flex items-center justify-between gap-3"
+          :class="isOwner ? 'cursor-pointer' : 'opacity-60'"
+        >
+          <span class="font-sans">
+            <span class="block text-body-sm text-midnight-ink">{{ t("room.autoMove") }}</span>
+            <span class="block text-caption text-subtle-gray">{{ t("room.autoMoveHint") }}</span>
+          </span>
+          <input
+            type="checkbox"
+            class="peer sr-only"
+            :checked="options.autoMoveEnabled"
+            :disabled="!isOwner"
+            data-testid="auto-move-toggle"
+            @change="setOption('autoMoveEnabled', ($event.target as HTMLInputElement).checked)"
+          />
+          <span
+            class="relative h-6 w-11 shrink-0 rounded-full bg-neutral-300 transition-colors after:absolute after:top-0.5 after:inset-s-0.5 after:size-5 after:rounded-full after:bg-white after:transition-transform peer-checked:bg-green-500 peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5"
+          ></span>
+        </label>
+      </div>
 
       <div class="flex flex-col gap-3">
         <DButton

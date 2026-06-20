@@ -38,7 +38,10 @@ const phase = computed(() => {
   if (props.state.status === "rolling") return "roll" as const;
   if (props.state.status === "moving") {
     if (props.legalTokenIds.length === 0) return "no-moves" as const;
-    if (props.legalTokenIds.length === 1) return "forced" as const;
+    // A single move is auto-picked server-side only when auto-move is on;
+    // otherwise the player must tap the token like any other pick.
+    if (props.legalTokenIds.length === 1 && props.state.options.autoMoveEnabled)
+      return "forced" as const;
     return "pick" as const;
   }
   return "waiting" as const;

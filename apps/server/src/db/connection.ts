@@ -54,11 +54,16 @@ export function applySchema(db: Db) {
     owner_id TEXT,
     board_size INTEGER NOT NULL,
     bot_count INTEGER NOT NULL DEFAULT 0,
+    wall_enabled INTEGER NOT NULL DEFAULT 0,
+    auto_move_enabled INTEGER NOT NULL DEFAULT 1,
     phase TEXT NOT NULL,
     game_id TEXT,
     created_at INTEGER NOT NULL,
     game_ended_at INTEGER
   )`);
+  // Migrate pre-existing file databases that lack the option columns.
+  addColumnIfMissing(db, "rooms", "wall_enabled", "INTEGER NOT NULL DEFAULT 0");
+  addColumnIfMissing(db, "rooms", "auto_move_enabled", "INTEGER NOT NULL DEFAULT 1");
   db.run(sql`CREATE TABLE IF NOT EXISTS games (
     id TEXT PRIMARY KEY,
     room_id TEXT NOT NULL,
@@ -75,3 +80,16 @@ export function applySchema(db: Db) {
 }
 
 export type Db = ReturnType<typeof createDb>;
+
+/**
+ * Add a column to an existing table when it isn't already present.
+ * `ADD COLUMN` throws if the column exists, so we swallow that case — this
+ * keeps `applySchema` idempotent against both fresh and previously-created DBs.
+ */
+function addColumnIfMissing(db: Db, table: string, column: string, definition: string): void {
+  try {
+    db.run(sql.raw(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`));
+  } catch {
+    // Column already exists — nothing to do.
+  }
+}

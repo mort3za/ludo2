@@ -67,6 +67,7 @@ export function handleRoll(session: GameSession): ServerMessage[] {
     state.activeSeat,
     state.seats.length,
     state.tokens,
+    state.options.wallEnabled,
   );
 
   if (moves.length === 0) {
@@ -85,11 +86,15 @@ export function handleRoll(session: GameSession): ServerMessage[] {
   }
 
   if (moves.length === 1) {
-    // Forced move — auto-pick
-    return [...messages, ...handleMove(session, moves[0]!.tokenId)];
+    // Forced move — auto-pick for bots always, and for humans unless the
+    // lobby disabled auto-move. When disabled, fall through to wait for a pick.
+    const activeIsBot = state.seats.find((s) => s.index === state.activeSeat)?.isBot ?? false;
+    if (activeIsBot || state.options.autoMoveEnabled) {
+      return [...messages, ...handleMove(session, moves[0]!.tokenId)];
+    }
   }
 
-  // Multiple legal moves — wait for player pick
+  // Multiple legal moves (or a single move with auto-move off) — wait for pick.
   state.status = "moving";
   return messages;
 }
@@ -109,6 +114,7 @@ export function handleMove(session: GameSession, tokenId: string): ServerMessage
     state.activeSeat,
     state.seats.length,
     state.tokens,
+    state.options.wallEnabled,
   );
   const move = moves.find((m) => m.tokenId === tokenId);
   if (!move) {
