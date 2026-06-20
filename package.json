@@ -35,6 +35,9 @@
     "*.{ts,vue}": [
       "oxfmt",
       "oxlint"
+    ],
+    "*.{json,css,md,html}": [
+      "oxfmt"
     ]
   }
 }
