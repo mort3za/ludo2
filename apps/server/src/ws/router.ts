@@ -20,6 +20,7 @@ import {
   type GameSession,
 } from "../rooms/game-session.js";
 import { scheduleBotTurn } from "../game/ai/driver.js";
+import { applyDebugScenario } from "./debug-scenarios.js";
 
 export interface WsClient {
   playerId: string;
@@ -276,6 +277,38 @@ export function createRouter(rooms: RoomStore): Router {
         });
         scheduleTurnTimeout(client.roomId);
         scheduleBotIfNeeded(client.roomId, newSession);
+        break;
+      }
+
+      case "debug_set_state": {
+        if (isProduction) {
+          client.send({ type: "error", message: "debug-disabled" });
+          break;
+        }
+        const session = gameSessions.get(client.roomId);
+        if (!session) {
+          client.send({ type: "error", message: "no-game" });
+          break;
+        }
+        const seat = session.state.seats.find((s) => s.playerId === client.playerId);
+        if (!seat) {
+          client.send({ type: "error", message: "not-a-player" });
+          break;
+        }
+        const next = applyDebugScenario(session.state, message.scenario, seat.index);
+        if (!next) {
+          client.send({ type: "error", message: "unknown-scenario" });
+          break;
+        }
+        session.state = next;
+        logger.info("WS debug_set_state applied", {
+          roomId: client.roomId,
+          scenario: message.scenario,
+          seat: seat.index,
+        });
+        // Broadcast state only — a "turn" message would reset diceValue/status
+        // on the client and wipe the scenario's mid-turn setup.
+        broadcast(client.roomId, { type: "state", state: next });
         break;
       }
     }

@@ -8,7 +8,9 @@ export type ClientMessage =
   | { type: "move"; tokenId: string }
   | { type: "rematch" }
   | { type: "add_bot" }
-  | { type: "remove_player"; playerId: string };
+  | { type: "remove_player"; playerId: string }
+  /** Dev-only: replace the live game state with a named test scenario. Ignored in production. */
+  | { type: "debug_set_state"; scenario: string };
 
 export interface LobbyPlayer {
   playerId: string;

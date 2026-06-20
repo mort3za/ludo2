@@ -65,6 +65,22 @@ describe("parseClientMessage", () => {
     expect(result.error).toBe("missing-tokenId");
   });
 
+  it("parses a valid debug_set_state message", () => {
+    const result = parseClientMessage(
+      JSON.stringify({ type: "debug_set_state", scenario: "home-stretch" }),
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.message).toEqual({ type: "debug_set_state", scenario: "home-stretch" });
+  });
+
+  it("rejects debug_set_state without scenario", () => {
+    const result = parseClientMessage(JSON.stringify({ type: "debug_set_state" }));
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toBe("missing-scenario");
+  });
+
   it("rejects null payload", () => {
     const result = parseClientMessage(JSON.stringify(null));
     expect(result.ok).toBe(false);

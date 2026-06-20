@@ -133,6 +133,13 @@ function onMove(tokenId: string) {
   ws?.send({ type: "move", tokenId });
 }
 
+// Dev-only: jump the live game to a named test scenario (see server debug-scenarios.ts).
+const isDev = import.meta.env.DEV;
+const debugScenarios = ["home-stretch"];
+function onDebugScenario(scenario: string) {
+  ws?.send({ type: "debug_set_state", scenario });
+}
+
 onMounted(() => {
   if (!session.token) {
     vueRouter.push({ name: "room", params: { roomId: props.roomId } });
@@ -180,6 +187,18 @@ onUnmounted(() => {
       />
 
       <TurnTimer :deadline="deadline" />
+
+      <div v-if="isDev && mySeat !== null" class="mt-1 flex flex-wrap gap-2">
+        <button
+          v-for="scenario in debugScenarios"
+          :key="scenario"
+          type="button"
+          class="rounded border border-subtle-gray px-2 py-1 text-body-sm font-sans text-subtle-gray"
+          @click="onDebugScenario(scenario)"
+        >
+          🐛 {{ scenario }}
+        </button>
+      </div>
     </div>
 
     <p v-else class="text-body-sm text-subtle-gray font-sans">Loading game…</p>

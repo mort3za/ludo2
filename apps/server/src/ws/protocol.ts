@@ -43,5 +43,12 @@ export function parseClientMessage(raw: string): ParseResult {
     return { ok: true, message: { type: "remove_player", playerId: obj["playerId"] } };
   }
 
+  if (type === "debug_set_state") {
+    if (typeof obj["scenario"] !== "string") {
+      return { ok: false, error: "missing-scenario" };
+    }
+    return { ok: true, message: { type: "debug_set_state", scenario: obj["scenario"] } };
+  }
+
   return { ok: false, error: "unknown-type" };
 }
