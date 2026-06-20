@@ -186,7 +186,7 @@ const canAddBot = computed(
               :title="p.connected ? t('room.connected') : t('room.disconnected')"
             ></span>
             {{ p.name }}
-            <span v-if="p.isBot" class="text-caption text-subtle-gray">{{ t("common.ai") }}</span>
+            <span v-if="p.isBot" class="text-caption text-subtle-gray">{{ t("common.bot") }}</span>
           </span>
           <div class="flex items-center gap-2">
             <span :class="p.ready ? 'text-green-600' : 'text-subtle-gray'" class="text-caption">
