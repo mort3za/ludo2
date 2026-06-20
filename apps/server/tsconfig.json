@@ -10,14 +10,8 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "composite": true,
-    "rootDir": "src",
-    "outDir": "dist",
+    "noEmit": true,
     "types": ["bun"]
   },
-  "include": ["src"],
-  "references": [{ "path": "../../packages/shared" }]
+  "include": ["src"]
 }

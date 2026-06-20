@@ -12,16 +12,10 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "jsxImportSource": "vue",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "composite": true,
-    "rootDir": "src",
-    "outDir": "dist",
+    "noEmit": true,
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "src/**/*.vue", "src/**/*.json"],
-  "references": [{ "path": "../../packages/shared" }]
+  "include": ["src", "src/**/*.vue", "src/**/*.json"]
 }

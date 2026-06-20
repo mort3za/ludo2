@@ -10,12 +10,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "composite": true,
-    "rootDir": "src",
-    "outDir": "dist"
+    "noEmit": true
   },
   "include": ["src"]
 }

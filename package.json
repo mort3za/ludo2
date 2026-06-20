@@ -13,7 +13,7 @@
     "lint": "oxlint .",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "types": "tsc -b"
+    "types": "bun run --filter '*' typecheck"
   },
   "dependencies": {
     "playwright": "^1.61.0"
