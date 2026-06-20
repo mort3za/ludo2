@@ -1,7 +1,16 @@
 {
   "name": "ludo-2",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
+  "description": "Real-time multiplayer Ludo game",
+  "keywords": [
+    "board-game",
+    "game",
+    "ludo",
+    "multiplayer",
+    "real-time"
+  ],
+  "author": "Morteza Ziyaeimehr <morteza.zym@gmail.com>",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -39,5 +48,8 @@
     "*.{json,css,md,html}": [
       "oxfmt"
     ]
+  },
+  "engines": {
+    "bun": ">=1.3.0"
   }
 }
