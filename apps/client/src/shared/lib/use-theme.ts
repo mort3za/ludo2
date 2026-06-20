@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { computed, ref } from "vue";
 
 /** User's theme choice; "system" follows the OS `prefers-color-scheme`. */
 export type ThemeChoice = "system" | "light" | "dark";
@@ -24,16 +24,19 @@ const media =
     ? window.matchMedia("(prefers-color-scheme: dark)")
     : null;
 
-function systemTheme(): ResolvedTheme {
-  return media?.matches ? "dark" : "light";
-}
+/** Reactive mirror of the OS `prefers-color-scheme: dark` match. */
+const systemDark = ref(media?.matches ?? false);
 
 function resolve(choice: ThemeChoice): ResolvedTheme {
-  return choice === "system" ? systemTheme() : choice;
+  if (choice === "system") return systemDark.value ? "dark" : "light";
+  return choice;
 }
 
 /** Shared theme choice — one source of truth for the selector and the document. */
 const choice = ref<ThemeChoice>(readChoice());
+
+/** The concrete theme actually applied — reactive; tracks choice + OS scheme. */
+export const resolvedTheme = computed<ResolvedTheme>(() => resolve(choice.value));
 
 /** Apply the resolved theme to `<html data-theme>`. Safe to call before mount. */
 export function applyThemeToDocument(c: ThemeChoice = choice.value): void {
@@ -41,7 +44,8 @@ export function applyThemeToDocument(c: ThemeChoice = choice.value): void {
 }
 
 // Re-apply when the OS scheme flips while we're following "system".
-media?.addEventListener("change", () => {
+media?.addEventListener("change", (e) => {
+  systemDark.value = e.matches;
   if (choice.value === "system") applyThemeToDocument();
 });
 

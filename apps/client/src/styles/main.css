@@ -13,6 +13,7 @@
   --color-surface-card: var(--color-canvas-white);
   --color-surface-muted: var(--color-card-wash);
   --color-surface-inverse: var(--color-muted-slate);
+  --color-surface-secondary: transparent;
   --color-border: var(--color-mist-gray);
   --color-accent: var(--color-valley-green);
   --color-on-accent: var(--color-canvas-ice);
@@ -99,6 +100,7 @@
   --color-night-inverse-fg: #16230f;
   --color-night-border: #353d2d;
   --color-night-accent: #5b8a45;
+  --color-night-charcoal: #222820; /* ~#222, green-tinted to match the palette */
 
   /* board / dice surface colors (consumed by SVG via var(); flip with theme) */
   --color-frost: rgba(255, 255, 255, 0.3);
@@ -113,18 +115,15 @@
 }
 
 html {
-  background-image: url("../assets/bg-1.png");
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  background-repeat: no-repeat;
+  /* Solid anti-flash color shown until <AppBackground> picture loads. */
+  background-color: #e7e2da;
   min-height: 100%;
 }
 
 /* — The flip — remap only the semantic layer (and board/dice surfaces) to
    dark primitives. No `dark:` variants in markup, no JS color logic. */
 html[data-theme="dark"] {
-  background-image: url("../assets/bg-1-dark.png");
+  background-color: #10140c;
 
   --color-text-primary: var(--color-night-fg);
   --color-text-muted: var(--color-night-muted);
@@ -133,6 +132,7 @@ html[data-theme="dark"] {
   --color-surface-card: var(--color-night-card);
   --color-surface-muted: var(--color-night-muted-surface);
   --color-surface-inverse: var(--color-night-inverse-surface);
+  --color-surface-secondary: var(--color-night-charcoal);
   --color-border: var(--color-night-border);
   --color-accent: var(--color-night-accent);
   --color-on-accent: var(--color-night-fg);
@@ -143,6 +143,12 @@ html[data-theme="dark"] {
   --color-frost: rgba(16, 20, 12, 0.5);
   --color-board-cell: #242a1d;
   --color-board-cell-edge: #3a4230;
+}
+
+/* The homepage title sits over the white moon, so it must read dark in dark
+   mode — overriding the light semantic text color the flip otherwise applies. */
+html[data-theme="dark"] .home-title {
+  color: var(--color-midnight-ink);
 }
 
 main {
