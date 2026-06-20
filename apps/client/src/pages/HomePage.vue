@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { DButton } from "@/shared/ui";
 import { guestLogin, createRoom } from "@/shared/api/client";
 import { useSessionStore } from "@/stores/session";
 
+const { t } = useI18n();
 const router = useRouter();
 const session = useSessionStore();
 const loading = ref(false);
@@ -19,7 +21,7 @@ async function play() {
     const { roomId } = await createRoom();
     await router.push({ name: "room", params: { roomId } });
   } catch (e) {
-    error.value = e instanceof Error ? e.message : "Something went wrong";
+    error.value = e instanceof Error ? e.message : t("home.error");
   } finally {
     loading.value = false;
   }
@@ -36,7 +38,7 @@ async function play() {
       class="px-10 py-3 text-heading-sm min-w-40"
       @click="play"
     >
-      {{ loading ? "Creating…" : "Play" }}
+      {{ loading ? t("home.creating") : t("common.play") }}
     </DButton>
     <p v-if="error" class="text-caption text-red-500 font-sans text-center">{{ error }}</p>
   </main>

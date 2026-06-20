@@ -1,0 +1,77 @@
+{
+  "common": {
+    "play": "بازی",
+    "copyLink": "کپی لینک",
+    "copied": "کپی شد!",
+    "ready": "آماده",
+    "notReady": "آماده نیست",
+    "ai": "(هوش مصنوعی)",
+    "loading": "در حال بارگذاری…"
+  },
+  "nav": {
+    "home": "خانه",
+    "logout": "خروج"
+  },
+  "home": {
+    "creating": "در حال ساخت…",
+    "error": "مشکلی پیش آمد"
+  },
+  "room": {
+    "joining": "در حال پیوستن به اتاق…",
+    "title": "آماده‌سازی بازی",
+    "sharePrompt": "این لینک را برای دعوت بازیکنان به اشتراک بگذارید:",
+    "roomId": "شناسهٔ اتاق:",
+    "connected": "متصل",
+    "disconnected": "قطع",
+    "removeAi": "حذف بازیکن هوش مصنوعی",
+    "removePlayer": "حذف بازیکن",
+    "addAi": "+ افزودن بازیکن هوش مصنوعی",
+    "imReady": "آماده‌ام",
+    "youreReady": "شما آماده‌اید",
+    "startGame": "شروع بازی"
+  },
+  "match": {
+    "theirTurn": "نوبت آن‌ها",
+    "waitingForDice": "در انتظار تاس…",
+    "yourTurnRoll": "نوبت شماست — تاس بیندازید!",
+    "noLegalMoves": "حرکت مجازی نیست — رد می‌شود…",
+    "onlyOneMove": "تنها یک حرکت — انتخاب خودکار…",
+    "yourTurnMove": "نوبت شماست — یک مهره را حرکت دهید!",
+    "aiThinking": "بازیکن {seat} (هوش مصنوعی) در حال فکر کردن است…",
+    "away": "(غایب)",
+    "playerDisconnected": "ارتباط بازیکن قطع شد",
+    "roll": "تاس",
+    "loadingGame": "در حال بارگذاری بازی…",
+    "captureSentHome": "مهرهٔ {color} به خانه فرستاده شد",
+    "secondsSuffix": "ث"
+  },
+  "spectator": {
+    "badge": "تماشاگر",
+    "description": "شما این بازی را به‌عنوان تماشاگر می‌بینید."
+  },
+  "connection": {
+    "reconnecting": "قطع شد — در حال اتصال مجدد…",
+    "connecting": "در حال اتصال…"
+  },
+  "postgame": {
+    "youWon": "شما بردید!",
+    "gameOver": "پایان بازی",
+    "noData": "اطلاعاتی از بازی موجود نیست.",
+    "rematch": "بازی مجدد",
+    "rematchExpired": "زمان بازی مجدد به پایان رسید",
+    "backToLobby": "بازگشت به اتاق",
+    "seat": "صندلی {index}",
+    "ordinal": {
+      "1": "اول",
+      "2": "دوم",
+      "3": "سوم",
+      "4": "چهارم"
+    }
+  },
+  "colors": {
+    "blue": "آبی",
+    "red": "قرمز",
+    "green": "سبز",
+    "yellow": "زرد"
+  }
+}

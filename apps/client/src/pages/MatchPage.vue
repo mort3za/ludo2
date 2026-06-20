@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { useSessionStore } from "@/stores/session";
 import { useGameResultStore } from "@/stores/game-result";
 import { createWsConnection, type WsConnection } from "@/shared/lib/ws";
@@ -15,6 +16,7 @@ import SpectatorBadge from "@/features/match/SpectatorBadge.vue";
 import CaptureToast from "@/features/match/CaptureToast.vue";
 
 const props = defineProps<{ roomId: string }>();
+const { t } = useI18n();
 const vueRouter = useRouter();
 const session = useSessionStore();
 const gameResultStore = useGameResultStore();
@@ -135,7 +137,7 @@ function onMove(tokenId: string) {
 
 // Dev-only: jump the live game to a named test scenario (see server debug-scenarios.ts).
 const isDev = import.meta.env.DEV;
-const debugScenarios = ["home-stretch"];
+const debugScenarios = ["home-stretch", "home-jump"];
 function onDebugScenario(scenario: string) {
   ws?.send({ type: "debug_set_state", scenario });
 }
@@ -201,6 +203,6 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <p v-else class="text-body-sm text-subtle-gray font-sans">Loading game…</p>
+    <p v-else class="text-body-sm text-subtle-gray font-sans">{{ t("match.loadingGame") }}</p>
   </main>
 </template>

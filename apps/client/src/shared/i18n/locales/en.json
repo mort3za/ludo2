@@ -1,0 +1,77 @@
+{
+  "common": {
+    "play": "Play",
+    "copyLink": "Copy Link",
+    "copied": "Copied!",
+    "ready": "Ready",
+    "notReady": "Not ready",
+    "ai": "(AI)",
+    "loading": "Loading…"
+  },
+  "nav": {
+    "home": "Home",
+    "logout": "Log out"
+  },
+  "home": {
+    "creating": "Creating…",
+    "error": "Something went wrong"
+  },
+  "room": {
+    "joining": "Joining room…",
+    "title": "Setup the Game",
+    "sharePrompt": "Share this link to invite players:",
+    "roomId": "Room ID:",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "removeAi": "Remove AI player",
+    "removePlayer": "Remove player",
+    "addAi": "+ Add AI Player",
+    "imReady": "I'm Ready",
+    "youreReady": "You're Ready",
+    "startGame": "Start Game"
+  },
+  "match": {
+    "theirTurn": "Their turn",
+    "waitingForDice": "Waiting for dice…",
+    "yourTurnRoll": "Your turn — roll the dice!",
+    "noLegalMoves": "No legal moves — passing…",
+    "onlyOneMove": "Only one move — auto-picking…",
+    "yourTurnMove": "Your turn — move a token!",
+    "aiThinking": "Player{seat} (AI) is thinking…",
+    "away": "(away)",
+    "playerDisconnected": "Player disconnected",
+    "roll": "Roll",
+    "loadingGame": "Loading game…",
+    "captureSentHome": "{color}'s token sent home",
+    "secondsSuffix": "s"
+  },
+  "spectator": {
+    "badge": "Spectating",
+    "description": "You are watching this game as a spectator."
+  },
+  "connection": {
+    "reconnecting": "Disconnected — reconnecting…",
+    "connecting": "Connecting…"
+  },
+  "postgame": {
+    "youWon": "You won!",
+    "gameOver": "Game Over",
+    "noData": "No game data available.",
+    "rematch": "Rematch",
+    "rematchExpired": "Rematch window expired",
+    "backToLobby": "Back to Lobby",
+    "seat": "Seat {index}",
+    "ordinal": {
+      "1": "1st",
+      "2": "2nd",
+      "3": "3rd",
+      "4": "4th"
+    }
+  },
+  "colors": {
+    "blue": "Blue",
+    "red": "Red",
+    "green": "Green",
+    "yellow": "Yellow"
+  }
+}

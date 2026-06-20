@@ -65,3 +65,9 @@ html {
 main {
   margin-top: var(--header-height);
 }
+
+/* Persian locale: prefer Vazirmatn. `font-sans` utilities resolve `var(--font-sans)`
+   at use-site, so overriding the variable here re-fonts the whole RTL subtree. */
+[lang="fa"] {
+  --font-sans: "Vazirmatn", "akkurat", "DM Sans", ui-sans-serif, system-ui, sans-serif;
+}

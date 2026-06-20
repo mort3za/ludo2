@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { DButton } from "@/shared/ui";
 import { playerColorHex } from "@/entities/game/board-geometry";
 import type { GameState } from "@ludo/shared";
@@ -16,6 +17,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   roll: [];
 }>();
+
+const { t } = useI18n();
 
 const isMyTurn = computed(() => props.state.activeSeat === props.mySeat);
 
@@ -44,18 +47,19 @@ const phase = computed(() => {
 const statusText = computed(() => {
   switch (phase.value) {
     case "waiting":
-      if (activeSeatIsBot.value) return `Player${activeSeat.value?.index ?? ""} (AI) is thinking…`;
-      return "Their turn";
+      if (activeSeatIsBot.value)
+        return t("match.aiThinking", { seat: activeSeat.value?.index ?? "" });
+      return t("match.theirTurn");
     case "locked":
-      return "Waiting for dice…";
+      return t("match.waitingForDice");
     case "roll":
-      return "Your turn — roll the dice!";
+      return t("match.yourTurnRoll");
     case "no-moves":
-      return "No legal moves — passing…";
+      return t("match.noLegalMoves");
     case "forced":
-      return "Only one move — auto-picking…";
+      return t("match.onlyOneMove");
     case "pick":
-      return "Your turn — move a token!";
+      return t("match.yourTurnMove");
   }
 });
 </script>
@@ -71,10 +75,10 @@ const statusText = computed(() => {
       <span class="truncate">{{ statusText }}</span>
       <span
         v-if="!seatConnected"
-        class="ml-auto text-caption text-neutral-500 whitespace-nowrap"
-        title="Player disconnected"
+        class="ms-auto text-caption text-neutral-500 whitespace-nowrap"
+        :title="t('match.playerDisconnected')"
       >
-        (away)
+        {{ t("match.away") }}
       </span>
     </p>
 
@@ -86,7 +90,9 @@ const statusText = computed(() => {
       >
         {{ lastRolledValue }}
       </div>
-      <DButton :disabled="phase !== 'roll'" @click="emit('roll')"> Roll </DButton>
+      <DButton :disabled="phase !== 'roll'" @click="emit('roll')">
+        {{ t("match.roll") }}
+      </DButton>
     </div>
   </div>
 </template>

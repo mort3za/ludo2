@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { useSessionStore } from "@/stores/session";
 import { useGameResultStore } from "@/stores/game-result";
 import { createWsConnection, type WsConnection } from "@/shared/lib/ws";
@@ -9,6 +10,7 @@ import { TIMINGS } from "@ludo/shared";
 import PostGameStandings from "@/features/match/PostGameStandings.vue";
 
 const props = defineProps<{ roomId: string }>();
+const { t } = useI18n();
 const router = useRouter();
 const session = useSessionStore();
 const gameResult = useGameResultStore();
@@ -58,14 +60,18 @@ onUnmounted(() => {
       :player-id="session.playerId"
     />
 
-    <p v-else class="text-body-sm text-subtle-gray font-sans">No game data available.</p>
+    <p v-else class="text-body-sm text-subtle-gray font-sans">{{ t("postgame.noData") }}</p>
 
     <div class="mt-4 flex flex-col items-center gap-2 w-full max-w-sm">
-      <DButton v-if="rematchAvailable" class="w-full" @click="sendRematch">Rematch</DButton>
+      <DButton v-if="rematchAvailable" class="w-full" @click="sendRematch">
+        {{ t("postgame.rematch") }}
+      </DButton>
       <p v-else-if="isOwner" class="text-caption text-subtle-gray text-center font-sans">
-        Rematch window expired
+        {{ t("postgame.rematchExpired") }}
       </p>
-      <DButton variant="ghost" class="w-full" @click="goToLobby">Back to Lobby</DButton>
+      <DButton variant="ghost" class="w-full" @click="goToLobby">
+        {{ t("postgame.backToLobby") }}
+      </DButton>
     </div>
   </main>
 </template>

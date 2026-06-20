@@ -1,23 +1,18 @@
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
+import { useI18n } from "vue-i18n";
 import type { PlayerColor } from "@ludo/shared";
 
 const props = defineProps<{
   color?: PlayerColor;
 }>();
 
+const { t } = useI18n();
+
 const isVisible = ref(false);
 let dismissTimer: ReturnType<typeof setTimeout> | null = null;
 
-const displayName = computed(() => {
-  const colors: Record<PlayerColor, string> = {
-    blue: "Blue",
-    red: "Red",
-    green: "Green",
-    yellow: "Yellow",
-  };
-  return props.color ? colors[props.color] : "";
-});
+const displayName = computed(() => (props.color ? t(`colors.${props.color}`) : ""));
 
 watch(
   () => props.color,
@@ -40,12 +35,12 @@ watch(
 <template>
   <div
     v-if="isVisible"
-    class="fixed inset-0 flex items-center justify-center pointer-events-none"
+    class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
   >
     <div
       class="bg-neutral-900 text-white px-6 py-3 rounded-lg text-body-sm font-sans font-medium shadow-lg animate-fade-in"
     >
-      {{ displayName }}'s token sent home
+      {{ t("match.captureSentHome", { color: displayName }) }}
     </div>
   </div>
 </template>

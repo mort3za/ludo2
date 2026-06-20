@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { DButton, DCard } from "@/shared/ui";
 import { useSessionStore } from "@/stores/session";
 import { guestLogin, refreshToken } from "@/shared/api/client";
@@ -9,6 +10,7 @@ import ReconnectBanner from "@/features/match/ReconnectBanner.vue";
 import type { ServerMessage, LobbyPlayer } from "@ludo/shared";
 
 const props = defineProps<{ roomId: string }>();
+const { t } = useI18n();
 const router = useRouter();
 const session = useSessionStore();
 
@@ -68,7 +70,7 @@ async function joinAsGuest() {
     session.login(auth.token, auth.playerId);
     connectWs();
   } catch (e) {
-    joinError.value = e instanceof Error ? e.message : "Something went wrong";
+    joinError.value = e instanceof Error ? e.message : t("home.error");
   } finally {
     connecting.value = false;
   }
@@ -123,11 +125,11 @@ const canAddBot = computed(
 </script>
 
 <template>
-  <main class="min-h-screen flex items-center justify-center bg-canvas-white">
+  <main class="flex items-center justify-center bg-canvas-white">
     <ReconnectBanner v-if="ws" :status="ws.status.value" />
 
     <DCard v-if="connecting && !joined" class="p-8 w-full max-w-sm">
-      <p class="text-body-sm text-subtle-gray font-sans text-center">Joining room…</p>
+      <p class="text-body-sm text-subtle-gray font-sans text-center">{{ t("room.joining") }}</p>
     </DCard>
 
     <DCard v-else-if="!joined" class="p-8 w-full max-w-sm">
@@ -142,21 +144,24 @@ const canAddBot = computed(
 
     <!-- Lobby view after joining -->
     <DCard v-else class="bg-frost rounded-lg p-8 w-full max-w-sm">
-      <h2 class="text-heading font-sans text-midnight-ink text-center mb-6">Setup the Game</h2>
+      <h2 class="text-heading font-sans text-midnight-ink text-center mb-6">
+        {{ t("room.title") }}
+      </h2>
 
       <div class="mb-6">
         <p class="text-body-sm text-subtle-gray font-sans mb-2">
-          Share this link to invite players:
+          {{ t("room.sharePrompt") }}
         </p>
         <div class="flex items-center gap-2">
           <DButton class="w-full" variant="ghost" @click="copyLink">
-            {{ copied ? "Copied!" : "Copy Link" }}
+            {{ copied ? t("common.copied") : t("common.copyLink") }}
           </DButton>
         </div>
         <p class="text-caption text-subtle-gray font-sans mt-4 mb-1">
-          Room ID:
+          {{ t("room.roomId") }}
           <code
             class="text-body-xs text-subtle-gray text-center mb-6 font-sans"
+            dir="ltr"
             data-testid="room-id"
           >
             {{ roomId }}
@@ -175,21 +180,21 @@ const canAddBot = computed(
             <span
               class="w-2 h-2 rounded-full shrink-0"
               :class="p.connected ? 'bg-green-500' : 'bg-neutral-400'"
-              :title="p.connected ? 'Connected' : 'Disconnected'"
+              :title="p.connected ? t('room.connected') : t('room.disconnected')"
             ></span>
             {{ p.name }}
-            <span v-if="p.isBot" class="text-caption text-subtle-gray">(AI)</span>
+            <span v-if="p.isBot" class="text-caption text-subtle-gray">{{ t("common.ai") }}</span>
           </span>
           <div class="flex items-center gap-2">
             <span :class="p.ready ? 'text-green-600' : 'text-subtle-gray'" class="text-caption">
-              {{ p.ready ? "Ready" : "Not ready" }}
+              {{ p.ready ? t("common.ready") : t("common.notReady") }}
             </span>
             <button
               v-if="isOwner"
               type="button"
               class="d-btn d-btn--tertiary d-btn--circle"
               :data-testid="`remove-player-${p.playerId}`"
-              :aria-label="p.isBot ? 'Remove AI player' : 'Remove player'"
+              :aria-label="p.isBot ? t('room.removeAi') : t('room.removePlayer')"
               @click="removePlayer(p.playerId)"
             >
               ×
@@ -205,7 +210,7 @@ const canAddBot = computed(
         data-testid="add-bot-btn"
         @click="addBot"
       >
-        + Add AI Player
+        {{ t("room.addAi") }}
       </DButton>
 
       <div class="flex flex-col gap-3">
@@ -228,7 +233,7 @@ const canAddBot = computed(
                 clip-rule="evenodd"
               />
             </svg>
-            {{ myReady ? "You're Ready" : "I'm Ready" }}
+            {{ myReady ? t("room.youreReady") : t("room.imReady") }}
           </span>
         </DButton>
 
@@ -239,7 +244,7 @@ const canAddBot = computed(
           data-testid="start-btn"
           @click="startGame"
         >
-          Start Game
+          {{ t("room.startGame") }}
         </DButton>
       </div>
     </DCard>

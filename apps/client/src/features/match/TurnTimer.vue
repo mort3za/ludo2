@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted, watch } from "vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   /** Unix timestamp (ms) when the turn expires. 0 or undefined = no timer. */
@@ -53,6 +56,6 @@ onUnmounted(() => {
     class="font-sans text-body-sm sm:text-heading tabular-nums transition-colors"
     :class="isWarning ? 'text-red-500 animate-pulse' : 'text-subtle-gray'"
   >
-    {{ displaySeconds }}s
+    {{ displaySeconds }}{{ t("match.secondsSuffix") }}
   </div>
 </template>

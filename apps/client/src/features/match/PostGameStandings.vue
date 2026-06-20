@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { DCard } from "@/shared/ui";
 import { playerColorHex } from "@/entities/game/board-geometry";
 import type { GameState, Seat } from "@ludo/shared";
@@ -9,6 +10,8 @@ const props = defineProps<{
   /** Current viewer's player id — used to show "You won!" when they placed first. */
   playerId?: string | null;
 }>();
+
+const { t } = useI18n();
 
 /** Occupied seats sorted by standings position (1st, 2nd, etc.); empty seats excluded. */
 const rankedSeats = computed(() => {
@@ -27,19 +30,12 @@ const didWin = computed(() => {
   const mySeat = props.state.seats.find((s) => s.playerId === props.playerId);
   return mySeat != null && props.state.standings[0] === mySeat.index;
 });
-
-const ordinalSuffix = (n: number) => {
-  if (n === 1) return "st";
-  if (n === 2) return "nd";
-  if (n === 3) return "rd";
-  return "th";
-};
 </script>
 
 <template>
   <DCard class="p-6 max-w-sm mx-auto">
     <h2 class="text-heading font-sans text-midnight-ink mb-4 text-center">
-      {{ didWin ? "You won!" : "Game Over" }}
+      {{ didWin ? t("postgame.youWon") : t("postgame.gameOver") }}
     </h2>
 
     <ol class="space-y-2 mb-6">
@@ -48,12 +44,12 @@ const ordinalSuffix = (n: number) => {
         :key="seat.index"
         class="flex items-center gap-3 font-sans text-body-sm"
       >
-        <span class="w-8 text-right text-subtle-gray">{{ rank }}{{ ordinalSuffix(rank) }}</span>
+        <span class="w-8 text-end text-subtle-gray">{{ t(`postgame.ordinal.${rank}`) }}</span>
         <span
           class="w-4 h-4 rounded-full inline-block"
           :style="{ backgroundColor: playerColorHex(seat.color) }"
         />
-        <span class="text-deep-charcoal">Seat {{ seat.index }}</span>
+        <span class="text-deep-charcoal">{{ t("postgame.seat", { index: seat.index }) }}</span>
       </li>
     </ol>
   </DCard>
