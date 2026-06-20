@@ -1,0 +1,177 @@
+{
+  "common": {
+    "play": "Gioca",
+    "copyLink": "Copia link",
+    "copied": "Copiato!",
+    "ready": "Pronto",
+    "notReady": "Non pronto",
+    "ai": "(IA)",
+    "loading": "Caricamento…",
+    "about": "Informazioni",
+    "howToPlay": "Come si gioca"
+  },
+  "nav": {
+    "home": "Home",
+    "language": "Lingua",
+    "toggleSound": "Attiva/disattiva audio"
+  },
+  "home": {
+    "creating": "Creazione…",
+    "error": "Qualcosa è andato storto"
+  },
+  "room": {
+    "joining": "Accesso alla stanza…",
+    "title": "Imposta la partita",
+    "sharePrompt": "Condividi questo link per invitare i giocatori:",
+    "roomId": "ID stanza:",
+    "connected": "Connesso",
+    "disconnected": "Disconnesso",
+    "removeAi": "Rimuovi giocatore IA",
+    "removePlayer": "Rimuovi giocatore",
+    "addAi": "Aggiungi giocatore robot",
+    "wallFeature": "Muri",
+    "wallFeatureHint": "Due pedine sulla stessa casella impediscono agli avversari di passare o catturare.",
+    "autoMove": "Mossa automatica",
+    "autoMoveHint": "Esegue la tua mossa automaticamente quando ne è possibile solo una.",
+    "turnTimer": "Timer del turno",
+    "turnTimerHint": "Limita ogni turno a 30 secondi. Disattivalo per tempo illimitato.",
+    "settings": "Impostazioni di gioco",
+    "imReady": "Sono pronto",
+    "youreReady": "Sei pronto",
+    "startGame": "Inizia la partita"
+  },
+  "match": {
+    "theirTurn": "Il loro turno",
+    "waitingForDice": "In attesa del dado…",
+    "yourTurnRoll": "Tocca a te: tira il dado!",
+    "noLegalMoves": "Nessuna mossa valida: si passa…",
+    "onlyOneMove": "Una sola mossa: scelta automatica…",
+    "yourTurnMove": "Tocca a te: muovi una pedina!",
+    "aiThinking": "Il giocatore {seat} (IA) sta pensando…",
+    "away": "(assente)",
+    "playerDisconnected": "Giocatore disconnesso",
+    "roll": "Tira",
+    "loadingGame": "Caricamento partita…",
+    "captureSentHome": "La pedina di {color} è stata rimandata alla base",
+    "secondsSuffix": "s"
+  },
+  "spectator": {
+    "badge": "In osservazione",
+    "description": "Stai guardando questa partita come spettatore."
+  },
+  "connection": {
+    "reconnecting": "Disconnesso: riconnessione…",
+    "connecting": "Connessione…"
+  },
+  "postgame": {
+    "youWon": "Hai vinto!",
+    "gameOver": "Partita finita",
+    "noData": "Nessun dato della partita disponibile.",
+    "rematch": "Rivincita",
+    "rematchExpired": "Finestra per la rivincita scaduta",
+    "backToLobby": "Torna alla lobby",
+    "seat": "Posto {index}",
+    "ordinal": {
+      "1": "1º",
+      "2": "2º",
+      "3": "3º",
+      "4": "4º",
+      "5": "5º",
+      "6": "6º",
+      "7": "7º",
+      "8": "8º"
+    }
+  },
+  "colors": {
+    "blue": "Blu",
+    "red": "Rosso",
+    "green": "Verde",
+    "yellow": "Giallo",
+    "purple": "Viola",
+    "orange": "Arancione",
+    "cyan": "Ciano",
+    "pink": "Rosa"
+  },
+  "about": {
+    "title": "Informazioni",
+    "description": "Ludo 2 è un'implementazione multigiocatore in tempo reale del classico gioco da tavolo Ludo, per 4 a 8 giocatori.",
+    "openSourceTitle": "Open source",
+    "openSource": "Questo progetto è open source. Il suo codice sorgente completo è ospitato su GitHub, dove contributi e feedback sono benvenuti.",
+    "viewOnGithub": "Vedi su GitHub",
+    "issuesTitle": "Hai trovato un problema?",
+    "issues": "Se riscontri un bug o vuoi richiedere una funzionalità, apri una segnalazione sul tracker delle issue di GitHub.",
+    "reportIssue": "Segnala un problema",
+    "detailsTitle": "Dettagli",
+    "versionLabel": "Versione",
+    "builtWithLabel": "Realizzato con",
+    "builtWith": "Vue 3, Vite, Tailwind CSS e Bun."
+  },
+  "howto": {
+    "title": "Come si gioca",
+    "intro": "Ludo 2 è un gioco di corsa a turni per 4 a 8 giocatori. Ogni giocatore comanda quattro pedine e cerca di muoverle lungo un percorso condiviso fino alla propria colonna di arrivo. Tutte le regole sono applicate dal server; il client mostra soltanto lo stato di gioco sincronizzato.",
+    "sections": {
+      "objective": {
+        "title": "1. Obiettivo",
+        "items": [
+          "Sii il primo giocatore a portare tutte e quattro le pedine dalla base, lungo l'intero percorso, fino alla tua colonna di arrivo."
+        ]
+      },
+      "setup": {
+        "title": "2. Preparazione",
+        "items": [
+          "Una partita si gioca tra 4 e 8 giocatori.",
+          "A ogni giocatore viene assegnato un colore e controlla quattro pedine.",
+          "Tutte le pedine partono nella base del proprietario, fuori dal percorso.",
+          "Posti e ordine dei turni sono fissati una volta iniziata la partita."
+        ]
+      },
+      "turn": {
+        "title": "3. Giocare un turno",
+        "items": [
+          "Al tuo turno, tira l'unico dado.",
+          "Una pedina può lasciare la base ed entrare nel percorso solo quando tiri un sei.",
+          "Dopo aver tirato, devi muovere una pedina idonea del numero indicato, purché esista una mossa valida.",
+          "Se non è disponibile alcuna mossa valida, il tuo turno viene passato automaticamente."
+        ]
+      },
+      "movement": {
+        "title": "4. Muovere le pedine",
+        "items": [
+          "Le pedine percorrono il tracciato condiviso in un'unica direzione fissa.",
+          "Dopo aver completato il giro, una pedina svolta nella propria colonna di arrivo.",
+          "Entrare nella casella finale di arrivo richiede un tiro esatto; un tiro che la supererebbe non è una mossa valida."
+        ]
+      },
+      "capturing": {
+        "title": "5. Catturare",
+        "items": [
+          "Atterrare su una casella del percorso occupata da una singola pedina avversaria rimanda quella pedina alla sua base.",
+          "La casella di partenza di ogni giocatore è una casella sicura; una pedina ferma su una casella sicura non può essere catturata.",
+          "Le pedine all'interno di una colonna di arrivo non possono essere catturate."
+        ]
+      },
+      "sixes": {
+        "title": "6. Tirare un sei",
+        "items": [
+          "Tirare un sei ti concede un turno aggiuntivo.",
+          "Tirare tre sei di fila fa perdere il turno: il terzo sei è annullato e il gioco passa al giocatore successivo."
+        ]
+      },
+      "winning": {
+        "title": "7. Vincere",
+        "items": [
+          "Un giocatore termina quando tutte e quattro le sue pedine occupano la sua colonna di arrivo.",
+          "I giocatori restanti continuano e vengono classificati nell'ordine in cui terminano."
+        ]
+      },
+      "options": {
+        "title": "8. Regole opzionali",
+        "items": [
+          "Muri: quando attivo, due delle tue pedine sulla stessa casella formano un muro che impedisce agli avversari di passare o catturare.",
+          "Mossa automatica: quando attiva, un turno con una sola mossa valida viene giocato automaticamente.",
+          "Timer del turno: quando attivo, ogni turno è limitato a 30 secondi; un giocatore che salta tre turni viene rimosso dalla partita."
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,177 @@
+{
+  "common": {
+    "play": "Jouer",
+    "copyLink": "Copier le lien",
+    "copied": "Copié !",
+    "ready": "Prêt",
+    "notReady": "Pas prêt",
+    "ai": "(IA)",
+    "loading": "Chargement…",
+    "about": "À propos",
+    "howToPlay": "Comment jouer"
+  },
+  "nav": {
+    "home": "Accueil",
+    "language": "Langue",
+    "toggleSound": "Activer/désactiver le son"
+  },
+  "home": {
+    "creating": "Création…",
+    "error": "Une erreur est survenue"
+  },
+  "room": {
+    "joining": "Connexion à la salle…",
+    "title": "Configurer la partie",
+    "sharePrompt": "Partagez ce lien pour inviter des joueurs :",
+    "roomId": "ID de la salle :",
+    "connected": "Connecté",
+    "disconnected": "Déconnecté",
+    "removeAi": "Retirer le joueur IA",
+    "removePlayer": "Retirer le joueur",
+    "addAi": "Ajouter un joueur robot",
+    "wallFeature": "Murs",
+    "wallFeatureHint": "Deux pions sur une case empêchent les adversaires de passer ou de capturer.",
+    "autoMove": "Déplacement automatique",
+    "autoMoveHint": "Joue votre coup automatiquement lorsqu'un seul est possible.",
+    "turnTimer": "Minuteur de tour",
+    "turnTimerHint": "Limite chaque tour à 30 secondes. Désactivez pour un temps illimité.",
+    "settings": "Paramètres du jeu",
+    "imReady": "Je suis prêt",
+    "youreReady": "Vous êtes prêt",
+    "startGame": "Démarrer la partie"
+  },
+  "match": {
+    "theirTurn": "Leur tour",
+    "waitingForDice": "En attente du dé…",
+    "yourTurnRoll": "À vous — lancez le dé !",
+    "noLegalMoves": "Aucun coup valide — on passe…",
+    "onlyOneMove": "Un seul coup — sélection automatique…",
+    "yourTurnMove": "À vous — déplacez un pion !",
+    "aiThinking": "Le joueur {seat} (IA) réfléchit…",
+    "away": "(absent)",
+    "playerDisconnected": "Joueur déconnecté",
+    "roll": "Lancer",
+    "loadingGame": "Chargement de la partie…",
+    "captureSentHome": "Le pion de {color} est renvoyé à la base",
+    "secondsSuffix": "s"
+  },
+  "spectator": {
+    "badge": "Spectateur",
+    "description": "Vous regardez cette partie en tant que spectateur."
+  },
+  "connection": {
+    "reconnecting": "Déconnecté — reconnexion…",
+    "connecting": "Connexion…"
+  },
+  "postgame": {
+    "youWon": "Vous avez gagné !",
+    "gameOver": "Partie terminée",
+    "noData": "Aucune donnée de partie disponible.",
+    "rematch": "Revanche",
+    "rematchExpired": "Délai de revanche expiré",
+    "backToLobby": "Retour au salon",
+    "seat": "Siège {index}",
+    "ordinal": {
+      "1": "1er",
+      "2": "2e",
+      "3": "3e",
+      "4": "4e",
+      "5": "5e",
+      "6": "6e",
+      "7": "7e",
+      "8": "8e"
+    }
+  },
+  "colors": {
+    "blue": "Bleu",
+    "red": "Rouge",
+    "green": "Vert",
+    "yellow": "Jaune",
+    "purple": "Violet",
+    "orange": "Orange",
+    "cyan": "Cyan",
+    "pink": "Rose"
+  },
+  "about": {
+    "title": "À propos",
+    "description": "Ludo 2 est une implémentation multijoueur en temps réel du jeu de plateau classique Petits Chevaux, pour 4 à 8 joueurs.",
+    "openSourceTitle": "Open source",
+    "openSource": "Ce projet est open source. Son code source complet est hébergé sur GitHub, où les contributions et les retours sont les bienvenus.",
+    "viewOnGithub": "Voir sur GitHub",
+    "issuesTitle": "Un problème ?",
+    "issues": "Si vous rencontrez un bug ou souhaitez demander une fonctionnalité, veuillez ouvrir un rapport sur le suivi des problèmes GitHub.",
+    "reportIssue": "Signaler un problème",
+    "detailsTitle": "Détails",
+    "versionLabel": "Version",
+    "builtWithLabel": "Conçu avec",
+    "builtWith": "Vue 3, Vite, Tailwind CSS et Bun."
+  },
+  "howto": {
+    "title": "Comment jouer",
+    "intro": "Ludo 2 est un jeu de course au tour par tour pour 4 à 8 joueurs. Chaque joueur commande quatre pions et cherche à les faire avancer sur un parcours commun jusqu'à sa colonne d'arrivée. Toutes les règles sont appliquées par le serveur ; le client ne fait qu'afficher l'état de jeu synchronisé.",
+    "sections": {
+      "objective": {
+        "title": "1. Objectif",
+        "items": [
+          "Soyez le premier joueur à amener vos quatre pions depuis votre base, sur tout le parcours, jusqu'à votre colonne d'arrivée."
+        ]
+      },
+      "setup": {
+        "title": "2. Mise en place",
+        "items": [
+          "Une partie se joue entre 4 et 8 joueurs.",
+          "Chaque joueur reçoit une couleur et contrôle quatre pions.",
+          "Tous les pions commencent dans la base de leur propriétaire, hors du parcours.",
+          "Les sièges et l'ordre des tours sont fixés dès le début de la partie."
+        ]
+      },
+      "turn": {
+        "title": "3. Jouer un tour",
+        "items": [
+          "À votre tour, lancez l'unique dé.",
+          "Un pion ne peut quitter la base et entrer sur le parcours que lorsque vous faites un six.",
+          "Après le lancer, vous devez déplacer un pion éligible du nombre indiqué, dès lors qu'un coup valide existe.",
+          "Si aucun coup valide n'est possible, votre tour est passé automatiquement."
+        ]
+      },
+      "movement": {
+        "title": "4. Déplacer les pions",
+        "items": [
+          "Les pions avancent sur le parcours commun dans une seule direction fixe.",
+          "Après avoir bouclé le circuit, un pion tourne vers sa propre colonne d'arrivée.",
+          "Entrer dans la case finale d'arrivée exige un lancer exact ; un lancer qui dépasserait la fin n'est pas un coup valide."
+        ]
+      },
+      "capturing": {
+        "title": "5. Capturer",
+        "items": [
+          "Atterrir sur une case du parcours occupée par un seul pion adverse renvoie ce pion à sa base.",
+          "La case de départ de chaque joueur est une case sûre ; un pion posé sur une case sûre ne peut pas être capturé.",
+          "Les pions situés dans une colonne d'arrivée ne peuvent pas être capturés."
+        ]
+      },
+      "sixes": {
+        "title": "6. Faire un six",
+        "items": [
+          "Faire un six vous accorde un tour supplémentaire.",
+          "Faire trois six d'affilée fait perdre le tour : le troisième six est annulé et le jeu passe au joueur suivant."
+        ]
+      },
+      "winning": {
+        "title": "7. Gagner",
+        "items": [
+          "Un joueur termine lorsque ses quatre pions occupent sa colonne d'arrivée.",
+          "Les joueurs restants continuent et sont classés dans l'ordre où ils terminent."
+        ]
+      },
+      "options": {
+        "title": "8. Règles optionnelles",
+        "items": [
+          "Murs : lorsqu'ils sont activés, deux de vos pions sur la même case forment un mur qui empêche les adversaires de passer ou de capturer.",
+          "Déplacement automatique : lorsqu'il est activé, un tour ne comportant qu'un seul coup valide est joué automatiquement.",
+          "Minuteur de tour : lorsqu'il est activé, chaque tour est limité à 30 secondes ; un joueur qui manque trois tours est retiré de la partie."
+        ]
+      }
+    }
+  }
+}

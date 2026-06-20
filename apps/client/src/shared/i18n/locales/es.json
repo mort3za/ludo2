@@ -1,0 +1,177 @@
+{
+  "common": {
+    "play": "Jugar",
+    "copyLink": "Copiar enlace",
+    "copied": "¡Copiado!",
+    "ready": "Listo",
+    "notReady": "No listo",
+    "ai": "(IA)",
+    "loading": "Cargando…",
+    "about": "Acerca de",
+    "howToPlay": "Cómo jugar"
+  },
+  "nav": {
+    "home": "Inicio",
+    "language": "Idioma",
+    "toggleSound": "Activar/desactivar sonido"
+  },
+  "home": {
+    "creating": "Creando…",
+    "error": "Algo salió mal"
+  },
+  "room": {
+    "joining": "Uniéndose a la sala…",
+    "title": "Configurar la partida",
+    "sharePrompt": "Comparte este enlace para invitar jugadores:",
+    "roomId": "ID de la sala:",
+    "connected": "Conectado",
+    "disconnected": "Desconectado",
+    "removeAi": "Quitar jugador IA",
+    "removePlayer": "Quitar jugador",
+    "addAi": "Añadir jugador robot",
+    "wallFeature": "Muros",
+    "wallFeatureHint": "Dos fichas en una casilla impiden que los oponentes pasen o capturen.",
+    "autoMove": "Movimiento automático",
+    "autoMoveHint": "Realiza tu movimiento automáticamente cuando solo hay uno posible.",
+    "turnTimer": "Temporizador de turno",
+    "turnTimerHint": "Limita cada turno a 30 segundos. Desactívalo para tiempo ilimitado.",
+    "settings": "Ajustes del juego",
+    "imReady": "Estoy listo",
+    "youreReady": "Estás listo",
+    "startGame": "Iniciar partida"
+  },
+  "match": {
+    "theirTurn": "Su turno",
+    "waitingForDice": "Esperando el dado…",
+    "yourTurnRoll": "Tu turno: ¡lanza el dado!",
+    "noLegalMoves": "Sin movimientos válidos: pasando…",
+    "onlyOneMove": "Solo un movimiento: eligiendo automáticamente…",
+    "yourTurnMove": "Tu turno: ¡mueve una ficha!",
+    "aiThinking": "El jugador {seat} (IA) está pensando…",
+    "away": "(ausente)",
+    "playerDisconnected": "Jugador desconectado",
+    "roll": "Lanzar",
+    "loadingGame": "Cargando partida…",
+    "captureSentHome": "La ficha de {color} fue enviada a casa",
+    "secondsSuffix": "s"
+  },
+  "spectator": {
+    "badge": "Como espectador",
+    "description": "Estás viendo esta partida como espectador."
+  },
+  "connection": {
+    "reconnecting": "Desconectado: reconectando…",
+    "connecting": "Conectando…"
+  },
+  "postgame": {
+    "youWon": "¡Has ganado!",
+    "gameOver": "Fin de la partida",
+    "noData": "No hay datos de la partida disponibles.",
+    "rematch": "Revancha",
+    "rematchExpired": "Ventana de revancha expirada",
+    "backToLobby": "Volver al vestíbulo",
+    "seat": "Asiento {index}",
+    "ordinal": {
+      "1": "1.º",
+      "2": "2.º",
+      "3": "3.º",
+      "4": "4.º",
+      "5": "5.º",
+      "6": "6.º",
+      "7": "7.º",
+      "8": "8.º"
+    }
+  },
+  "colors": {
+    "blue": "Azul",
+    "red": "Rojo",
+    "green": "Verde",
+    "yellow": "Amarillo",
+    "purple": "Morado",
+    "orange": "Naranja",
+    "cyan": "Cian",
+    "pink": "Rosa"
+  },
+  "about": {
+    "title": "Acerca de",
+    "description": "Ludo 2 es una implementación multijugador en tiempo real del clásico juego de mesa Parchís, para 4 a 8 jugadores.",
+    "openSourceTitle": "Código abierto",
+    "openSource": "Este proyecto es de código abierto. Su código fuente completo está alojado en GitHub, donde se agradecen las contribuciones y los comentarios.",
+    "viewOnGithub": "Ver en GitHub",
+    "issuesTitle": "¿Encontraste un problema?",
+    "issues": "Si encuentras un error o quieres solicitar una función, abre un informe en el rastreador de incidencias de GitHub.",
+    "reportIssue": "Informar de un problema",
+    "detailsTitle": "Detalles",
+    "versionLabel": "Versión",
+    "builtWithLabel": "Construido con",
+    "builtWith": "Vue 3, Vite, Tailwind CSS y Bun."
+  },
+  "howto": {
+    "title": "Cómo jugar",
+    "intro": "Ludo 2 es un juego de carreras por turnos para 4 a 8 jugadores. Cada jugador comanda cuatro fichas y trata de moverlas por un recorrido compartido hasta su columna de meta. Todas las reglas las aplica el servidor; el cliente solo muestra el estado sincronizado del juego.",
+    "sections": {
+      "objective": {
+        "title": "1. Objetivo",
+        "items": [
+          "Sé el primer jugador en llevar tus cuatro fichas desde tu base, por todo el recorrido, hasta tu columna de meta."
+        ]
+      },
+      "setup": {
+        "title": "2. Preparación",
+        "items": [
+          "Una partida se juega entre 4 y 8 jugadores.",
+          "A cada jugador se le asigna un color y controla cuatro fichas.",
+          "Todas las fichas comienzan en la base de su dueño, fuera del recorrido.",
+          "Los asientos y el orden de turnos quedan fijos al comenzar la partida."
+        ]
+      },
+      "turn": {
+        "title": "3. Jugar un turno",
+        "items": [
+          "En tu turno, lanza el único dado.",
+          "Una ficha solo puede salir de la base y entrar al recorrido cuando sacas un seis.",
+          "Tras lanzar, debes mover una ficha elegible el número mostrado, siempre que exista un movimiento válido.",
+          "Si no hay ningún movimiento válido, tu turno se pasa automáticamente."
+        ]
+      },
+      "movement": {
+        "title": "4. Mover las fichas",
+        "items": [
+          "Las fichas avanzan por el recorrido compartido en una única dirección fija.",
+          "Tras completar el circuito, una ficha gira hacia su propia columna de meta.",
+          "Entrar en la casilla final de meta requiere un lanzamiento exacto; un lanzamiento que se pase no es un movimiento válido."
+        ]
+      },
+      "capturing": {
+        "title": "5. Capturar",
+        "items": [
+          "Caer en una casilla del recorrido ocupada por una sola ficha rival envía a esa ficha de vuelta a su base.",
+          "La casilla de salida de cada jugador es una casilla segura; una ficha en una casilla segura no puede ser capturada.",
+          "Las fichas dentro de una columna de meta no pueden ser capturadas."
+        ]
+      },
+      "sixes": {
+        "title": "6. Sacar un seis",
+        "items": [
+          "Sacar un seis te concede un turno adicional.",
+          "Sacar tres seises seguidos anula el turno: el tercer seis no cuenta y el turno pasa al siguiente jugador."
+        ]
+      },
+      "winning": {
+        "title": "7. Ganar",
+        "items": [
+          "Un jugador termina cuando sus cuatro fichas ocupan su columna de meta.",
+          "Los jugadores restantes continúan y se clasifican en el orden en que terminan."
+        ]
+      },
+      "options": {
+        "title": "8. Reglas opcionales",
+        "items": [
+          "Muros: cuando está activado, dos de tus fichas en la misma casilla forman un muro que impide que los oponentes pasen o capturen.",
+          "Movimiento automático: cuando está activado, un turno con un solo movimiento válido se juega automáticamente.",
+          "Temporizador de turno: cuando está activado, cada turno se limita a 30 segundos; un jugador que pierde tres turnos es expulsado de la partida."
+        ]
+      }
+    }
+  }
+}

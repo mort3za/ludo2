@@ -6,7 +6,9 @@
     "ready": "Ready",
     "notReady": "Not ready",
     "ai": "(AI)",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "about": "About",
+    "howToPlay": "How to Play"
   },
   "nav": {
     "home": "Home",
@@ -26,13 +28,14 @@
     "disconnected": "Disconnected",
     "removeAi": "Remove AI player",
     "removePlayer": "Remove player",
-    "addAi": "+ Add AI Player",
+    "addAi": "Add Robot Player",
     "wallFeature": "Walls",
     "wallFeatureHint": "Two tokens on a cell block opponents from passing or capturing.",
     "autoMove": "Auto-move",
     "autoMoveHint": "Play your move automatically when only one is possible.",
     "turnTimer": "Turn timer",
     "turnTimerHint": "Cap each turn at 30 seconds. Turn off for unlimited time.",
+    "settings": "Game settings",
     "imReady": "I'm Ready",
     "youreReady": "You're Ready",
     "startGame": "Start Game"
@@ -88,5 +91,87 @@
     "orange": "Orange",
     "cyan": "Cyan",
     "pink": "Pink"
+  },
+  "about": {
+    "title": "About",
+    "description": "Ludo 2 is a real-time multiplayer implementation of the classic board game Ludo, supporting 4 to 8 players.",
+    "openSourceTitle": "Open Source",
+    "openSource": "This project is open source. Its complete source code is hosted on GitHub, where contributions and feedback are welcome.",
+    "viewOnGithub": "View on GitHub",
+    "issuesTitle": "Found a problem?",
+    "issues": "If you encounter a bug or would like to request a feature, please open a report on the GitHub issue tracker.",
+    "reportIssue": "Report an issue",
+    "detailsTitle": "Details",
+    "versionLabel": "Version",
+    "builtWithLabel": "Built with",
+    "builtWith": "Vue 3, Vite, Tailwind CSS, and Bun."
+  },
+  "howto": {
+    "title": "How to Play",
+    "intro": "Ludo 2 is a turn-based race game for 4 to 8 players. Each player commands four tokens and aims to move them around a shared track and into their home column. All rules are enforced by the server; the client only displays the synchronized game state.",
+    "sections": {
+      "objective": {
+        "title": "1. Objective",
+        "items": [
+          "Be the first player to bring all four of your tokens from your base, around the full track, and into your home column."
+        ]
+      },
+      "setup": {
+        "title": "2. Setup",
+        "items": [
+          "A match is played by between 4 and 8 players.",
+          "Each player is assigned a colour and controls four tokens.",
+          "All tokens begin in their owner's base, off the track.",
+          "Seating and turn order are fixed once the game begins."
+        ]
+      },
+      "turn": {
+        "title": "3. Taking a Turn",
+        "items": [
+          "On your turn, roll the single die.",
+          "A token may leave the base and enter the track only when you roll a six.",
+          "After rolling, you must move one eligible token by the number shown, provided a legal move exists.",
+          "If no legal move is available, your turn is passed automatically."
+        ]
+      },
+      "movement": {
+        "title": "4. Moving Tokens",
+        "items": [
+          "Tokens travel along the shared track in a single fixed direction.",
+          "After completing the circuit, a token turns into its own home column.",
+          "Entering the final home cell requires an exact roll; a roll that would overshoot the end is not a legal move."
+        ]
+      },
+      "capturing": {
+        "title": "5. Capturing",
+        "items": [
+          "Landing on a track cell occupied by a single opponent token sends that token back to its base.",
+          "Each player's start square is a safe square; a token resting on a safe square cannot be captured.",
+          "Tokens inside a home column cannot be captured."
+        ]
+      },
+      "sixes": {
+        "title": "6. Rolling a Six",
+        "items": [
+          "Rolling a six grants you an additional turn.",
+          "Rolling three sixes in succession forfeits the turn: the third six is void and play passes to the next player."
+        ]
+      },
+      "winning": {
+        "title": "7. Winning",
+        "items": [
+          "A player finishes once all four of their tokens occupy their home column.",
+          "Remaining players continue, and are ranked in the order they finish."
+        ]
+      },
+      "options": {
+        "title": "8. Optional Rules",
+        "items": [
+          "Walls: when enabled, two of your tokens on the same cell form a wall that blocks opponents from passing or capturing.",
+          "Auto-move: when enabled, a turn with only one legal move is played automatically.",
+          "Turn timer: when enabled, each turn is capped at 30 seconds; a player who misses three turns is removed from the game."
+        ]
+      }
+    }
   }
 }

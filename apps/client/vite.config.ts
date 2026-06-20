@@ -3,11 +3,15 @@ import vue from "@vitejs/plugin-vue";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "node:path";
 import { CLIENT_PORT, SERVER_PORT } from "../../packages/shared/src/constants/network.ts";
+import pkg from "../../package.json";
 
 const serverOrigin = `http://localhost:${SERVER_PORT}`;
 const wsOrigin = `ws://localhost:${SERVER_PORT}`;
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {

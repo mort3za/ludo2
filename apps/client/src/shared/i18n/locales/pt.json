@@ -1,0 +1,177 @@
+{
+  "common": {
+    "play": "Jogar",
+    "copyLink": "Copiar link",
+    "copied": "Copiado!",
+    "ready": "Pronto",
+    "notReady": "Não pronto",
+    "ai": "(IA)",
+    "loading": "Carregando…",
+    "about": "Sobre",
+    "howToPlay": "Como jogar"
+  },
+  "nav": {
+    "home": "Início",
+    "language": "Idioma",
+    "toggleSound": "Alternar som"
+  },
+  "home": {
+    "creating": "Criando…",
+    "error": "Algo deu errado"
+  },
+  "room": {
+    "joining": "Entrando na sala…",
+    "title": "Configurar o jogo",
+    "sharePrompt": "Compartilhe este link para convidar jogadores:",
+    "roomId": "ID da sala:",
+    "connected": "Conectado",
+    "disconnected": "Desconectado",
+    "removeAi": "Remover jogador IA",
+    "removePlayer": "Remover jogador",
+    "addAi": "Adicionar jogador robô",
+    "wallFeature": "Muros",
+    "wallFeatureHint": "Duas peças em uma casa impedem os adversários de passar ou capturar.",
+    "autoMove": "Movimento automático",
+    "autoMoveHint": "Faz a sua jogada automaticamente quando só há uma possível.",
+    "turnTimer": "Cronômetro do turno",
+    "turnTimerHint": "Limita cada turno a 30 segundos. Desligue para tempo ilimitado.",
+    "settings": "Configurações do jogo",
+    "imReady": "Estou pronto",
+    "youreReady": "Você está pronto",
+    "startGame": "Iniciar jogo"
+  },
+  "match": {
+    "theirTurn": "Vez deles",
+    "waitingForDice": "Aguardando o dado…",
+    "yourTurnRoll": "Sua vez — lance o dado!",
+    "noLegalMoves": "Sem jogadas válidas — passando…",
+    "onlyOneMove": "Apenas uma jogada — escolhendo automaticamente…",
+    "yourTurnMove": "Sua vez — mova uma peça!",
+    "aiThinking": "O jogador {seat} (IA) está pensando…",
+    "away": "(ausente)",
+    "playerDisconnected": "Jogador desconectado",
+    "roll": "Lançar",
+    "loadingGame": "Carregando jogo…",
+    "captureSentHome": "A peça de {color} foi enviada de volta à base",
+    "secondsSuffix": "s"
+  },
+  "spectator": {
+    "badge": "Assistindo",
+    "description": "Você está assistindo a este jogo como espectador."
+  },
+  "connection": {
+    "reconnecting": "Desconectado — reconectando…",
+    "connecting": "Conectando…"
+  },
+  "postgame": {
+    "youWon": "Você venceu!",
+    "gameOver": "Fim de jogo",
+    "noData": "Nenhum dado do jogo disponível.",
+    "rematch": "Revanche",
+    "rematchExpired": "Janela de revanche expirada",
+    "backToLobby": "Voltar ao lobby",
+    "seat": "Assento {index}",
+    "ordinal": {
+      "1": "1º",
+      "2": "2º",
+      "3": "3º",
+      "4": "4º",
+      "5": "5º",
+      "6": "6º",
+      "7": "7º",
+      "8": "8º"
+    }
+  },
+  "colors": {
+    "blue": "Azul",
+    "red": "Vermelho",
+    "green": "Verde",
+    "yellow": "Amarelo",
+    "purple": "Roxo",
+    "orange": "Laranja",
+    "cyan": "Ciano",
+    "pink": "Rosa"
+  },
+  "about": {
+    "title": "Sobre",
+    "description": "Ludo 2 é uma implementação multijogador em tempo real do clássico jogo de tabuleiro Ludo, para 4 a 8 jogadores.",
+    "openSourceTitle": "Código aberto",
+    "openSource": "Este projeto é de código aberto. Seu código-fonte completo está hospedado no GitHub, onde contribuições e feedback são bem-vindos.",
+    "viewOnGithub": "Ver no GitHub",
+    "issuesTitle": "Encontrou um problema?",
+    "issues": "Se você encontrar um bug ou quiser solicitar um recurso, abra um relatório no rastreador de issues do GitHub.",
+    "reportIssue": "Relatar um problema",
+    "detailsTitle": "Detalhes",
+    "versionLabel": "Versão",
+    "builtWithLabel": "Feito com",
+    "builtWith": "Vue 3, Vite, Tailwind CSS e Bun."
+  },
+  "howto": {
+    "title": "Como jogar",
+    "intro": "Ludo 2 é um jogo de corrida por turnos para 4 a 8 jogadores. Cada jogador comanda quatro peças e procura movê-las por um percurso compartilhado até a sua coluna de chegada. Todas as regras são aplicadas pelo servidor; o cliente apenas exibe o estado de jogo sincronizado.",
+    "sections": {
+      "objective": {
+        "title": "1. Objetivo",
+        "items": [
+          "Seja o primeiro jogador a levar todas as suas quatro peças da base, por todo o percurso, até a sua coluna de chegada."
+        ]
+      },
+      "setup": {
+        "title": "2. Preparação",
+        "items": [
+          "Uma partida é jogada por 4 a 8 jogadores.",
+          "Cada jogador recebe uma cor e controla quatro peças.",
+          "Todas as peças começam na base de seu dono, fora do percurso.",
+          "Os assentos e a ordem dos turnos ficam fixos quando o jogo começa."
+        ]
+      },
+      "turn": {
+        "title": "3. Jogar um turno",
+        "items": [
+          "Na sua vez, lance o único dado.",
+          "Uma peça só pode sair da base e entrar no percurso quando você tira um seis.",
+          "Após lançar, você deve mover uma peça elegível o número indicado, desde que exista uma jogada válida.",
+          "Se nenhuma jogada válida estiver disponível, sua vez é passada automaticamente."
+        ]
+      },
+      "movement": {
+        "title": "4. Mover as peças",
+        "items": [
+          "As peças percorrem o trajeto compartilhado em uma única direção fixa.",
+          "Após completar o circuito, uma peça vira para sua própria coluna de chegada.",
+          "Entrar na casa final de chegada exige um lançamento exato; um lançamento que ultrapassaria o fim não é uma jogada válida."
+        ]
+      },
+      "capturing": {
+        "title": "5. Capturar",
+        "items": [
+          "Cair em uma casa do percurso ocupada por uma única peça adversária envia essa peça de volta à sua base.",
+          "A casa inicial de cada jogador é uma casa segura; uma peça parada em uma casa segura não pode ser capturada.",
+          "As peças dentro de uma coluna de chegada não podem ser capturadas."
+        ]
+      },
+      "sixes": {
+        "title": "6. Tirar um seis",
+        "items": [
+          "Tirar um seis concede a você um turno adicional.",
+          "Tirar três seis seguidos perde o turno: o terceiro seis é anulado e a vez passa para o próximo jogador."
+        ]
+      },
+      "winning": {
+        "title": "7. Vencer",
+        "items": [
+          "Um jogador termina quando todas as suas quatro peças ocupam sua coluna de chegada.",
+          "Os jogadores restantes continuam e são classificados na ordem em que terminam."
+        ]
+      },
+      "options": {
+        "title": "8. Regras opcionais",
+        "items": [
+          "Muros: quando ativado, duas de suas peças na mesma casa formam um muro que impede os adversários de passar ou capturar.",
+          "Movimento automático: quando ativado, um turno com apenas uma jogada válida é jogado automaticamente.",
+          "Cronômetro do turno: quando ativado, cada turno é limitado a 30 segundos; um jogador que perde três turnos é removido do jogo."
+        ]
+      }
+    }
+  }
+}

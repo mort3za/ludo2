@@ -41,5 +41,14 @@ async function play() {
       {{ loading ? t("home.creating") : t("common.play") }}
     </DButton>
     <p v-if="error" class="text-caption text-red-500 font-sans text-center">{{ error }}</p>
+
+    <nav class="mt-2 flex items-center gap-3">
+      <router-link to="/how-to-play" class="d-btn d-btn--ghost" data-testid="how-to-play-btn">
+        {{ t("common.howToPlay") }}
+      </router-link>
+      <router-link to="/about" class="d-btn d-btn--ghost" data-testid="about-btn">
+        {{ t("common.about") }}
+      </router-link>
+    </nav>
   </main>
 </template>

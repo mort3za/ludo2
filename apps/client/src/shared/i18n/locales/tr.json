@@ -1,0 +1,177 @@
+{
+  "common": {
+    "play": "Oyna",
+    "copyLink": "Bağlantıyı kopyala",
+    "copied": "Kopyalandı!",
+    "ready": "Hazır",
+    "notReady": "Hazır değil",
+    "ai": "(YZ)",
+    "loading": "Yükleniyor…",
+    "about": "Hakkında",
+    "howToPlay": "Nasıl oynanır"
+  },
+  "nav": {
+    "home": "Ana sayfa",
+    "language": "Dil",
+    "toggleSound": "Sesi aç/kapat"
+  },
+  "home": {
+    "creating": "Oluşturuluyor…",
+    "error": "Bir şeyler ters gitti"
+  },
+  "room": {
+    "joining": "Odaya katılınıyor…",
+    "title": "Oyunu ayarla",
+    "sharePrompt": "Oyuncuları davet etmek için bu bağlantıyı paylaş:",
+    "roomId": "Oda kimliği:",
+    "connected": "Bağlandı",
+    "disconnected": "Bağlantı kesildi",
+    "removeAi": "YZ oyuncusunu kaldır",
+    "removePlayer": "Oyuncuyu kaldır",
+    "addAi": "YZ oyuncusu ekle",
+    "wallFeature": "Duvarlar",
+    "wallFeatureHint": "Bir karedeki iki taş, rakiplerin geçmesini veya yakalamasını engeller.",
+    "autoMove": "Otomatik hamle",
+    "autoMoveHint": "Yalnızca tek bir hamle mümkün olduğunda hamleni otomatik yapar.",
+    "turnTimer": "Tur zamanlayıcısı",
+    "turnTimerHint": "Her turu 30 saniyeyle sınırlar. Sınırsız süre için kapat.",
+    "settings": "Oyun ayarları",
+    "imReady": "Hazırım",
+    "youreReady": "Hazırsın",
+    "startGame": "Oyunu başlat"
+  },
+  "match": {
+    "theirTurn": "Onların sırası",
+    "waitingForDice": "Zar bekleniyor…",
+    "yourTurnRoll": "Sıra sende — zarı at!",
+    "noLegalMoves": "Geçerli hamle yok — geçiliyor…",
+    "onlyOneMove": "Tek hamle var — otomatik seçiliyor…",
+    "yourTurnMove": "Sıra sende — bir taş oynat!",
+    "aiThinking": "Oyuncu {seat} (YZ) düşünüyor…",
+    "away": "(uzakta)",
+    "playerDisconnected": "Oyuncunun bağlantısı kesildi",
+    "roll": "At",
+    "loadingGame": "Oyun yükleniyor…",
+    "captureSentHome": "{color} taşı başlangıca gönderildi",
+    "secondsSuffix": "sn"
+  },
+  "spectator": {
+    "badge": "İzleniyor",
+    "description": "Bu oyunu izleyici olarak izliyorsun."
+  },
+  "connection": {
+    "reconnecting": "Bağlantı kesildi — yeniden bağlanılıyor…",
+    "connecting": "Bağlanılıyor…"
+  },
+  "postgame": {
+    "youWon": "Kazandın!",
+    "gameOver": "Oyun bitti",
+    "noData": "Kullanılabilir oyun verisi yok.",
+    "rematch": "Rövanş",
+    "rematchExpired": "Rövanş süresi doldu",
+    "backToLobby": "Lobiye dön",
+    "seat": "Koltuk {index}",
+    "ordinal": {
+      "1": "1.",
+      "2": "2.",
+      "3": "3.",
+      "4": "4.",
+      "5": "5.",
+      "6": "6.",
+      "7": "7.",
+      "8": "8."
+    }
+  },
+  "colors": {
+    "blue": "Mavi",
+    "red": "Kırmızı",
+    "green": "Yeşil",
+    "yellow": "Sarı",
+    "purple": "Mor",
+    "orange": "Turuncu",
+    "cyan": "Camgöbeği",
+    "pink": "Pembe"
+  },
+  "about": {
+    "title": "Hakkında",
+    "description": "Ludo 2, klasik masa oyunu Ludo'nun 4 ila 8 oyuncuyu destekleyen gerçek zamanlı çok oyunculu bir uygulamasıdır.",
+    "openSourceTitle": "Açık kaynak",
+    "openSource": "Bu proje açık kaynaktır. Tüm kaynak kodu GitHub'da barındırılmaktadır; katkılar ve geri bildirimler memnuniyetle karşılanır.",
+    "viewOnGithub": "GitHub'da görüntüle",
+    "issuesTitle": "Bir sorun mu buldun?",
+    "issues": "Bir hatayla karşılaşırsan veya bir özellik talep etmek istersen, lütfen GitHub sorun takipçisinde bir kayıt aç.",
+    "reportIssue": "Sorun bildir",
+    "detailsTitle": "Ayrıntılar",
+    "versionLabel": "Sürüm",
+    "builtWithLabel": "Kullanılan teknolojiler",
+    "builtWith": "Vue 3, Vite, Tailwind CSS ve Bun."
+  },
+  "howto": {
+    "title": "Nasıl oynanır",
+    "intro": "Ludo 2, 4 ila 8 oyuncu için sıra tabanlı bir yarış oyunudur. Her oyuncu dört taşı yönetir ve onları ortak bir parkur boyunca dolaştırarak kendi ev sütununa sokmayı amaçlar. Tüm kurallar sunucu tarafından uygulanır; istemci yalnızca eşitlenmiş oyun durumunu gösterir.",
+    "sections": {
+      "objective": {
+        "title": "1. Amaç",
+        "items": [
+          "Dört taşının hepsini başlangıçtan çıkarıp tüm parkur boyunca dolaştırarak ev sütununa ilk sokan oyuncu ol."
+        ]
+      },
+      "setup": {
+        "title": "2. Kurulum",
+        "items": [
+          "Bir maç 4 ila 8 oyuncu arasında oynanır.",
+          "Her oyuncuya bir renk atanır ve dört taşı yönetir.",
+          "Tüm taşlar, parkurun dışında, sahibinin başlangıcında başlar.",
+          "Oturma ve sıra düzeni oyun başlayınca sabitlenir."
+        ]
+      },
+      "turn": {
+        "title": "3. Sıranı oynamak",
+        "items": [
+          "Sıran geldiğinde tek zarı at.",
+          "Bir taş yalnızca altı attığında başlangıçtan çıkıp parkura girebilir.",
+          "Attıktan sonra, geçerli bir hamle varsa, uygun bir taşı gösterilen sayı kadar oynatmalısın.",
+          "Geçerli bir hamle yoksa sıran otomatik olarak geçilir."
+        ]
+      },
+      "movement": {
+        "title": "4. Taşları oynatmak",
+        "items": [
+          "Taşlar ortak parkurda tek ve sabit bir yönde ilerler.",
+          "Turu tamamladıktan sonra taş kendi ev sütununa döner.",
+          "Son ev karesine girmek tam sayı gerektirir; sonu aşacak bir atış geçerli bir hamle değildir."
+        ]
+      },
+      "capturing": {
+        "title": "5. Yakalama",
+        "items": [
+          "Tek bir rakip taşın bulunduğu bir parkur karesine konmak, o taşı başlangıcına geri gönderir.",
+          "Her oyuncunun başlangıç karesi güvenli karedir; güvenli karede duran bir taş yakalanamaz.",
+          "Ev sütununun içindeki taşlar yakalanamaz."
+        ]
+      },
+      "sixes": {
+        "title": "6. Altı atmak",
+        "items": [
+          "Altı atmak sana ek bir sıra kazandırır.",
+          "Üst üste üç altı atmak sırayı yakar: üçüncü altı geçersiz sayılır ve sıra sonraki oyuncuya geçer."
+        ]
+      },
+      "winning": {
+        "title": "7. Kazanmak",
+        "items": [
+          "Bir oyuncu, dört taşının hepsi ev sütununu doldurduğunda bitirmiş olur.",
+          "Kalan oyuncular devam eder ve bitirme sıralarına göre derecelendirilir."
+        ]
+      },
+      "options": {
+        "title": "8. İsteğe bağlı kurallar",
+        "items": [
+          "Duvarlar: etkinleştirildiğinde, aynı karedeki iki taşın bir duvar oluşturur ve rakiplerin geçmesini veya yakalamasını engeller.",
+          "Otomatik hamle: etkinleştirildiğinde, yalnızca tek geçerli hamlesi olan bir sıra otomatik oynanır.",
+          "Tur zamanlayıcısı: etkinleştirildiğinde, her tur 30 saniyeyle sınırlanır; üç turu kaçıran oyuncu oyundan çıkarılır."
+        ]
+      }
+    }
+  }
+}

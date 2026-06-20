@@ -2,7 +2,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { SUPPORTED_LOCALES, LOCALE_STORAGE_KEY, type LocaleCode } from "./index";
 
-const RTL_LOCALES: readonly LocaleCode[] = ["fa"];
+const RTL_LOCALES: readonly LocaleCode[] = ["fa", "ar"];
 
 export type Direction = "rtl" | "ltr";
 

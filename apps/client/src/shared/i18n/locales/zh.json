@@ -1,0 +1,177 @@
+{
+  "common": {
+    "play": "开始游戏",
+    "copyLink": "复制链接",
+    "copied": "已复制！",
+    "ready": "准备就绪",
+    "notReady": "未准备",
+    "ai": "（AI）",
+    "loading": "加载中…",
+    "about": "关于",
+    "howToPlay": "玩法说明"
+  },
+  "nav": {
+    "home": "首页",
+    "language": "语言",
+    "toggleSound": "切换声音"
+  },
+  "home": {
+    "creating": "创建中…",
+    "error": "出错了"
+  },
+  "room": {
+    "joining": "正在加入房间…",
+    "title": "设置游戏",
+    "sharePrompt": "分享此链接以邀请玩家：",
+    "roomId": "房间 ID：",
+    "connected": "已连接",
+    "disconnected": "已断开",
+    "removeAi": "移除 AI 玩家",
+    "removePlayer": "移除玩家",
+    "addAi": "添加机器人玩家",
+    "wallFeature": "路障",
+    "wallFeatureHint": "同一格上的两个棋子会阻止对手通过或捕获。",
+    "autoMove": "自动移动",
+    "autoMoveHint": "当只有一种走法时自动走子。",
+    "turnTimer": "回合计时器",
+    "turnTimerHint": "每回合限时 30 秒。关闭则不限时。",
+    "settings": "游戏设置",
+    "imReady": "我准备好了",
+    "youreReady": "你已准备",
+    "startGame": "开始游戏"
+  },
+  "match": {
+    "theirTurn": "对方的回合",
+    "waitingForDice": "等待掷骰…",
+    "yourTurnRoll": "轮到你了——掷骰子！",
+    "noLegalMoves": "没有合法走法——跳过…",
+    "onlyOneMove": "只有一种走法——自动选择…",
+    "yourTurnMove": "轮到你了——移动棋子！",
+    "aiThinking": "玩家{seat}（AI）正在思考…",
+    "away": "（离开）",
+    "playerDisconnected": "玩家已断开连接",
+    "roll": "掷骰",
+    "loadingGame": "正在加载游戏…",
+    "captureSentHome": "{color}的棋子被送回基地",
+    "secondsSuffix": "秒"
+  },
+  "spectator": {
+    "badge": "观战中",
+    "description": "你正在以观众身份观看本局游戏。"
+  },
+  "connection": {
+    "reconnecting": "已断开——正在重新连接…",
+    "connecting": "连接中…"
+  },
+  "postgame": {
+    "youWon": "你赢了！",
+    "gameOver": "游戏结束",
+    "noData": "没有可用的游戏数据。",
+    "rematch": "再来一局",
+    "rematchExpired": "再战时间已过",
+    "backToLobby": "返回大厅",
+    "seat": "座位 {index}",
+    "ordinal": {
+      "1": "第 1",
+      "2": "第 2",
+      "3": "第 3",
+      "4": "第 4",
+      "5": "第 5",
+      "6": "第 6",
+      "7": "第 7",
+      "8": "第 8"
+    }
+  },
+  "colors": {
+    "blue": "蓝色",
+    "red": "红色",
+    "green": "绿色",
+    "yellow": "黄色",
+    "purple": "紫色",
+    "orange": "橙色",
+    "cyan": "青色",
+    "pink": "粉色"
+  },
+  "about": {
+    "title": "关于",
+    "description": "Ludo 2 是经典棋盘游戏飞行棋的实时多人在线实现，支持 4 到 8 名玩家。",
+    "openSourceTitle": "开源",
+    "openSource": "本项目是开源的。完整源代码托管在 GitHub 上，欢迎贡献与反馈。",
+    "viewOnGithub": "在 GitHub 上查看",
+    "issuesTitle": "发现问题？",
+    "issues": "如果你遇到错误或想请求新功能，请在 GitHub 问题追踪器上提交报告。",
+    "reportIssue": "报告问题",
+    "detailsTitle": "详情",
+    "versionLabel": "版本",
+    "builtWithLabel": "技术栈",
+    "builtWith": "Vue 3、Vite、Tailwind CSS 与 Bun。"
+  },
+  "howto": {
+    "title": "玩法说明",
+    "intro": "Ludo 2 是一款面向 4 到 8 名玩家的回合制竞速游戏。每位玩家指挥四枚棋子，目标是让它们绕过共享赛道并进入各自的终点列。所有规则均由服务器强制执行；客户端仅显示同步后的游戏状态。",
+    "sections": {
+      "objective": {
+        "title": "1. 目标",
+        "items": [
+          "成为第一个把全部四枚棋子从基地出发、绕完整条赛道并送入终点列的玩家。"
+        ]
+      },
+      "setup": {
+        "title": "2. 准备",
+        "items": [
+          "一局由 4 到 8 名玩家进行。",
+          "每位玩家分配一种颜色并控制四枚棋子。",
+          "所有棋子起始时都在各自基地内，未上赛道。",
+          "游戏开始后座位与回合顺序即固定。"
+        ]
+      },
+      "turn": {
+        "title": "3. 进行回合",
+        "items": [
+          "轮到你时，掷一颗骰子。",
+          "只有掷出六点时，棋子才能离开基地进入赛道。",
+          "掷骰后，只要存在合法走法，你必须按所示点数移动一枚符合条件的棋子。",
+          "如果没有合法走法，你的回合将被自动跳过。"
+        ]
+      },
+      "movement": {
+        "title": "4. 移动棋子",
+        "items": [
+          "棋子沿共享赛道按单一固定方向前进。",
+          "完成一圈后，棋子转入自己的终点列。",
+          "进入最终终点格需要精确的点数；会超过终点的点数不是合法走法。"
+        ]
+      },
+      "capturing": {
+        "title": "5. 捕获",
+        "items": [
+          "落在仅有一枚对手棋子的赛道格上，会把该棋子送回其基地。",
+          "每位玩家的起点格是安全格；停在安全格上的棋子不会被捕获。",
+          "终点列内的棋子无法被捕获。"
+        ]
+      },
+      "sixes": {
+        "title": "6. 掷出六点",
+        "items": [
+          "掷出六点可获得一次额外回合。",
+          "连续掷出三个六点将丧失该回合：第三个六点作废，轮到下一位玩家。"
+        ]
+      },
+      "winning": {
+        "title": "7. 获胜",
+        "items": [
+          "当玩家的全部四枚棋子都进入终点列时即完成。",
+          "其余玩家继续游戏，并按完成顺序排名。"
+        ]
+      },
+      "options": {
+        "title": "8. 可选规则",
+        "items": [
+          "路障：启用后，同一格上的两枚己方棋子会形成路障，阻止对手通过或捕获。",
+          "自动移动：启用后，只有一种合法走法的回合会自动完成。",
+          "回合计时器：启用后，每回合限时 30 秒；错过三次回合的玩家将被移出游戏。"
+        ]
+      }
+    }
+  }
+}

@@ -6,7 +6,9 @@
     "ready": "Bereit",
     "notReady": "Nicht bereit",
     "ai": "(KI)",
-    "loading": "Lädt…"
+    "loading": "Lädt…",
+    "about": "Über",
+    "howToPlay": "Spielanleitung"
   },
   "nav": {
     "home": "Startseite",
@@ -26,13 +28,14 @@
     "disconnected": "Getrennt",
     "removeAi": "KI-Spieler entfernen",
     "removePlayer": "Spieler entfernen",
-    "addAi": "+ KI-Spieler hinzufügen",
+    "addAi": "Roboter-Spieler hinzufügen",
     "wallFeature": "Mauern",
     "wallFeatureHint": "Zwei Spielsteine auf einem Feld hindern Gegner am Passieren oder Schlagen.",
     "autoMove": "Automatischer Zug",
     "autoMoveHint": "Führe deinen Zug automatisch aus, wenn nur einer möglich ist.",
     "turnTimer": "Zugzeit-Limit",
     "turnTimerHint": "Begrenze jeden Zug auf 30 Sekunden. Zum Deaktivieren ausschalten.",
+    "settings": "Spieleinstellungen",
     "imReady": "Ich bin bereit",
     "youreReady": "Du bist bereit",
     "startGame": "Spiel starten"
@@ -88,5 +91,87 @@
     "orange": "Orange",
     "cyan": "Türkis",
     "pink": "Pink"
+  },
+  "about": {
+    "title": "Über",
+    "description": "Ludo 2 ist eine Echtzeit-Mehrspieler-Umsetzung des klassischen Brettspiels „Mensch ärgere dich nicht“ (Ludo) für 4 bis 8 Spieler.",
+    "openSourceTitle": "Open Source",
+    "openSource": "Dieses Projekt ist quelloffen. Der vollständige Quellcode liegt auf GitHub, wo Beiträge und Rückmeldungen willkommen sind.",
+    "viewOnGithub": "Auf GitHub ansehen",
+    "issuesTitle": "Ein Problem gefunden?",
+    "issues": "Wenn du auf einen Fehler stößt oder eine Funktion vorschlagen möchtest, melde dies bitte im GitHub-Issue-Tracker.",
+    "reportIssue": "Problem melden",
+    "detailsTitle": "Details",
+    "versionLabel": "Version",
+    "builtWithLabel": "Erstellt mit",
+    "builtWith": "Vue 3, Vite, Tailwind CSS und Bun."
+  },
+  "howto": {
+    "title": "Spielanleitung",
+    "intro": "Ludo 2 ist ein rundenbasiertes Wettlaufspiel für 4 bis 8 Spieler. Jeder Spieler steuert vier Figuren und versucht, sie über eine gemeinsame Bahn bis in seine Zielspalte zu bewegen. Alle Regeln werden vom Server durchgesetzt; der Client zeigt nur den synchronisierten Spielstand an.",
+    "sections": {
+      "objective": {
+        "title": "1. Ziel",
+        "items": [
+          "Sei der erste Spieler, der alle vier Figuren aus dem Startfeld über die gesamte Bahn bis in die eigene Zielspalte bringt."
+        ]
+      },
+      "setup": {
+        "title": "2. Vorbereitung",
+        "items": [
+          "Eine Partie wird von 4 bis 8 Spielern gespielt.",
+          "Jedem Spieler wird eine Farbe zugewiesen und er steuert vier Figuren.",
+          "Alle Figuren beginnen im Startfeld ihres Besitzers, außerhalb der Bahn.",
+          "Sitzplätze und Zugreihenfolge stehen fest, sobald das Spiel beginnt."
+        ]
+      },
+      "turn": {
+        "title": "3. Ein Zug",
+        "items": [
+          "Würfle in deinem Zug mit dem einzelnen Würfel.",
+          "Eine Figur darf das Startfeld nur verlassen und die Bahn betreten, wenn du eine Sechs würfelst.",
+          "Nach dem Würfeln musst du eine zugfähige Figur um die gewürfelte Zahl ziehen, sofern ein gültiger Zug möglich ist.",
+          "Ist kein gültiger Zug möglich, wird dein Zug automatisch übersprungen."
+        ]
+      },
+      "movement": {
+        "title": "4. Figuren bewegen",
+        "items": [
+          "Figuren bewegen sich in einer festen Richtung über die gemeinsame Bahn.",
+          "Nach einer vollen Runde biegt eine Figur in ihre eigene Zielspalte ab.",
+          "Das letzte Zielfeld erfordert eine exakte Augenzahl; ein Wurf, der über das Ende hinausginge, ist kein gültiger Zug."
+        ]
+      },
+      "capturing": {
+        "title": "5. Schlagen",
+        "items": [
+          "Landet eine Figur auf einem Bahnfeld mit einer einzelnen gegnerischen Figur, wird diese in ihr Startfeld zurückgeschickt.",
+          "Das Startfeld jedes Spielers ist ein sicheres Feld; eine Figur auf einem sicheren Feld kann nicht geschlagen werden.",
+          "Figuren in einer Zielspalte können nicht geschlagen werden."
+        ]
+      },
+      "sixes": {
+        "title": "6. Eine Sechs würfeln",
+        "items": [
+          "Eine Sechs gewährt dir einen zusätzlichen Zug.",
+          "Drei Sechsen in Folge verwirken den Zug: Die dritte Sechs verfällt und das Spiel geht an den nächsten Spieler über."
+        ]
+      },
+      "winning": {
+        "title": "7. Gewinnen",
+        "items": [
+          "Ein Spieler ist fertig, sobald alle vier Figuren in seiner Zielspalte stehen.",
+          "Die übrigen Spieler spielen weiter und werden in der Reihenfolge ihres Abschlusses platziert."
+        ]
+      },
+      "options": {
+        "title": "8. Optionale Regeln",
+        "items": [
+          "Mauern: Wenn aktiviert, bilden zwei eigene Figuren auf demselben Feld eine Mauer, die Gegner am Passieren oder Schlagen hindert.",
+          "Automatischer Zug: Wenn aktiviert, wird ein Zug mit nur einem gültigen Spielzug automatisch ausgeführt.",
+          "Zug-Timer: Wenn aktiviert, ist jeder Zug auf 30 Sekunden begrenzt; wer drei Züge verpasst, wird aus dem Spiel entfernt."
+        ]
+      }
+    }
   }
 }
