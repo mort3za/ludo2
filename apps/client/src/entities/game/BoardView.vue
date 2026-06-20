@@ -18,6 +18,10 @@ const emit = defineEmits<{
   move: [tokenId: string];
 }>();
 
+/** 5-pointed star path, outer radius 10, centered at origin, pointing up. */
+const STAR_PATH =
+  "M0,-10 L2.351,-3.236 L9.511,-3.09 L3.804,1.236 L5.878,8.09 L0,4 L-5.878,8.09 L-3.804,1.236 L-9.511,-3.09 L-2.351,-3.236 Z";
+
 const legalSet = computed(() => new Set(props.legalTokenIds ?? []));
 
 const layout = computed(() => computeBoardLayout(props.boardSize));
@@ -159,7 +163,7 @@ function startSquareColor(cellId: string): string | null {
         :cy="cell.y"
         :r="layout.cellSize"
         :fill="startSquareColor(cell.id) ?? '#edece7'"
-        :opacity="startSquareColor(cell.id) ? 0.35 : 1"
+        :opacity="startSquareColor(cell.id) ? 0.7 : 1"
         :stroke="startSquareColor(cell.id) ?? '#b2afae'"
         :stroke-width="layout.cellSize * 0.15"
       />
@@ -175,22 +179,13 @@ function startSquareColor(cellId: string): string | null {
         stroke-opacity="0.75"
       />
       <!-- Safe marker (star) -->
-      <text
+      <path
         v-if="safeSquares.has(cell.id)"
-        :x="cell.x"
-        :y="cell.y"
-        text-anchor="middle"
-        dominant-baseline="central"
-        :font-size="layout.cellSize * 0.8"
-        :fill="startSquareColor(cell.id) ?? '#898683'"
+        :d="STAR_PATH"
+        fill="rgba(255, 255, 255, 0.8)"
         :opacity="startSquareColor(cell.id) ? 0.7 : 1"
-        :style="{
-          transform: `rotate(${-rotation}deg)`,
-          transformOrigin: `${cell.x}px ${cell.y}px`,
-        }"
-      >
-        ★
-      </text>
+        :transform="`translate(${cell.x} ${cell.y}) rotate(${-rotation}) scale(${layout.cellSize * 0.05})`"
+      />
     </template>
 
     <!-- Home columns -->
@@ -202,7 +197,7 @@ function startSquareColor(cellId: string): string | null {
         :cy="cell.y"
         :r="layout.cellSize"
         :fill="resolvedSeatColor(si + 1)"
-        :opacity="0.3"
+        :opacity="0.7"
         :stroke="resolvedSeatColor(si + 1)"
         :stroke-width="layout.cellSize * 0.15"
         stroke-opacity="0.5"
@@ -218,7 +213,7 @@ function startSquareColor(cellId: string): string | null {
         :cy="cell.y"
         :r="layout.cellSize"
         :fill="resolvedSeatColor(si + 1)"
-        :opacity="0.25"
+        :opacity="0.7"
         :stroke="resolvedSeatColor(si + 1)"
         :stroke-width="layout.cellSize * 0.15"
         stroke-opacity="0.4"
