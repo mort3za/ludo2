@@ -37,6 +37,7 @@ const visiblePlayers = computed(() => {
 
 const shareLink = computed(() => `${globalThis.location.origin}/room/${props.roomId}`);
 const copied = ref(false);
+const showSettings = ref(false);
 
 function copyLink() {
   navigator.clipboard.writeText(shareLink.value);
@@ -165,16 +166,6 @@ const canAddBot = computed(
             {{ copied ? t("common.copied") : t("common.copyLink") }}
           </DButton>
         </div>
-        <p class="text-caption text-subtle-gray font-sans mt-4 mb-1">
-          {{ t("room.roomId") }}
-          <code
-            class="text-body-xs text-subtle-gray text-center mb-6 font-sans"
-            dir="ltr"
-            data-testid="room-id"
-          >
-            {{ roomId }}
-          </code>
-        </p>
       </div>
 
       <!-- Player list -->
@@ -218,11 +209,53 @@ const canAddBot = computed(
         data-testid="add-bot-btn"
         @click="addBot"
       >
-        {{ t("room.addAi") }}
+        <span class="inline-flex items-center justify-center gap-2">
+          <svg
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="3" y="8" width="18" height="12" rx="2" />
+            <path d="M12 3v5" />
+            <circle cx="12" cy="3" r="1" />
+            <path d="M8 13h.01M16 13h.01" />
+            <path d="M3 14H1m22 0h-2" />
+          </svg>
+          {{ t("room.addAi") }}
+        </span>
       </DButton>
 
       <!-- Game options -->
-      <div class="mb-6 flex flex-col gap-4" data-testid="game-options">
+      <div class="mb-6">
+        <button
+          type="button"
+          class="flex w-full items-center justify-between font-sans text-body-sm text-midnight-ink"
+          :aria-expanded="showSettings"
+          data-testid="settings-toggle"
+          @click="showSettings = !showSettings"
+        >
+          <span>{{ t("room.settings") }}</span>
+          <svg
+            class="w-4 h-4 text-subtle-gray transition-transform"
+            :class="showSettings ? 'rotate-180' : ''"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+
+        <div v-show="showSettings" class="mt-4 flex flex-col gap-4" data-testid="game-options">
         <label
           class="flex items-center justify-between gap-3"
           :class="isOwner ? 'cursor-pointer' : 'opacity-60'"
@@ -285,6 +318,7 @@ const canAddBot = computed(
             class="relative h-6 w-11 shrink-0 rounded-full bg-neutral-300 transition-colors after:absolute after:top-0.5 after:inset-s-0.5 after:size-5 after:rounded-full after:bg-white after:transition-transform peer-checked:bg-green-500 peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5"
           ></span>
         </label>
+        </div>
       </div>
 
       <div class="flex flex-col gap-3">
