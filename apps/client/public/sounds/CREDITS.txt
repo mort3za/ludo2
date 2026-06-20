@@ -8,13 +8,15 @@ with no attribution required.
 
 Event mapping (renamed from the original Kenney files):
 
-  dice-roll.ogg     Casino Audio / diceThrow1
+  dice-roll.ogg          User-supplied (dice-rolling.mp3), converted to ogg
   token-select.ogg  Interface Sounds / click_003
   token-step.ogg    Digital Audio / pepSound1   (play once per step)
   turn-change.ogg   Interface Sounds / bong_001
   game-start.ogg    Music Jingles (Retro) / jingles-retro_00
   win.ogg           Music Jingles (Retro) / jingles-retro_07
-  game-over.ogg     Digital Audio / lowThreeTone
+  game-over.ogg          Digital Audio / lowThreeTone
+  token-capture-win.ogg  Synthesized locally (rising fanfare, for the attacker) — CC0
+  token-capture-sad.ogg  Synthesized locally (descending "sad trombone" sweep) — CC0
 
 Swap any file for a different one from the same CC0 pack if a clip
 doesn't fit; keep the filename so no code changes are needed.
