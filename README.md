@@ -1,6 +1,6 @@
 # Ludo 2
 
-A real-time multiplayer Ludo game you can play in the browser with friends. Also known as Mensch ärgere Dich nicht, Parcheesi, Parchís, Pachisi, and Fia.
+A real-time multiplayer Ludo game you can play in the browser with friends. Also known as Mensch ärgere Dich nicht, Parcheesi, Parchís, Pachisi, منچ, and Fia.
 
 ![Screenshot](screenshot.png)
 

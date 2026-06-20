@@ -35,26 +35,32 @@ async function play() {
     </header>
 
     <div class="flex-1 flex flex-col items-center justify-center gap-4">
-      <h1 class="text-display font-sans text-midnight-ink tracking-tight mb-6">Ludo</h1>
+      <h1 class="text-display font-sans text-midnight-ink tracking-tight mb-6">
+        {{ t("common.title") }}
+      </h1>
 
-      <DButton
-        :disabled="loading"
-        data-testid="play-btn"
-        class="px-10 py-3 text-heading-sm min-w-40"
-        @click="play"
-      >
-        {{ loading ? t("home.creating") : t("common.play") }}
-      </DButton>
-      <p v-if="error" class="text-caption text-red-500 font-sans text-center">{{ error }}</p>
+      <div class="flex flex-col items-stretch gap-3 w-60">
+        <DButton
+          :disabled="loading"
+          data-testid="play-btn"
+          class="py-3 text-heading-sm"
+          @click="play"
+        >
+          {{ loading ? t("home.creating") : t("common.play") }}
+        </DButton>
+        <p v-if="error" class="text-caption text-red-500 font-sans text-center">{{ error }}</p>
 
-      <nav class="mt-2 flex items-center gap-3">
-        <router-link to="/how-to-play" class="d-btn d-btn--ghost" data-testid="how-to-play-btn">
+        <router-link
+          to="/how-to-play"
+          class="d-btn d-btn--ghost py-3"
+          data-testid="how-to-play-btn"
+        >
           {{ t("common.howToPlay") }}
         </router-link>
-        <router-link to="/about" class="d-btn d-btn--ghost" data-testid="about-btn">
+        <router-link to="/about" class="d-btn d-btn--ghost py-3" data-testid="about-btn">
           {{ t("common.about") }}
         </router-link>
-      </nav>
+      </div>
     </div>
   </main>
 </template>

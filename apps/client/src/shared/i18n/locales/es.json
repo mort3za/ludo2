@@ -1,5 +1,6 @@
 {
   "common": {
+    "title": "Parchís",
     "play": "Jugar",
     "copyLink": "Copiar enlace",
     "copied": "¡Copiado!",
@@ -96,7 +97,7 @@
     "title": "Acerca de",
     "description": "Ludo 2 es una implementación multijugador en tiempo real del clásico juego de mesa Parchís, para 4 a 8 jugadores.",
     "openSourceTitle": "Código abierto",
-    "openSource": "Este proyecto es de código abierto. Su código fuente completo está alojado en GitHub, donde se agradecen las contribuciones y los comentarios.",
+    "openSource": "Este proyecto es de código abierto. Su código fuente completo está alojado en GitHub, donde se agradecen los comentarios.",
     "viewOnGithub": "Ver en GitHub",
     "issuesTitle": "¿Encontraste un problema?",
     "issues": "Si encuentras un error o quieres solicitar una función, abre un informe en el rastreador de incidencias de GitHub.",

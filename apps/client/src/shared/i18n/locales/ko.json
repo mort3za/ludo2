@@ -1,5 +1,6 @@
 {
   "common": {
+    "title": "루도",
     "play": "플레이",
     "copyLink": "링크 복사",
     "copied": "복사됨!",
@@ -96,7 +97,7 @@
     "title": "정보",
     "description": "Ludo 2는 고전 보드게임 루도를 4~8명이 즐길 수 있도록 만든 실시간 멀티플레이어 버전입니다.",
     "openSourceTitle": "오픈 소스",
-    "openSource": "이 프로젝트는 오픈 소스입니다. 전체 소스 코드는 GitHub에 호스팅되어 있으며, 기여와 피드백을 환영합니다.",
+    "openSource": "이 프로젝트는 오픈 소스입니다. 전체 소스 코드는 GitHub에 호스팅되어 있으며, 피드백을 환영합니다.",
     "viewOnGithub": "GitHub에서 보기",
     "issuesTitle": "문제를 발견하셨나요?",
     "issues": "버그를 발견했거나 기능을 요청하고 싶다면 GitHub 이슈 트래커에 보고를 남겨 주세요.",
