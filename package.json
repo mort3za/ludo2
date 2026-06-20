@@ -1,7 +1,6 @@
 {
   "name": "ludo-2",
   "version": "0.2.0",
-  "private": true,
   "description": "Real-time multiplayer Ludo game",
   "keywords": [
     "board-game",
@@ -10,6 +9,7 @@
     "multiplayer",
     "real-time"
   ],
+  "license": "MIT",
   "author": "Morteza Ziyaeimehr <morteza.zym@gmail.com>",
   "workspaces": [
     "apps/*",
