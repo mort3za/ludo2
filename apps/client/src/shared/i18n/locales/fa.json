@@ -14,7 +14,13 @@
   "nav": {
     "home": "خانه",
     "language": "زبان",
-    "toggleSound": "تغییر صدا"
+    "toggleSound": "تغییر صدا",
+    "theme": "پوسته",
+    "themes": {
+      "system": "سیستم",
+      "light": "روشن",
+      "dark": "تیره"
+    }
   },
   "home": {
     "creating": "در حال ساخت…",

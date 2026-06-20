@@ -14,7 +14,13 @@
   "nav": {
     "home": "Home",
     "language": "Language",
-    "toggleSound": "Toggle sound"
+    "toggleSound": "Toggle sound",
+    "theme": "Theme",
+    "themes": {
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    }
   },
   "home": {
     "creating": "Creating…",

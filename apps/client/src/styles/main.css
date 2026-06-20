@@ -64,6 +64,10 @@ html {
   min-height: 100%;
 }
 
+html[data-theme="dark"] {
+  background-image: url("../assets/bg-1-dark.png");
+}
+
 main {
   margin-top: var(--header-height);
 }

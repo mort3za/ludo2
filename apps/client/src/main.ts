@@ -4,10 +4,12 @@ import { VueQueryPlugin } from "@tanstack/vue-query";
 import { router } from "./router/index.js";
 import { i18n } from "./shared/i18n";
 import { applyLocaleToDocument } from "./shared/i18n/useLocale";
+import { applyThemeToDocument } from "./shared/lib/use-theme";
 import App from "./app/App.vue";
 import "./styles/main.css";
 
 applyLocaleToDocument(i18n.global.locale.value);
+applyThemeToDocument();
 
 const app = createApp(App);
 app.use(createPinia());

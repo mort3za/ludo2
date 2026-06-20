@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import { useLocale } from "@/shared/i18n/useLocale";
 import { useSound } from "@/shared/lib/use-sound";
 import LocaleSelect from "./LocaleSelect.vue";
+import ThemeSelect from "./ThemeSelect.vue";
 
 const { t } = useI18n();
 const { dir } = useLocale();
@@ -69,6 +70,7 @@ const backArrow = computed(() => (dir.value === "rtl" ? "→" : "←"));
           <line x1="17" y1="9" x2="23" y2="15" />
         </svg>
       </button>
+      <ThemeSelect />
       <LocaleSelect v-if="showLanguage" />
     </div>
   </header>
