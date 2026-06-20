@@ -9,6 +9,7 @@ with no attribution required.
 Event mapping (renamed from the original Kenney files):
 
   dice-roll.ogg          User-supplied (dice-rolling.mp3), converted to ogg
+  no-moves.ogg           Synthesized locally (soft descending two-note cue, when a roll yields no legal moves) — CC0
   token-select.ogg  Interface Sounds / click_003
   token-step.ogg    Digital Audio / pepSound1   (play once per step)
   turn-change.ogg   Interface Sounds / bong_001

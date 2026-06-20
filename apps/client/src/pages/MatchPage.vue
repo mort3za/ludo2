@@ -7,7 +7,7 @@ import { useGameResultStore } from "@/stores/game-result";
 import { createWsConnection, type WsConnection } from "@/shared/lib/ws";
 import { useGameAnimation } from "@/features/match/use-game-animation";
 import { playSound } from "@/shared/lib/use-sound";
-import { legalMoves, type PlayerColor } from "@ludo/shared";
+import { legalMoves, TIMINGS, type PlayerColor } from "@ludo/shared";
 import type { ServerMessage } from "@ludo/shared";
 import { playerColorHex } from "@/entities/game/board-geometry";
 import BoardView from "@/entities/game/BoardView.vue";
@@ -30,6 +30,15 @@ const { gameState, animating, stackingTokenId, lastRolledValue, isActionLocked, 
     (msg) => {
       if (msg.type === "rolled") {
         playSound("diceRoll");
+        // The roller has nothing to do with this dice — cue it once the dice
+        // has settled so it reads as a follow-up to the roll, not a clash.
+        if (activeSeatHasNoMoves(msg.value)) {
+          if (noMovesTimer !== null) clearTimeout(noMovesTimer);
+          noMovesTimer = setTimeout(() => {
+            noMovesTimer = null;
+            playSound("noMoves");
+          }, TIMINGS.diceReveal);
+        }
       }
 
       if (msg.type === "turn") {
@@ -95,6 +104,28 @@ const hiddenStackBadgeCellId = computed<string | undefined>(() => {
 const deadline = ref<number>(0);
 const pendingAction = ref(false);
 let ws: WsConnection | null = null;
+let noMovesTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * Whether the seat that just rolled has zero legal moves for `diceValue`. The
+ * server auto-passes such turns, so this is the cue to play the "no moves"
+ * sound for whoever is watching, regardless of which seat rolled.
+ */
+function activeSeatHasNoMoves(diceValue: number): boolean {
+  const state = gameState.value;
+  if (!state) return false;
+  const activeColor = state.seats.find((s) => s.index === state.activeSeat)?.color;
+  const seatTokens = state.tokens.filter((t) => t.color === activeColor);
+  const moves = legalMoves(
+    seatTokens,
+    diceValue,
+    state.activeSeat,
+    state.seats.length,
+    state.tokens,
+    state.options.wallEnabled,
+  );
+  return moves.length === 0;
+}
 
 const canSendAction = computed(() => !pendingAction.value && !isActionLocked.value);
 
@@ -233,6 +264,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (resyncTimer !== null) clearTimeout(resyncTimer);
+  if (noMovesTimer !== null) clearTimeout(noMovesTimer);
   ws?.close();
 });
 </script>
@@ -280,20 +312,32 @@ onUnmounted(() => {
       </div>
 
       <TurnTimer :deadline="deadline" />
+    </div>
 
-      <div v-if="isDev && mySeat !== null" class="mt-1 flex flex-wrap gap-2">
+    <p v-else class="text-body-sm text-subtle-gray font-sans">{{ t("match.loadingGame") }}</p>
+
+    <details
+      v-if="isDev && mySeat !== null"
+      class="fixed bottom-4 left-4 z-50 font-sans text-body-sm"
+    >
+      <summary
+        class="cursor-pointer list-none rounded border border-subtle-gray bg-canvas-white px-3 py-1.5 text-subtle-gray shadow-sm"
+      >
+        🐛 Debug
+      </summary>
+      <div
+        class="mt-1 flex flex-col gap-1 rounded border border-subtle-gray bg-canvas-white p-1 shadow-sm"
+      >
         <button
           v-for="scenario in debugScenarios"
           :key="scenario"
           type="button"
-          class="rounded border border-subtle-gray px-2 py-1 text-body-sm font-sans text-subtle-gray"
+          class="rounded px-3 py-1.5 text-left text-subtle-gray hover:bg-subtle-gray/10"
           @click="onDebugScenario(scenario)"
         >
-          🐛 {{ scenario }}
+          {{ scenario }}
         </button>
       </div>
-    </div>
-
-    <p v-else class="text-body-sm text-subtle-gray font-sans">{{ t("match.loadingGame") }}</p>
+    </details>
   </main>
 </template>

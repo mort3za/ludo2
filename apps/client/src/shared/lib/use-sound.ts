@@ -3,6 +3,7 @@ import { ref } from "vue";
 /** Sound files served statically from apps/client/public/sounds. */
 const SOUND_SRC = {
   diceRoll: "/sounds/dice-roll.ogg",
+  noMoves: "/sounds/no-moves.ogg",
   tokenSelect: "/sounds/token-select.ogg",
   tokenStep: "/sounds/token-step.ogg",
   turnChange: "/sounds/turn-change.ogg",
