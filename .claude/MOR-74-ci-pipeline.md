@@ -3,6 +3,7 @@
 ## Implementation
 
 Created `.github/workflows/test.yml` with:
+
 - Triggers: push to main, pull_request to main
 - Runs on ubuntu-latest with latest Bun
 - Caches `~/.bun/install/cache` keyed on `bun.lockb`

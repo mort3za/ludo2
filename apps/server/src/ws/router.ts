@@ -109,7 +109,11 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
   }
 
   function dispatch(client: WsClient, message: ClientMessage): void {
-    logger.info("WS message dispatch", { playerId: client.playerId, roomId: client.roomId, type: message.type });
+    logger.info("WS message dispatch", {
+      playerId: client.playerId,
+      roomId: client.roomId,
+      type: message.type,
+    });
 
     const room = rooms.get(client.roomId);
     if (!room) {
@@ -374,9 +378,11 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
       }
     } else if (room.phase === "playing") {
       // In-game disconnect: broadcast presence update
-      const seat = room.members.get(client.playerId)?.kind === "bot"
-        ? undefined
-        : gameSessions.get(client.roomId)?.state.seats.find((s) => s.playerId === client.playerId)?.index;
+      const seat =
+        room.members.get(client.playerId)?.kind === "bot"
+          ? undefined
+          : gameSessions.get(client.roomId)?.state.seats.find((s) => s.playerId === client.playerId)
+              ?.index;
       if (seat !== undefined) {
         broadcast(client.roomId, { type: "presence", seat, connected: false });
       }

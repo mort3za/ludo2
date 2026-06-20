@@ -3,6 +3,7 @@
 > You are setting up a **single Git repository monorepo** for a real-time multiplayer Ludo game. The frontend and backend should live in the same repo, but as separate apps with a shared package for contracts and constants.
 >
 > ### Architecture Decision
+>
 > Use a **Bun workspace monorepo** in one repository with this top-level structure:
 >
 > ```text
@@ -20,17 +21,20 @@
 > ```
 >
 > This is intentionally a **single repo**. It gives us:
+>
 > - one dependency graph
 > - shared TypeScript contracts without publishing a package
 > - simpler local development
 > - easier coordinated changes across UI, networking, and rules
 >
 > ### Game Engine Decision
+>
 > Do **not** add a rendering-focused game engine such as Phaser or Pixi for this project.
 >
 > Instead, implement a **server-authoritative game rules engine** inside `apps/server/src/game/`.
 >
 > That server-side engine is responsible for:
+>
 > - turn order
 > - dice rolls
 > - legal move validation
@@ -42,6 +46,7 @@
 > - anti-cheat validation
 >
 > The client should only handle:
+>
 > - board rendering
 > - piece animation
 > - UI state
@@ -49,7 +54,9 @@
 > - displaying synchronized state from the server
 >
 > ### `apps/client` setup
+>
 > Build the client as a Vue application with the following stack:
+>
 > - **Vite 8**
 > - **Vue 3** with `<script setup>` and TypeScript
 > - **Vue Router 4**
@@ -62,6 +69,7 @@
 > - path alias `@` → `src/`
 >
 > Client folder structure:
+>
 > ```text
 > apps/client/
 > ├── src/
@@ -93,9 +101,11 @@
 > ```
 >
 > ### `apps/server` setup
+>
 > Build the backend using Bun with native WebSocket support.
 >
 > Required stack:
+>
 > - **Bun** runtime
 > - `Bun.serve()` with WebSocket upgrade handling
 > - TypeScript strict mode
@@ -105,11 +115,13 @@
 > - **`jose`** for JWT creation and verification (guest-first auth; no sign-up wall)
 >
 > ### Auth strategy
+>
 > Guest-first with JWT sessions. On first visit the server auto-creates a guest identity and issues a signed JWT. The client stores it in `localStorage` and sends it as a `Bearer` token on HTTP requests and as a query param during WS upgrade. The server validates the JWT and binds session → player → seat. Social/OAuth login is deferred (add `arctic` when needed).
 >
 > Important: database code belongs only to the server app. Do not place Drizzle or SQLite in the client app.
 >
 > Server folder structure:
+>
 > ```text
 > apps/server/
 > ├── src/
@@ -145,12 +157,14 @@
 > ```
 >
 > ### `packages/shared` setup
+>
 > Create a pure TypeScript shared package with no framework dependencies.
 >
 > This package should contain only shared contracts and deterministic helpers that are safe for both client and server.
 > Use **Vitest** for unit tests in shared deterministic logic.
 >
 > Export the following as initial stubs:
+>
 > - `types/player.ts` — `Player`, `PlayerColor`
 > - `types/game.ts` — `GameState`, `GameStatus`, `Piece`, `Cell`
 > - `types/ws.ts` — `ClientMessage`, `ServerMessage` as discriminated unions by `type`
@@ -160,6 +174,7 @@
 > Optional shared helpers are allowed only if they stay deterministic and transport-agnostic.
 >
 > Shared package structure:
+>
 > ```text
 > packages/shared/
 > ├── src/
@@ -172,7 +187,9 @@
 > ```
 >
 > ### Root workspace requirements
+>
 > Generate the root workspace with:
+>
 > - root `package.json` with workspace scripts: `dev`, `build`, `lint`, `typecheck`, `test`, `test:e2e`
 > - root `tsconfig.json` with project references for each workspace package
 > - root `.oxlintrc.json`
@@ -184,6 +201,7 @@
 > - use Playwright for end-to-end flows such as login, lobby creation, room join, match start, reconnect, and turn progression UI
 >
 > ### Output requirements
+>
 > Generate every config file and folder with real content.
 > Use placeholders only where explicitly marked as future work.
 > Keep the codebase ready for the next prompt, which will implement the server-authoritative Ludo rules engine.

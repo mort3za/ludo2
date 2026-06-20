@@ -63,7 +63,9 @@ const statusText = computed(() => {
 
 <template>
   <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full">
-    <p class="text-xs sm:text-body-sm text-subtle-gray font-sans flex items-center gap-1.5 flex-1 min-w-0">
+    <p
+      class="text-xs sm:text-body-sm text-subtle-gray font-sans flex items-center gap-1.5 flex-1 min-w-0"
+    >
       <span
         class="inline-block size-2 sm:size-3 rounded-full shrink-0"
         :class="{ 'animate-pulse': activeSeatIsBot && phase === 'waiting' }"

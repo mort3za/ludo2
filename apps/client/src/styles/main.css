@@ -28,7 +28,9 @@
   --text-heading-sm--letter-spacing: -0.04em;
 
   /* — Font Family — */
-  --font-sans: "akkurat", "DM Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans:
+    "akkurat", "DM Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, sans-serif;
   --font-mono: "fragmentMono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* — Spacing — */
@@ -54,7 +56,7 @@
 }
 
 html {
-  background-image: url('../assets/bg-1.png');
+  background-image: url("../assets/bg-1.png");
   background-size: cover;
   background-position: center;
   background-attachment: fixed;

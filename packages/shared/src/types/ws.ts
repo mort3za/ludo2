@@ -25,7 +25,13 @@ export interface LobbyPlayer {
 /** Messages sent from server to client */
 export type ServerMessage =
   | { type: "error"; message: string }
-  | { type: "lobby"; players: LobbyPlayer[]; ownerId: string; capacity: number; options: GameOptions }
+  | {
+      type: "lobby";
+      players: LobbyPlayer[];
+      ownerId: string;
+      capacity: number;
+      options: GameOptions;
+    }
   | { type: "state"; state: GameState }
   | { type: "rolled"; seat: number; value: number }
   | { type: "moved"; tokenId: string; to: Cell; path: Cell[] }

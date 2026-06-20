@@ -17,11 +17,36 @@ const emit = defineEmits<{
 /** Standard pip layout per face, in a 0–100 SVG grid. */
 const PIPS: Record<number, [number, number][]> = {
   1: [[50, 50]],
-  2: [[30, 30], [70, 70]],
-  3: [[30, 30], [50, 50], [70, 70]],
-  4: [[30, 30], [70, 30], [30, 70], [70, 70]],
-  5: [[30, 30], [70, 30], [50, 50], [30, 70], [70, 70]],
-  6: [[30, 30], [70, 30], [30, 50], [70, 50], [30, 70], [70, 70]],
+  2: [
+    [30, 30],
+    [70, 70],
+  ],
+  3: [
+    [30, 30],
+    [50, 50],
+    [70, 70],
+  ],
+  4: [
+    [30, 30],
+    [70, 30],
+    [30, 70],
+    [70, 70],
+  ],
+  5: [
+    [30, 30],
+    [70, 30],
+    [50, 50],
+    [30, 70],
+    [70, 70],
+  ],
+  6: [
+    [30, 30],
+    [70, 30],
+    [30, 50],
+    [70, 50],
+    [30, 70],
+    [70, 70],
+  ],
 };
 
 /** Currently displayed face (changes rapidly while rolling). */
@@ -132,14 +157,7 @@ onUnmounted(() => {
       />
       <!-- top highlight for a subtle 3D feel -->
       <rect x="14" y="13" width="72" height="20" rx="10" fill="#ffffff" opacity="0.55" />
-      <circle
-        v-for="([cx, cy], i) in PIPS[face]"
-        :key="i"
-        :cx="cx"
-        :cy="cy"
-        r="9"
-        fill="#1a1816"
-      />
+      <circle v-for="([cx, cy], i) in PIPS[face]" :key="i" :cx="cx" :cy="cy" r="9" fill="#1a1816" />
     </svg>
   </button>
 </template>
@@ -192,13 +210,11 @@ onUnmounted(() => {
   0%,
   100% {
     transform: translateY(0);
-    filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.25))
-      drop-shadow(0 0 0 var(--dice-glow));
+    filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.25)) drop-shadow(0 0 0 var(--dice-glow));
   }
   50% {
     transform: translateY(-6%);
-    filter: drop-shadow(0 6px 7px rgba(0, 0, 0, 0.22))
-      drop-shadow(0 0 9px var(--dice-glow));
+    filter: drop-shadow(0 6px 7px rgba(0, 0, 0, 0.22)) drop-shadow(0 0 9px var(--dice-glow));
   }
 }
 

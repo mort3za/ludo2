@@ -20,7 +20,7 @@ onto the final square `H/si/4` to win" model:
   squares with `index < HOME_COLUMN_LENGTH` as obstacles, so a token could legally land
   on an **occupied final square** `H/si/4`.
 
-Because the client highlight and the server validation share the *same* `legalMoves`
+Because the client highlight and the server validation share the _same_ `legalMoves`
 function, there was never a "highlights but won't move" mismatch — the real defect was
 that stacking onto `H/si/4` was wrongly allowed, and the win condition required it.
 

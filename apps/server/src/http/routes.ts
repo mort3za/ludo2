@@ -65,7 +65,12 @@ export function createHttpHandler(deps: HttpDeps) {
 
     const logResponse = (response: Response) => {
       const duration = Date.now() - start;
-      logger.info("HTTP request", { method, path: url.pathname, status: response.status, duration });
+      logger.info("HTTP request", {
+        method,
+        path: url.pathname,
+        status: response.status,
+        duration,
+      });
       return response;
     };
 
@@ -84,7 +89,12 @@ export function createHttpHandler(deps: HttpDeps) {
     if (url.pathname === "/auth/guest" && method === "POST") {
       const clientIp = getClientIp(req);
       if (!authLimiter.isAllowed(clientIp)) {
-        return logResponse(Response.json({ error: "rate-limited" }, { status: 429, headers: { "Retry-After": "60" } }));
+        return logResponse(
+          Response.json(
+            { error: "rate-limited" },
+            { status: 429, headers: { "Retry-After": "60" } },
+          ),
+        );
       }
       const playerId = crypto.randomUUID();
       const token = await auth.issue(playerId);
@@ -109,7 +119,12 @@ export function createHttpHandler(deps: HttpDeps) {
     if (url.pathname === "/rooms" && method === "POST") {
       const clientIp = getClientIp(req);
       if (!roomsLimiter.isAllowed(clientIp)) {
-        return logResponse(Response.json({ error: "rate-limited" }, { status: 429, headers: { "Retry-After": "60" } }));
+        return logResponse(
+          Response.json(
+            { error: "rate-limited" },
+            { status: 429, headers: { "Retry-After": "60" } },
+          ),
+        );
       }
       const identity = await extractAuth(req, auth);
       if (!identity) {
@@ -123,7 +138,12 @@ export function createHttpHandler(deps: HttpDeps) {
 
         const rawBots = body["bots"];
         if (rawBots !== undefined) {
-          if (typeof rawBots !== "number" || !Number.isInteger(rawBots) || rawBots < 0 || rawBots > 3) {
+          if (
+            typeof rawBots !== "number" ||
+            !Number.isInteger(rawBots) ||
+            rawBots < 0 ||
+            rawBots > 3
+          ) {
             return logResponse(Response.json({ error: "invalid-bots" }, { status: 400 }));
           }
           bots = rawBots;
@@ -158,10 +178,7 @@ export function createHttpHandler(deps: HttpDeps) {
   };
 }
 
-async function extractAuth(
-  req: Request,
-  auth: GuestAuth,
-): Promise<{ playerId: string } | null> {
+async function extractAuth(req: Request, auth: GuestAuth): Promise<{ playerId: string } | null> {
   const header = req.headers.get("Authorization");
   if (!header?.startsWith("Bearer ")) return null;
   const token = header.slice(7);

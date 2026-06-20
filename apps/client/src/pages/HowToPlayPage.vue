@@ -24,12 +24,7 @@ const sectionKeys = [
       </h1>
       <p class="text-body-sm font-sans text-adaline-ink">{{ t("howto.intro") }}</p>
 
-      <DCard
-        v-for="key in sectionKeys"
-        :key="key"
-        elevated
-        class="p-4 flex flex-col gap-2"
-      >
+      <DCard v-for="key in sectionKeys" :key="key" elevated class="p-4 flex flex-col gap-2">
         <h2 class="text-body font-sans font-medium text-adaline-ink">
           {{ t(`howto.sections.${key}.title`) }}
         </h2>

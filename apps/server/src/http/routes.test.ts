@@ -29,9 +29,7 @@ describe("HTTP routes", () => {
   // --- Guest Auth ---
   describe("POST /auth/guest", () => {
     it("issues a token without requiring a body", async () => {
-      const res = await handler(
-        new Request("http://localhost/auth/guest", { method: "POST" }),
-      );
+      const res = await handler(new Request("http://localhost/auth/guest", { method: "POST" }));
       expect(res.status).toBe(200);
       const body = (await res.json()) as { token: string; playerId: string };
       expect(body.token).toBeDefined();

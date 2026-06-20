@@ -99,14 +99,15 @@ export function legalMoves(
  * Only the landing cell matters: a token may pass over an occupied home cell as
  * long as it lands on an empty one (home cells are never opponent blocks).
  */
-function isHomeDestinationBlocked(path: string[], movingTokenId: string, allTokens: Token[]): boolean {
+function isHomeDestinationBlocked(
+  path: string[],
+  movingTokenId: string,
+  allTokens: Token[],
+): boolean {
   const destination = path[path.length - 1];
   if (destination === undefined || !destination.startsWith("H/")) return false;
 
   return allTokens.some(
-    (t) =>
-      t.id !== movingTokenId &&
-      t.cell === destination &&
-      parseCell(t.cell).kind === "home",
+    (t) => t.id !== movingTokenId && t.cell === destination && parseCell(t.cell).kind === "home",
   );
 }

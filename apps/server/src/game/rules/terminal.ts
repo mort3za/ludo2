@@ -48,8 +48,7 @@ export function checkTerminal(
     );
     // Win = every token is home AND each sits on its own cell (no stacking).
     // The distinct-cell count guards against any malformed stacked state.
-    const allHome =
-      seatTokens.length >= TOKENS_PER_PLAYER && homeCells.size === seatTokens.length;
+    const allHome = seatTokens.length >= TOKENS_PER_PLAYER && homeCells.size === seatTokens.length;
 
     if (allHome) {
       result.seatFinished = seat.index;

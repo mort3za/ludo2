@@ -1,5 +1,12 @@
 import { createGuestAuth } from "./auth/guest-auth.js";
-import { createRoom, joinRoom, joinAsSpectator, addBotMember, isExpired, type Room } from "./rooms/room.js";
+import {
+  createRoom,
+  joinRoom,
+  joinAsSpectator,
+  addBotMember,
+  isExpired,
+  type Room,
+} from "./rooms/room.js";
 import { createRouter, type WsClient, type RoomStore } from "./ws/router.js";
 import { parseClientMessage } from "./ws/protocol.js";
 import { createHttpHandler } from "./http/routes.js";
@@ -226,7 +233,12 @@ let expireInterval = setInterval(() => {
   const now = Date.now();
   let expiredCount = 0;
   for (const [roomId, room] of rooms) {
-    if (isExpired(room, now) && room.phase === "lobby" && room.members.size === 0 && room.spectators.size === 0) {
+    if (
+      isExpired(room, now) &&
+      room.phase === "lobby" &&
+      room.members.size === 0 &&
+      room.spectators.size === 0
+    ) {
       rooms.delete(roomId);
       expiredCount++;
     }

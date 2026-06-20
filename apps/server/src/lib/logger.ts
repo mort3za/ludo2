@@ -5,7 +5,12 @@ const levels = { info: 0, warn: 1, error: 2 };
 
 function format(level: LogLevel, message: string, data?: Record<string, unknown>): string {
   const timestamp = new Date().toISOString();
-  const pairs = data ? " " + Object.entries(data).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(" ") : "";
+  const pairs = data
+    ? " " +
+      Object.entries(data)
+        .map(([k, v]) => `${k}=${JSON.stringify(v)}`)
+        .join(" ")
+    : "";
   return `[${timestamp}] ${level.toUpperCase()}${pairs ? " " : ""}${message}${pairs}`;
 }
 

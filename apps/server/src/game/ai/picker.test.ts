@@ -153,10 +153,7 @@ describe("pickMove", () => {
     });
 
     it("sprinter picks furthest token advance when no capture/deploy/escape", () => {
-      const state = makeState([
-        t("b1", "blue", "T/3"),
-        t("b2", "blue", "T/10"),
-      ]);
+      const state = makeState([t("b1", "blue", "T/3"), t("b2", "blue", "T/10")]);
       const moves = [
         move("b1", "T/3", "T/6"), // minimal advance
         move("b2", "T/10", "T/13"), // further advance (5x more weight with sprinter)

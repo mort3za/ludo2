@@ -105,7 +105,10 @@ describe("parseClientMessage", () => {
 
   it("rejects set_options with non-boolean fields", () => {
     const result = parseClientMessage(
-      JSON.stringify({ type: "set_options", options: { wallEnabled: "yes", autoMoveEnabled: true } }),
+      JSON.stringify({
+        type: "set_options",
+        options: { wallEnabled: "yes", autoMoveEnabled: true },
+      }),
     );
     expect(result.ok).toBe(false);
     if (result.ok) return;

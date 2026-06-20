@@ -3,12 +3,14 @@
 ## Summary
 
 Two `GameSession` models exist in the codebase:
+
 - **Mutable model** (`apps/server/src/rooms/game-session.ts`): Direct state mutations in `handleRoll` / `handleMove`
 - **Snapshot+log model** (`apps/server/src/ws/reconnect.ts`, `apps/server/src/game/snapshots/game-log.ts`): Immutable state with event replay
 
 ## Decision: Keep Mutable Model
 
 **Rationale:**
+
 1. Mutable model is simpler, sufficient for in-memory play
 2. Server restarts are acceptable (players reconnect, game resumes in-memory)
 3. Snapshot+log offers value only if we persist logs to SQLite per action (not yet prioritized)
@@ -19,6 +21,7 @@ Two `GameSession` models exist in the codebase:
 ## Future Migration
 
 If server-restart durability becomes a requirement:
+
 1. Swap router.ts to use snapshot+log model
 2. Write logs to game_log table per action (already has schema)
 3. On server boot, replay logs for any in-progress games

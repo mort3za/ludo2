@@ -16,14 +16,14 @@ describe("computeBoardLayout", () => {
 
   it("leaves the inner ring at distance 1 empty so arm-to-arm transitions don't overlap", () => {
     const layout = computeBoardLayout(4);
-    const innerCells = [
-      ...layout.track,
-      ...layout.homes.flat(),
-    ].filter((cell) => Math.abs(cell.x) <= 1 && Math.abs(cell.y) <= 1);
+    const innerCells = [...layout.track, ...layout.homes.flat()].filter(
+      (cell) => Math.abs(cell.x) <= 1 && Math.abs(cell.y) <= 1,
+    );
     expect(innerCells, "no track or home cell should sit inside the central goal area").toEqual([]);
 
     const innerHomeEnds = new Set(
-      layout.homes.flat()
+      layout.homes
+        .flat()
         .filter((cell) => Math.max(Math.abs(cell.x), Math.abs(cell.y)) === 2)
         .map((cell) => `${cell.x},${cell.y}`),
     );
@@ -60,7 +60,10 @@ describe("computeBoardLayout", () => {
     // 1. Check that track cells are sequentially adjacent
     for (let i = 0; i < layout.track.length - 1; i++) {
       const d = dist(layout.track[i]!, layout.track[i + 1]!);
-      expect(d, `track ${layout.track[i]!.id} and ${layout.track[i+1]!.id} are adjacent`).toBeLessThanOrEqual(1.5);
+      expect(
+        d,
+        `track ${layout.track[i]!.id} and ${layout.track[i + 1]!.id} are adjacent`,
+      ).toBeLessThanOrEqual(1.5);
     }
 
     // 2. Check track wrap-around
@@ -97,7 +100,10 @@ describe("computeBoardLayout", () => {
 
     for (let i = 0; i < layout.track.length - 1; i++) {
       const d = dist(layout.track[i]!, layout.track[i + 1]!);
-      expect(d, `track S=6 ${layout.track[i]!.id} and ${layout.track[i+1]!.id} are adjacent`).toBeLessThanOrEqual(1.5);
+      expect(
+        d,
+        `track S=6 ${layout.track[i]!.id} and ${layout.track[i + 1]!.id} are adjacent`,
+      ).toBeLessThanOrEqual(1.5);
     }
 
     const wrapDist = dist(layout.track[layout.track.length - 1]!, layout.track[0]!);

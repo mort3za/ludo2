@@ -15,7 +15,10 @@ test("golden-path: two players create, join, ready, start, and play", async ({ b
 
     // === Player 1: Create room ===
     // Look for "Create Room" or similar button
-    const createBtn = p1.locator("button").filter({ hasText: /create|new/i }).first();
+    const createBtn = p1
+      .locator("button")
+      .filter({ hasText: /create|new/i })
+      .first();
     await createBtn.click();
 
     // Extract room ID from URL
@@ -49,7 +52,10 @@ test("golden-path: two players create, join, ready, start, and play", async ({ b
     }
 
     // === Both: Wait for game to load ===
-    await expect(p1.locator("text=roll|Your turn|move", { exact: false }), "P1 should see game").toBeVisible({
+    await expect(
+      p1.locator("text=roll|Your turn|move", { exact: false }),
+      "P1 should see game",
+    ).toBeVisible({
       timeout: 5000,
     });
     await expect(p2.locator("canvas"), "P2 should see board").toBeVisible({ timeout: 5000 });
