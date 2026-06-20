@@ -83,13 +83,16 @@ describe("parseClientMessage", () => {
 
   it("parses a valid set_options message", () => {
     const result = parseClientMessage(
-      JSON.stringify({ type: "set_options", options: { wallEnabled: true, autoMoveEnabled: false } }),
+      JSON.stringify({
+        type: "set_options",
+        options: { wallEnabled: true, autoMoveEnabled: false, timerEnabled: false },
+      }),
     );
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.message).toEqual({
       type: "set_options",
-      options: { wallEnabled: true, autoMoveEnabled: false },
+      options: { wallEnabled: true, autoMoveEnabled: false, timerEnabled: false },
     });
   });
 

@@ -17,7 +17,7 @@ const session = useSessionStore();
 const players = ref<LobbyPlayer[]>([]);
 const ownerId = ref("");
 const capacity = ref(0);
-const options = ref<GameOptions>({ wallEnabled: false, autoMoveEnabled: true });
+const options = ref<GameOptions>({ wallEnabled: false, autoMoveEnabled: true, timerEnabled: true });
 const gameStarted = ref(false);
 const joined = ref(false);
 const joinError = ref("");
@@ -259,6 +259,27 @@ const canAddBot = computed(
             :disabled="!isOwner"
             data-testid="auto-move-toggle"
             @change="setOption('autoMoveEnabled', ($event.target as HTMLInputElement).checked)"
+          />
+          <span
+            class="relative h-6 w-11 shrink-0 rounded-full bg-neutral-300 transition-colors after:absolute after:top-0.5 after:inset-s-0.5 after:size-5 after:rounded-full after:bg-white after:transition-transform peer-checked:bg-green-500 peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5"
+          ></span>
+        </label>
+
+        <label
+          class="flex items-center justify-between gap-3"
+          :class="isOwner ? 'cursor-pointer' : 'opacity-60'"
+        >
+          <span class="font-sans">
+            <span class="block text-body-sm text-midnight-ink">{{ t("room.turnTimer") }}</span>
+            <span class="block text-caption text-subtle-gray">{{ t("room.turnTimerHint") }}</span>
+          </span>
+          <input
+            type="checkbox"
+            class="peer sr-only"
+            :checked="options.timerEnabled"
+            :disabled="!isOwner"
+            data-testid="timer-toggle"
+            @change="setOption('timerEnabled', ($event.target as HTMLInputElement).checked)"
           />
           <span
             class="relative h-6 w-11 shrink-0 rounded-full bg-neutral-300 transition-colors after:absolute after:top-0.5 after:inset-s-0.5 after:size-5 after:rounded-full after:bg-white after:transition-transform peer-checked:bg-green-500 peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5"

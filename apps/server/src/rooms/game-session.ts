@@ -33,7 +33,13 @@ export function getPendingRollHoldMs(session: GameSession, now = Date.now()): nu
 }
 
 function nextTurnDeadline(session: GameSession, now = Date.now()): number {
+  if (!session.state.options.timerEnabled) return 0;
   return now + TIMINGS.turnTimeout + getPendingRollHoldMs(session, now) + TIMINGS.turnPass;
+}
+
+/** Turn deadline for a freshly-started turn (game start, rematch, reconnect). 0 = no timer. */
+export function startTurnDeadline(session: GameSession, now = Date.now()): number {
+  return session.state.options.timerEnabled ? now + TIMINGS.turnTimeout : 0;
 }
 
 export function handleRoll(session: GameSession): ServerMessage[] {

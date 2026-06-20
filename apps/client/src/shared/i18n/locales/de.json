@@ -31,6 +31,8 @@
     "wallFeatureHint": "Zwei Spielsteine auf einem Feld hindern Gegner am Passieren oder Schlagen.",
     "autoMove": "Automatischer Zug",
     "autoMoveHint": "Führe deinen Zug automatisch aus, wenn nur einer möglich ist.",
+    "turnTimer": "Zugzeit-Limit",
+    "turnTimerHint": "Begrenze jeden Zug auf 30 Sekunden. Zum Deaktivieren ausschalten.",
     "imReady": "Ich bin bereit",
     "youreReady": "Du bist bereit",
     "startGame": "Spiel starten"

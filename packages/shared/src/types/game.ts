@@ -33,6 +33,11 @@ export interface GameOptions {
    * move exists. Default on. Bots always auto-resolve regardless.
    */
   autoMoveEnabled: boolean;
+  /**
+   * When true, each turn is capped by the 30s turn timer; when false, players
+   * have unlimited time and missed-turn kicks are disabled. Default on.
+   */
+  timerEnabled: boolean;
 }
 
 export interface GameState {

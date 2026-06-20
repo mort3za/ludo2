@@ -122,6 +122,7 @@ const server = Bun.serve<WsData>({
           room.options = {
             wallEnabled: dbRoom.wallEnabled,
             autoMoveEnabled: dbRoom.autoMoveEnabled,
+            timerEnabled: dbRoom.timerEnabled,
           };
         }
         for (let i = 0; i < botCount; i++) {
@@ -174,7 +175,7 @@ const server = Bun.serve<WsData>({
           client.send({
             type: "turn",
             seat: session.state.activeSeat,
-            deadline: Date.now() + 30000,
+            deadline: session.state.options.timerEnabled ? Date.now() + TIMINGS.turnTimeout : 0,
           });
         }
         // Broadcast reconnect presence to all players in room

@@ -31,6 +31,8 @@
     "wallFeatureHint": "Two tokens on a cell block opponents from passing or capturing.",
     "autoMove": "Auto-move",
     "autoMoveHint": "Play your move automatically when only one is possible.",
+    "turnTimer": "Turn timer",
+    "turnTimerHint": "Cap each turn at 30 seconds. Turn off for unlimited time.",
     "imReady": "I'm Ready",
     "youreReady": "You're Ready",
     "startGame": "Start Game"

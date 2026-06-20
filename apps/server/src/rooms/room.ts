@@ -225,6 +225,7 @@ export function setOptions(
       options: {
         wallEnabled: options.wallEnabled,
         autoMoveEnabled: options.autoMoveEnabled,
+        timerEnabled: options.timerEnabled,
       },
       members: cloneMembers(room.members),
       spectators: cloneSpectators(room.spectators),

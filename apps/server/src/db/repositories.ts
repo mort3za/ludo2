@@ -39,11 +39,15 @@ export function updateRoomPhase(db: Db, id: string, phase: "lobby" | "playing" |
 export function updateRoomOptions(
   db: Db,
   id: string,
-  options: { wallEnabled: boolean; autoMoveEnabled: boolean },
+  options: { wallEnabled: boolean; autoMoveEnabled: boolean; timerEnabled: boolean },
 ) {
   return db
     .update(rooms)
-    .set({ wallEnabled: options.wallEnabled, autoMoveEnabled: options.autoMoveEnabled })
+    .set({
+      wallEnabled: options.wallEnabled,
+      autoMoveEnabled: options.autoMoveEnabled,
+      timerEnabled: options.timerEnabled,
+    })
     .where(eq(rooms.id, id));
 }
 

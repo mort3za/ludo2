@@ -360,7 +360,7 @@ describe("auto-move option (single legal move)", () => {
       tokens: singleMoveTokens,
       activeSeat: 1,
       status: "rolling",
-      options: { wallEnabled: false, autoMoveEnabled: false },
+      options: { wallEnabled: false, autoMoveEnabled: false, timerEnabled: true },
     });
     const session = createGameSession(state);
     session.rng = { random: () => 0.5, rollDie: () => 3 };
@@ -380,7 +380,7 @@ describe("auto-move option (single legal move)", () => {
       tokens: singleMoveTokens,
       activeSeat: 1,
       status: "rolling",
-      options: { wallEnabled: false, autoMoveEnabled: false },
+      options: { wallEnabled: false, autoMoveEnabled: false, timerEnabled: true },
     });
     const session = createGameSession(state);
     session.rng = { random: () => 0.5, rollDie: () => 3 };

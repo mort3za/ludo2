@@ -56,6 +56,7 @@ export function applySchema(db: Db) {
     bot_count INTEGER NOT NULL DEFAULT 0,
     wall_enabled INTEGER NOT NULL DEFAULT 0,
     auto_move_enabled INTEGER NOT NULL DEFAULT 1,
+    timer_enabled INTEGER NOT NULL DEFAULT 1,
     phase TEXT NOT NULL,
     game_id TEXT,
     created_at INTEGER NOT NULL,
@@ -64,6 +65,7 @@ export function applySchema(db: Db) {
   // Migrate pre-existing file databases that lack the option columns.
   addColumnIfMissing(db, "rooms", "wall_enabled", "INTEGER NOT NULL DEFAULT 0");
   addColumnIfMissing(db, "rooms", "auto_move_enabled", "INTEGER NOT NULL DEFAULT 1");
+  addColumnIfMissing(db, "rooms", "timer_enabled", "INTEGER NOT NULL DEFAULT 1");
   db.run(sql`CREATE TABLE IF NOT EXISTS games (
     id TEXT PRIMARY KEY,
     room_id TEXT NOT NULL,

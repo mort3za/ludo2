@@ -18,6 +18,7 @@ import {
   handleRoll,
   handleMove,
   handleTimeout,
+  startTurnDeadline,
   type GameSession,
 } from "../rooms/game-session.js";
 import { scheduleBotTurn } from "../game/ai/driver.js";
@@ -58,6 +59,8 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
   function scheduleTurnTimeout(roomId: string) {
     if (!isProduction) return;
     clearTurnTimeout(roomId);
+    const current = gameSessions.get(roomId);
+    if (current && !current.state.options.timerEnabled) return;
     turnTimers.set(
       roomId,
       setTimeout(() => {
@@ -165,7 +168,7 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
           broadcast(client.roomId, {
             type: "turn",
             seat: state.activeSeat,
-            deadline: Date.now() + TIMINGS.turnTimeout,
+            deadline: startTurnDeadline(session),
           });
           scheduleTurnTimeout(client.roomId);
           scheduleBotIfNeeded(client.roomId, session);
@@ -292,7 +295,7 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
         broadcast(client.roomId, {
           type: "turn",
           seat: newState.activeSeat,
-          deadline: Date.now() + TIMINGS.turnTimeout,
+          deadline: startTurnDeadline(newSession),
         });
         scheduleTurnTimeout(client.roomId);
         scheduleBotIfNeeded(client.roomId, newSession);

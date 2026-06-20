@@ -48,11 +48,18 @@ export function parseClientMessage(raw: string): ParseResult {
     if (typeof options !== "object" || options === null) {
       return { ok: false, error: "missing-options" };
     }
-    const { wallEnabled, autoMoveEnabled } = options as Record<string, unknown>;
-    if (typeof wallEnabled !== "boolean" || typeof autoMoveEnabled !== "boolean") {
+    const { wallEnabled, autoMoveEnabled, timerEnabled } = options as Record<string, unknown>;
+    if (
+      typeof wallEnabled !== "boolean" ||
+      typeof autoMoveEnabled !== "boolean" ||
+      typeof timerEnabled !== "boolean"
+    ) {
       return { ok: false, error: "invalid-options" };
     }
-    return { ok: true, message: { type: "set_options", options: { wallEnabled, autoMoveEnabled } } };
+    return {
+      ok: true,
+      message: { type: "set_options", options: { wallEnabled, autoMoveEnabled, timerEnabled } },
+    };
   }
 
   if (type === "debug_set_state") {
