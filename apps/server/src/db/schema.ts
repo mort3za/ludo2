@@ -13,7 +13,7 @@ export const rooms = sqliteTable("rooms", {
   botCount: integer("bot_count").notNull().default(0),
   wallEnabled: integer("wall_enabled", { mode: "boolean" }).notNull().default(false),
   autoMoveEnabled: integer("auto_move_enabled", { mode: "boolean" }).notNull().default(true),
-  timerEnabled: integer("timer_enabled", { mode: "boolean" }).notNull().default(true),
+  timerEnabled: integer("timer_enabled", { mode: "boolean" }).notNull().default(false),
   phase: text("phase", { enum: ["lobby", "playing", "post-game"] }).notNull(),
   gameId: text("game_id"),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),

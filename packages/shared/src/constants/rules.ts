@@ -2,7 +2,7 @@
 export const DEFAULT_GAME_OPTIONS = {
   wallEnabled: false,
   autoMoveEnabled: true,
-  timerEnabled: true,
+  timerEnabled: false,
 } as const;
 
 /** Default rule flags */
