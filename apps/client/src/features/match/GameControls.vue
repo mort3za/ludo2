@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { DButton } from "@/shared/ui";
 import { playerColorHex } from "@/entities/game/board-geometry";
 import type { GameState } from "@ludo/shared";
 
@@ -9,13 +8,8 @@ const props = defineProps<{
   state: GameState;
   mySeat: number;
   legalTokenIds: string[];
-  lastRolledValue: number | null;
   actionLocked: boolean;
   seatConnected?: boolean;
-}>();
-
-const emit = defineEmits<{
-  roll: [];
 }>();
 
 const { t } = useI18n();
@@ -84,18 +78,5 @@ const statusText = computed(() => {
         {{ t("match.away") }}
       </span>
     </p>
-
-    <!-- Roll button + Dice result -->
-    <div class="flex items-center gap-2 sm:gap-3 justify-end">
-      <div
-        :class="{ invisible: lastRolledValue === null }"
-        class="flex items-center justify-center rounded-lg bg-onyx-button text-canvas-white text-heading font-sans font-bold w-10 h-10 sm:w-12 sm:h-12"
-      >
-        {{ lastRolledValue }}
-      </div>
-      <DButton :disabled="phase !== 'roll'" @click="emit('roll')">
-        {{ t("match.roll") }}
-      </DButton>
-    </div>
   </div>
 </template>

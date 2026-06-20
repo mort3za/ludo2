@@ -8,7 +8,9 @@ import { createWsConnection, type WsConnection } from "@/shared/lib/ws";
 import { useGameAnimation } from "@/features/match/use-game-animation";
 import { legalMoves, type PlayerColor } from "@ludo/shared";
 import type { ServerMessage } from "@ludo/shared";
+import { playerColorHex } from "@/entities/game/board-geometry";
 import BoardView from "@/entities/game/BoardView.vue";
+import BoardDice from "@/features/match/BoardDice.vue";
 import GameControls from "@/features/match/GameControls.vue";
 import TurnTimer from "@/features/match/TurnTimer.vue";
 import ReconnectBanner from "@/features/match/ReconnectBanner.vue";
@@ -80,6 +82,21 @@ const mySeat = computed(() => {
 });
 
 const isSpectator = computed(() => mySeat.value === null);
+
+/** Whether the local player may roll right now (drives the center dice button). */
+const canRoll = computed(() => {
+  const state = gameState.value;
+  if (!state || mySeat.value === null) return false;
+  if (state.activeSeat !== mySeat.value) return false;
+  if (state.status !== "rolling") return false;
+  return canSendAction.value;
+});
+
+/** Active seat's color, used to tint the dice "ready" glow. */
+const activeSeatColor = computed(() => {
+  const seat = gameState.value?.seats.find((s) => s.index === gameState.value?.activeSeat);
+  return seat ? playerColorHex(seat.color) : undefined;
+});
 
 /** Compute legal token IDs for the current player. */
 const legalTokenIds = computed(() => {
@@ -171,23 +188,33 @@ onUnmounted(() => {
         :state="gameState"
         :my-seat="mySeat"
         :legal-token-ids="legalTokenIds"
-        :last-rolled-value="lastRolledValue"
         :action-locked="isActionLocked"
         :seat-connected="seatConnectionState.get(gameState?.activeSeat ?? -1) ?? true"
-        @roll="onRoll"
       />
 
-      <BoardView
-        class="w-full aspect-square max-w-xs sm:max-w-lg"
-        :board-size="gameState.seats.length"
-        :local-seat="mySeat ?? undefined"
-        :tokens="gameState.tokens"
-        :legal-token-ids="legalTokenIds"
-        :animating-token-id="stackingTokenId ?? animating?.tokenId"
-        :hidden-stack-badge-cell-id="hiddenStackBadgeCellId"
-        :seats="gameState.seats"
-        @move="onMove"
-      />
+      <div class="relative w-full aspect-square max-w-xs sm:max-w-lg">
+        <BoardView
+          class="w-full h-full"
+          :board-size="gameState.seats.length"
+          :local-seat="mySeat ?? undefined"
+          :tokens="gameState.tokens"
+          :legal-token-ids="legalTokenIds"
+          :animating-token-id="stackingTokenId ?? animating?.tokenId"
+          :hidden-stack-badge-cell-id="hiddenStackBadgeCellId"
+          :seats="gameState.seats"
+          @move="onMove"
+        />
+        <div
+          class="absolute left-1/2 top-1/2 w-[7%] aspect-square -translate-x-1/2 -translate-y-1/2"
+        >
+          <BoardDice
+            :value="lastRolledValue"
+            :can-roll="canRoll"
+            :color="activeSeatColor"
+            @roll="onRoll"
+          />
+        </div>
+      </div>
 
       <TurnTimer :deadline="deadline" />
 
