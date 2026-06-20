@@ -69,7 +69,7 @@ describe("legalMoves (shared)", () => {
       expect(moves).toEqual([{ tokenId: "t1", from: "H/1/2", to: "H/1/4" }]);
     });
 
-    it("allows landing exactly on H/si/4 (finished)", () => {
+    it("allows landing exactly on the final home cell H/si/4", () => {
       const tokens = [makeToken("t1", "H/1/1")];
       const moves = legalMoves(tokens, 3, 1, S, []);
       expect(moves).toEqual([{ tokenId: "t1", from: "H/1/1", to: "H/1/4" }]);
