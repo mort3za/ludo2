@@ -74,6 +74,20 @@ describe("legalMoves (shared)", () => {
       const moves = legalMoves(tokens, 3, 1, S, []);
       expect(moves).toEqual([{ tokenId: "t1", from: "H/1/1", to: "H/1/4" }]);
     });
+
+    it("can jump over an occupied home cell to land on an empty one", () => {
+      const seatTokens = [makeToken("t1", "H/1/1"), makeToken("t2", "H/1/2")];
+      const moves = legalMoves(seatTokens, 2, 1, S, seatTokens);
+      const t1Move = moves.find((m) => m.tokenId === "t1");
+      expect(t1Move).toEqual({ tokenId: "t1", from: "H/1/1", to: "H/1/3" });
+    });
+
+    it("cannot land on an occupied home cell", () => {
+      const seatTokens = [makeToken("t1", "H/1/1"), makeToken("t2", "H/1/3")];
+      const moves = legalMoves(seatTokens, 2, 1, S, seatTokens);
+      const t1Move = moves.find((m) => m.tokenId === "t1");
+      expect(t1Move).toBeUndefined();
+    });
   });
 
   describe("multiple tokens", () => {

@@ -1,6 +1,7 @@
 import {
   home,
   track,
+  yard,
   parseCell,
   entrySquare,
   CELLS_PER_ARM,
@@ -54,9 +55,62 @@ const homeStretch: DebugScenario = (state, requesterSeat) => {
   };
 };
 
+/**
+ * Home jump-over repro: a resident token sits mid home-column while another
+ * token stands one cell before the home entry. With the forced roll of 3 the
+ * approach token turns into the home column and must jump *over* the resident
+ * to land on an empty home cell — the move that was wrongly rejected before.
+ *
+ * The red seat's tokens are pushed one cell past the approach token (and into
+ * the yard) so red can neither capture nor be captured by the jump this turn.
+ */
+const homeJump: DebugScenario = (state, requesterSeat) => {
+  const seat = state.seats.find((s) => s.index === requesterSeat);
+  if (!seat) return state;
+
+  const S = state.seats.length;
+  const trackLen = S * CELLS_PER_ARM;
+  const entryParsed = parseCell(entrySquare(requesterSeat, S));
+  const entryIdx = entryParsed.kind === "track" ? entryParsed.index : 0;
+  // One cell before the home entry: a roll of 3 turns into home and lands on
+  // H/<seat>/3, passing over the resident parked at H/<seat>/2.
+  const approachIdx = ((entryIdx - 1 - 1 + trackLen) % trackLen) + 1;
+
+  const myTokens: Token[] = [
+    { id: `${requesterSeat}-1`, color: seat.color, cell: home(requesterSeat, 2) },
+    { id: `${requesterSeat}-2`, color: seat.color, cell: track(approachIdx) },
+    { id: `${requesterSeat}-3`, color: seat.color, cell: yard(requesterSeat, 3) },
+    { id: `${requesterSeat}-4`, color: seat.color, cell: yard(requesterSeat, 4) },
+  ];
+
+  // Park the red seat ahead of the approach token (one cell on, rest in yard).
+  const redSeat = state.seats.find((s) => s.color === "red" && s.index !== requesterSeat);
+  const others = state.tokens.filter(
+    (t) => t.color !== seat.color && (!redSeat || t.color !== redSeat.color),
+  );
+  const aheadIdx = (approachIdx % trackLen) + 1;
+  const redTokens: Token[] = redSeat
+    ? state.tokens
+        .filter((t) => t.color === redSeat.color)
+        .map((t, i) =>
+          i === 0 ? { ...t, cell: track(aheadIdx) } : { ...t, cell: yard(redSeat.index, i + 1) },
+        )
+    : [];
+
+  return {
+    ...state,
+    tokens: [...others, ...redTokens, ...myTokens],
+    activeSeat: requesterSeat,
+    status: "moving",
+    diceValue: 3,
+    consecutiveSixes: 0,
+  };
+};
+
 /** Registry of available dev scenarios, keyed by the name sent from the client. */
 export const DEBUG_SCENARIOS: Record<string, DebugScenario> = {
   "home-stretch": homeStretch,
+  "home-jump": homeJump,
 };
 
 /** Apply a named scenario, or return `null` if the name is unknown. */
