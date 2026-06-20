@@ -55,6 +55,10 @@ const { gameState, animating, stackingTokenId, lastRolledValue, isActionLocked, 
         const token = gameState.value.tokens.find((t) => t.id === msg.tokenId);
         if (token) {
           capturedColor.value = token.color;
+          // The attacker is the active player; they hear a victory cue, while
+          // the captured player and everyone else hear the sad one.
+          const isAttacker = mySeat.value !== null && mySeat.value === gameState.value.activeSeat;
+          playSound(isAttacker ? "tokenCaptureWin" : "tokenCaptureSad");
         }
       }
 

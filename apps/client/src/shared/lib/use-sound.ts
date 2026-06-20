@@ -6,6 +6,8 @@ const SOUND_SRC = {
   tokenSelect: "/sounds/token-select.ogg",
   tokenStep: "/sounds/token-step.ogg",
   turnChange: "/sounds/turn-change.ogg",
+  tokenCaptureWin: "/sounds/token-capture-win.ogg",
+  tokenCaptureSad: "/sounds/token-capture-sad.ogg",
   gameStart: "/sounds/game-start.ogg",
   win: "/sounds/win.ogg",
   gameOver: "/sounds/game-over.ogg",

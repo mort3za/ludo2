@@ -24,7 +24,7 @@ watch(
       dismissTimer = setTimeout(() => {
         isVisible.value = false;
         dismissTimer = null;
-      }, 2500);
+      }, 3000);
     } else {
       isVisible.value = false;
     }
@@ -33,31 +33,29 @@ watch(
 </script>
 
 <template>
-  <div
-    v-if="isVisible"
-    class="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
-  >
-    <div
-      class="bg-neutral-900 text-white px-6 py-3 rounded-lg text-body-sm font-sans font-medium shadow-lg animate-fade-in"
-    >
-      {{ t("match.captureSentHome", { color: displayName }) }}
-    </div>
+  <div class="fixed inset-x-0 top-0 z-50 flex justify-center pointer-events-none">
+    <Transition name="slide-down">
+      <div
+        v-if="isVisible"
+        class="bg-neutral-900 text-white px-6 py-3 mt-4 rounded-lg text-body-sm font-sans font-medium shadow-lg"
+      >
+        {{ t("match.captureSentHome", { color: displayName }) }}
+      </div>
+    </Transition>
   </div>
 </template>
 
 <style scoped>
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition:
+    transform 0.35s ease-out,
+    opacity 0.35s ease-out;
 }
 
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out;
+.slide-down-enter-from,
+.slide-down-leave-to {
+  transform: translateY(-150%);
+  opacity: 0;
 }
 </style>
