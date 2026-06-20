@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { MAX_SEATS } from "@ludo/shared";
 import type { GuestAuth } from "../auth/guest-auth.js";
 import type { Db } from "../db/connection.js";
 import { logger } from "../lib/logger.js";
@@ -52,11 +53,10 @@ function getClientIp(req: Request): string {
 export interface HttpDeps {
   auth: GuestAuth;
   db: Db;
-  boardSize: number;
 }
 
 export function createHttpHandler(deps: HttpDeps) {
-  const { auth, db, boardSize } = deps;
+  const { auth, db } = deps;
 
   return async function handle(req: Request): Promise<Response> {
     const url = new URL(req.url);
@@ -117,7 +117,6 @@ export function createHttpHandler(deps: HttpDeps) {
       }
 
       let bots = 0;
-      let boardSize = 4; // MOR-64: allow client to override
       const contentType = req.headers.get("content-type") ?? "";
       if (req.body && contentType.includes("application/json")) {
         const body = (await req.json()) as Record<string, unknown>;
@@ -129,19 +128,12 @@ export function createHttpHandler(deps: HttpDeps) {
           }
           bots = rawBots;
         }
-
-        const rawBoardSize = body["boardSize"];
-        if (rawBoardSize !== undefined) {
-          if (typeof rawBoardSize !== "number" || !Number.isInteger(rawBoardSize) || rawBoardSize < 4 || rawBoardSize > 8) {
-            return logResponse(Response.json({ error: "invalid-boardSize" }, { status: 400 }));
-          }
-          boardSize = rawBoardSize;
-        }
       }
 
-      const roomSize = bots > 0 ? 1 + bots : boardSize;
+      // Board size is derived from the actual players at game start; the room
+      // simply holds up to MAX_SEATS members during the lobby.
       const roomId = crypto.randomUUID();
-      insertRoom(db, roomId, roomSize, bots, new Date()).run();
+      insertRoom(db, roomId, MAX_SEATS, bots, new Date()).run();
       return logResponse(Response.json({ roomId }, { status: 201 }));
     }
 

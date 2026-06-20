@@ -5,7 +5,7 @@ import { parseClientMessage } from "./ws/protocol.js";
 import { createHttpHandler } from "./http/routes.js";
 import { createDb, applySchema } from "./db/connection.js";
 import { getRoom, purgeOldGames } from "./db/repositories.js";
-import { SERVER_PORT, TIMINGS, type ServerMessage } from "@ludo/shared";
+import { SERVER_PORT, TIMINGS, MAX_SEATS, type ServerMessage } from "@ludo/shared";
 import { logger } from "./lib/logger.js";
 import type { ServerWebSocket } from "bun";
 import { join, resolve, normalize } from "node:path";
@@ -14,7 +14,8 @@ import { join, resolve, normalize } from "node:path";
 const PORT = Number(process.env["PORT"] ?? SERVER_PORT);
 const DEFAULT_JWT_SECRET = "dev-secret-change-in-production-32ch";
 const JWT_SECRET = process.env["JWT_SECRET"] ?? DEFAULT_JWT_SECRET;
-const BOARD_SIZE = 4;
+// Lobby capacity; the rendered board size is derived from the actual players at game start.
+const ROOM_CAPACITY = MAX_SEATS;
 
 // Optional: serve the built client (SPA) so the server is the single origin.
 // Unset in dev (Vite serves the client); set to the client dist dir in production.
@@ -40,7 +41,7 @@ const db = createDb(); // in-memory SQLite
 applySchema(db);
 const rooms: RoomStore = new Map();
 const router = createRouter(rooms);
-const httpHandler = createHttpHandler({ auth, db, boardSize: BOARD_SIZE });
+const httpHandler = createHttpHandler({ auth, db });
 
 // Map Bun WebSocket → WsClient for lifecycle management
 const wsClients = new WeakMap<object, WsClient>();
@@ -111,7 +112,7 @@ const server = Bun.serve<WsData>({
       // Ensure room exists in memory; read config from DB if persisted there.
       if (!rooms.has(roomId)) {
         const dbRoom = getRoom(db, roomId);
-        const size = dbRoom?.boardSize ?? BOARD_SIZE;
+        const size = dbRoom?.boardSize ?? ROOM_CAPACITY;
         const botCount = dbRoom?.botCount ?? 0;
         let room: Room = createRoom(roomId, size, Date.now());
         for (let i = 0; i < botCount; i++) {

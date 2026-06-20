@@ -13,7 +13,7 @@ describe("HTTP routes", () => {
     auth = createGuestAuth("test-secret-32-chars-for-hs256!!");
     db = createDb();
     applySchema(db);
-    handler = createHttpHandler({ auth, db, boardSize: 4 });
+    handler = createHttpHandler({ auth, db });
   });
 
   // --- Health ---

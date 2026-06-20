@@ -9,7 +9,6 @@ const router = useRouter();
 const session = useSessionStore();
 const loading = ref(false);
 const error = ref("");
-const boardSize = ref(4);
 
 async function play() {
   error.value = "";
@@ -17,7 +16,7 @@ async function play() {
   try {
     const auth = await guestLogin();
     session.login(auth.token, auth.playerId);
-    const { roomId } = await createRoom(boardSize.value);
+    const { roomId } = await createRoom();
     await router.push({ name: "room", params: { roomId } });
   } catch (e) {
     error.value = e instanceof Error ? e.message : "Something went wrong";
@@ -30,27 +29,6 @@ async function play() {
 <template>
   <main class="min-h-screen flex flex-col items-center justify-center gap-4">
     <h1 class="text-display font-sans text-midnight-ink tracking-tight mb-6">Ludo</h1>
-
-    <!-- Board size selector -->
-    <div class="flex flex-col items-center gap-3">
-      <p class="text-caption font-sans text-neutral-600">Board Size</p>
-      <div class="flex gap-2">
-        <button
-          v-for="size in [4, 5, 6, 7, 8]"
-          :key="size"
-          :data-testid="`board-size-${size}`"
-          :class="[
-            'px-4 py-2 rounded-full text-body-sm font-sans font-medium transition-colors',
-            boardSize === size
-              ? 'bg-accent-primary text-white'
-              : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200',
-          ]"
-          @click="boardSize = size"
-        >
-          {{ size }}
-        </button>
-      </div>
-    </div>
 
     <DButton
       :disabled="loading"

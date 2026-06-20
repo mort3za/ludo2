@@ -1,4 +1,4 @@
-import { drawPalette, yard, TOKENS_PER_PLAYER, MIN_SEATS } from "@ludo/shared";
+import { drawPalette, yard, TOKENS_PER_PLAYER, MIN_SEATS, MAX_SEATS } from "@ludo/shared";
 import type { GameState, Token, Seat } from "@ludo/shared";
 import type { PlayerColor } from "@ludo/shared";
 import type { Rng } from "../game/rng/rng.js";
@@ -9,8 +9,9 @@ import type { Room } from "../rooms/room.js";
  * Assigns seats, draws colors, creates tokens in yards.
  */
 export function initGame(room: Room, gameId: string, rng: Rng): GameState {
-  // Board always has MIN_SEATS corners; rooms with fewer players still use the full board layout.
-  const S = Math.max(room.boardSize, MIN_SEATS);
+  // Board size is derived from the actual players: one corner per player, clamped
+  // to [MIN_SEATS, MAX_SEATS]. Fewer than MIN_SEATS players still use the full layout.
+  const S = Math.min(Math.max(room.members.size, MIN_SEATS), MAX_SEATS);
   const colors = drawPalette(S, () => rng.random()) as PlayerColor[];
 
   // Sort so human members always precede bots — ensures human gets seat 1.
