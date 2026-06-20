@@ -18,7 +18,7 @@ function makeSeat(index: number, color: PlayerColor, state: SeatState = "active"
 
 describe("checkTerminal", () => {
   describe("win by all tokens home", () => {
-    it("detects win when all 4 tokens are at H/si/4", () => {
+    it("detects win when all 4 tokens fill the home cells (one per cell)", () => {
       const seats = [
         makeSeat(1, "blue"),
         makeSeat(2, "red"),
@@ -26,9 +26,9 @@ describe("checkTerminal", () => {
         makeSeat(4, "yellow"),
       ];
       const tokens = [
-        makeToken("b1", "H/1/4", "blue"),
-        makeToken("b2", "H/1/4", "blue"),
-        makeToken("b3", "H/1/4", "blue"),
+        makeToken("b1", "H/1/1", "blue"),
+        makeToken("b2", "H/1/2", "blue"),
+        makeToken("b3", "H/1/3", "blue"),
         makeToken("b4", "H/1/4", "blue"),
         makeToken("r1", "T/5", "red"),
         makeToken("r2", "T/10", "red"),
@@ -39,13 +39,25 @@ describe("checkTerminal", () => {
       expect(result.seatFinished).toBe(1);
     });
 
-    it("does not detect win if some tokens are not at H/si/4", () => {
+    it("does not detect win if a token is still outside the home area", () => {
       const seats = [makeSeat(1, "blue"), makeSeat(2, "red")];
       const tokens = [
-        makeToken("b1", "H/1/4", "blue"),
-        makeToken("b2", "H/1/4", "blue"),
-        makeToken("b3", "H/1/3", "blue"), // not finished
+        makeToken("b1", "H/1/1", "blue"),
+        makeToken("b2", "H/1/2", "blue"),
+        makeToken("b3", "T/5", "blue"), // still on the track — not home
         makeToken("b4", "H/1/4", "blue"),
+      ];
+      const result = checkTerminal(tokens, seats, []);
+      expect(result.seatFinished).toBeNull();
+    });
+
+    it("does not detect win if home tokens are stacked (malformed) leaving a cell empty", () => {
+      const seats = [makeSeat(1, "blue"), makeSeat(2, "red")];
+      const tokens = [
+        makeToken("b1", "H/1/1", "blue"),
+        makeToken("b2", "H/1/2", "blue"),
+        makeToken("b3", "H/1/4", "blue"),
+        makeToken("b4", "H/1/4", "blue"), // stacked — only 3 distinct cells filled
       ];
       const result = checkTerminal(tokens, seats, []);
       expect(result.seatFinished).toBeNull();
@@ -105,9 +117,9 @@ describe("checkTerminal", () => {
         makeSeat(4, "yellow", "active"),
       ];
       const tokens = [
-        makeToken("b1", "H/1/4", "blue"),
-        makeToken("b2", "H/1/4", "blue"),
-        makeToken("b3", "H/1/4", "blue"),
+        makeToken("b1", "H/1/1", "blue"),
+        makeToken("b2", "H/1/2", "blue"),
+        makeToken("b3", "H/1/3", "blue"),
         makeToken("b4", "H/1/4", "blue"),
       ];
       // Seat 1 already in standings — should not re-detect

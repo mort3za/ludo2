@@ -87,15 +87,16 @@ export function legalMoves(
 /**
  * Check if any home-column cell in the path is already occupied
  * by another token (capacity-1 rule).
+ *
+ * Every home cell — including the final one (H/si/L) — holds at most one token.
+ * A seat wins by filling all L home cells one-each, so there is no "goal" cell
+ * that allows stacking. See terminal.ts and .claude/planning.md.
  */
 function isHomePathBlocked(path: string[], movingTokenId: string, allTokens: Token[]): boolean {
   const occupiedHomeCells = new Set(
     allTokens
       .filter((t) => t.id !== movingTokenId && t.cell.startsWith("H/"))
-      .filter((t) => {
-        const p = parseCell(t.cell);
-        return p.kind === "home" && p.index < HOME_COLUMN_LENGTH;
-      })
+      .filter((t) => parseCell(t.cell).kind === "home")
       .map((t) => t.cell),
   );
 

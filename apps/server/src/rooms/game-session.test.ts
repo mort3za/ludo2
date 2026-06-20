@@ -1,26 +1,36 @@
 import { describe, it, expect, vi } from "vitest";
 import { createGameSession, handleRoll, handleMove, handleTimeout } from "./game-session.js";
 import type { GameState, Seat, Token } from "@ludo/shared";
-import { HOME_COLUMN_LENGTH, TOKENS_PER_PLAYER, TIMINGS } from "@ludo/shared";
+import { TIMINGS } from "@ludo/shared";
 import { makeState as buildState } from "../test/make-state.js";
 
 function makeState(overrides: Partial<GameState> = {}): GameState {
   return buildState({ gameId: "test-game", ...overrides });
 }
 
-/** Create a token already at home end (finished). */
-function finishedToken(seat: number, slot: number, color: "blue" | "red"): Token {
-  return { id: `${seat}-${slot}`, color, cell: `H/${seat}/${HOME_COLUMN_LENGTH}` };
+/** A token resting on a distinct home cell (no stacking — one token per cell). */
+function homeToken(seat: number, index: number, color: "blue" | "red"): Token {
+  return { id: `${seat}-h${index}`, color, cell: `H/${seat}/${index}` };
+}
+
+/**
+ * Track cell one step before seat 1's home entry, so a roll of 1 lands exactly
+ * on the last empty home cell H/1/1 (deepest cells fill first). Derived per
+ * board size: entry = T/(S*11), so this is T/(S*11 - 1).
+ */
+function entryApproach(S: number): string {
+  return `T/${S * 11 - 1}`;
 }
 
 describe("handleMove — standings and finished", () => {
   it("updates standings when a seat finishes all tokens", () => {
-    // Seat 1 has 3 tokens home, 1 token at H/1/3 about to finish with dice=1
+    // Seat 1 (2-seat game) has the 3 deepest home cells filled; the last token
+    // approaches from the track and a roll of 1 lands on the final empty cell H/1/1.
     const tokens: Token[] = [
-      finishedToken(1, 1, "blue"),
-      finishedToken(1, 2, "blue"),
-      finishedToken(1, 3, "blue"),
-      { id: "1-4", color: "blue", cell: `H/1/${HOME_COLUMN_LENGTH - 1}` },
+      homeToken(1, 2, "blue"),
+      homeToken(1, 3, "blue"),
+      homeToken(1, 4, "blue"),
+      { id: "1-4", color: "blue", cell: entryApproach(2) },
       // Seat 2 tokens in yard
       { id: "2-1", color: "red", cell: "Y/2/1" },
       { id: "2-2", color: "red", cell: "Y/2/2" },
@@ -45,10 +55,10 @@ describe("handleMove — standings and finished", () => {
   it("emits finished when only one active seat remains (2-seat game)", () => {
     // Seat 1 finishes all tokens → seat 2 is sole survivor → game over
     const tokens: Token[] = [
-      finishedToken(1, 1, "blue"),
-      finishedToken(1, 2, "blue"),
-      finishedToken(1, 3, "blue"),
-      { id: "1-4", color: "blue", cell: `H/1/${HOME_COLUMN_LENGTH - 1}` },
+      homeToken(1, 2, "blue"),
+      homeToken(1, 3, "blue"),
+      homeToken(1, 4, "blue"),
+      { id: "1-4", color: "blue", cell: entryApproach(2) },
       { id: "2-1", color: "red", cell: "Y/2/1" },
       { id: "2-2", color: "red", cell: "Y/2/2" },
       { id: "2-3", color: "red", cell: "Y/2/3" },
@@ -82,10 +92,10 @@ describe("handleMove — standings and finished", () => {
       { index: 3, state: "active", color: "green", playerId: "p3", isBot: false },
     ];
     const tokens: Token[] = [
-      finishedToken(1, 1, "blue"),
-      finishedToken(1, 2, "blue"),
-      finishedToken(1, 3, "blue"),
-      { id: "1-4", color: "blue", cell: `H/1/${HOME_COLUMN_LENGTH - 1}` },
+      homeToken(1, 2, "blue"),
+      homeToken(1, 3, "blue"),
+      homeToken(1, 4, "blue"),
+      { id: "1-4", color: "blue", cell: entryApproach(3) },
       { id: "2-1", color: "red", cell: "T/14" },
       { id: "2-2", color: "red", cell: "Y/2/2" },
       { id: "2-3", color: "red", cell: "Y/2/3" },
@@ -127,10 +137,10 @@ describe("handleMove — standings and finished", () => {
       { index: 3, state: "active", color: "green", playerId: "p3", isBot: false },
     ];
     const tokens: Token[] = [
-      finishedToken(1, 1, "blue"),
-      finishedToken(1, 2, "blue"),
-      finishedToken(1, 3, "blue"),
-      finishedToken(1, 4, "blue"),
+      homeToken(1, 1, "blue"),
+      homeToken(1, 2, "blue"),
+      homeToken(1, 3, "blue"),
+      homeToken(1, 4, "blue"),
       { id: "2-1", color: "red", cell: "T/14" },
       { id: "2-2", color: "red", cell: "Y/2/2" },
       { id: "2-3", color: "red", cell: "Y/2/3" },

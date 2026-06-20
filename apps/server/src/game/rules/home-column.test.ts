@@ -43,12 +43,22 @@ describe("home-column rules", () => {
     it("allows move when path has no occupied home cells", () => {
       const seatTokens = [
         makeToken("t1", "H/1/1", "blue"),
-        makeToken("t2", "H/1/4", "blue"), // finished, not in the way
+        makeToken("t2", "H/1/4", "blue"), // occupies the final cell, but not on t1's path
       ];
       const moves = legalMoves(seatTokens, 2, 1, S, seatTokens);
       const t1Move = moves.find((m) => m.tokenId === "t1");
       expect(t1Move).toBeDefined();
       expect(t1Move!.to).toBe("H/1/3");
+    });
+
+    it("cannot move onto an occupied final home cell (no stacking in the home area)", () => {
+      const seatTokens = [
+        makeToken("t1", "H/1/3", "blue"),
+        makeToken("t2", "H/1/4", "blue"), // final cell occupied
+      ];
+      // t1 wants to move 1 step → H/1/4 (occupied) — must be blocked, no stacking.
+      const moves = legalMoves(seatTokens, 1, 1, S, seatTokens);
+      expect(moves.find((m) => m.tokenId === "t1")).toBeUndefined();
     });
   });
 
