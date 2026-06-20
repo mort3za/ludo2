@@ -239,6 +239,25 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
         break;
       }
 
+      case "resync": {
+        // Client detected a desync (e.g. a dropped turn message, or timers
+        // throttled while its tab was backgrounded) and asked for the truth.
+        // Re-send the authoritative state to the requester only.
+        const session = gameSessions.get(client.roomId);
+        if (!session || session.state.status === "finished") break;
+        client.send({ type: "state", state: session.state });
+        // Mirror the reconnect path: a turn message is only safe while awaiting a
+        // roll — sending one mid-move would force the client back to "rolling".
+        if (session.state.status === "rolling") {
+          client.send({
+            type: "turn",
+            seat: session.state.activeSeat,
+            deadline: session.state.options.timerEnabled ? Date.now() + TIMINGS.turnTimeout : 0,
+          });
+        }
+        break;
+      }
+
       case "add_bot": {
         if (room.phase !== "lobby") {
           client.send({ type: "error", message: "not-in-lobby" });

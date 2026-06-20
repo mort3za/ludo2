@@ -145,6 +145,52 @@ describe("WS router", () => {
     });
   });
 
+  describe("resync", () => {
+    function setupRunningGame() {
+      let room = makeLobbyRoom(["p1", "p2"]);
+      room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
+      room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
+      rooms.set("room-1", room);
+      const router = createRouter(rooms);
+      const c1 = makeMockClient("p1");
+      router.addClient(c1);
+      router.dispatch(c1, { type: "start" });
+      const session = router.getGameSession("room-1")!;
+      (c1.send as ReturnType<typeof vi.fn>).mockClear();
+      return { router, c1, session };
+    }
+
+    it("re-sends authoritative state to the requesting client", () => {
+      const { router, c1 } = setupRunningGame();
+      router.dispatch(c1, { type: "resync" });
+      expect(c1.send).toHaveBeenCalledWith(expect.objectContaining({ type: "state" }));
+    });
+
+    it("includes a turn message while awaiting a roll", () => {
+      const { router, c1, session } = setupRunningGame();
+      session.state.status = "rolling";
+      router.dispatch(c1, { type: "resync" });
+      expect(c1.send).toHaveBeenCalledWith(expect.objectContaining({ type: "turn" }));
+    });
+
+    it("omits the turn message mid-move so the client stays in moving", () => {
+      const { router, c1, session } = setupRunningGame();
+      session.state.status = "moving";
+      session.state.diceValue = 3;
+      router.dispatch(c1, { type: "resync" });
+      const calls = (c1.send as ReturnType<typeof vi.fn>).mock.calls;
+      expect(calls.some((call) => call[0]?.type === "state")).toBe(true);
+      expect(calls.some((call) => call[0]?.type === "turn")).toBe(false);
+    });
+
+    it("does nothing when the game has finished", () => {
+      const { router, c1, session } = setupRunningGame();
+      session.state.status = "finished";
+      router.dispatch(c1, { type: "resync" });
+      expect(c1.send).not.toHaveBeenCalled();
+    });
+  });
+
   describe("rematch", () => {
     function setupFinishedGame() {
       let room = makeLobbyRoom(["p1", "p2"]);

@@ -147,6 +147,43 @@ const legalTokenIds = computed(() => {
   return moves.map((m) => m.tokenId);
 });
 
+/**
+ * Provably-impossible state: it's our turn to move, the dice is rolled, we're
+ * not mid-animation, yet there are no legal moves. The server never sits here —
+ * it auto-passes turns with no legal moves and sends a "turn" message — so if we
+ * land in it, our local state has drifted from the server's (a dropped/late
+ * message, or setTimeout-driven timers throttled while the tab was backgrounded).
+ * Left alone this deadlocks the game, so we recover by requesting a resync.
+ */
+const isDeadlocked = computed(() => {
+  const state = gameState.value;
+  return (
+    state !== null &&
+    mySeat.value !== null &&
+    state.activeSeat === mySeat.value &&
+    state.status === "moving" &&
+    !isActionLocked.value &&
+    state.diceValue !== null &&
+    legalTokenIds.value.length === 0
+  );
+});
+
+// Grace period so a legitimately-late "turn" message (slow network) can still
+// arrive and resolve the state before we ask the server to re-send everything.
+const RESYNC_GRACE_MS = 1500;
+let resyncTimer: ReturnType<typeof setTimeout> | null = null;
+watch(isDeadlocked, (stuck) => {
+  if (resyncTimer !== null) {
+    clearTimeout(resyncTimer);
+    resyncTimer = null;
+  }
+  if (!stuck) return;
+  resyncTimer = setTimeout(() => {
+    resyncTimer = null;
+    if (isDeadlocked.value) ws?.send({ type: "resync" });
+  }, RESYNC_GRACE_MS);
+});
+
 function onServerMessage(msg: ServerMessage) {
   console.log("[ws]", msg.type, msg);
   pendingAction.value = false;
@@ -195,6 +232,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  if (resyncTimer !== null) clearTimeout(resyncTimer);
   ws?.close();
 });
 </script>

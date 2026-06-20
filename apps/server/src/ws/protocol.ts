@@ -4,7 +4,7 @@ type Ok = { ok: true; message: ClientMessage };
 type Err = { ok: false; error: string };
 type ParseResult = Ok | Err;
 
-const SIMPLE_TYPES = new Set(["ready", "start", "roll", "rematch", "add_bot"]);
+const SIMPLE_TYPES = new Set(["ready", "start", "roll", "resync", "rematch", "add_bot"]);
 
 export function parseClientMessage(raw: string): ParseResult {
   let parsed: unknown;

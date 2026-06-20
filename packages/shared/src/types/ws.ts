@@ -6,6 +6,8 @@ export type ClientMessage =
   | { type: "start" }
   | { type: "roll" }
   | { type: "move"; tokenId: string }
+  /** Request a fresh authoritative state — recovers the client from any desync. */
+  | { type: "resync" }
   | { type: "rematch" }
   | { type: "add_bot" }
   | { type: "remove_player"; playerId: string }
