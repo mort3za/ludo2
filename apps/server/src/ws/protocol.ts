@@ -43,6 +43,18 @@ export function parseClientMessage(raw: string): ParseResult {
     return { ok: true, message: { type: "remove_player", playerId: obj["playerId"] } };
   }
 
+  if (type === "set_options") {
+    const options = obj["options"];
+    if (typeof options !== "object" || options === null) {
+      return { ok: false, error: "missing-options" };
+    }
+    const { wallEnabled, autoMoveEnabled } = options as Record<string, unknown>;
+    if (typeof wallEnabled !== "boolean" || typeof autoMoveEnabled !== "boolean") {
+      return { ok: false, error: "invalid-options" };
+    }
+    return { ok: true, message: { type: "set_options", options: { wallEnabled, autoMoveEnabled } } };
+  }
+
   if (type === "debug_set_state") {
     if (typeof obj["scenario"] !== "string") {
       return { ok: false, error: "missing-scenario" };

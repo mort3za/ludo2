@@ -81,6 +81,34 @@ describe("parseClientMessage", () => {
     expect(result.error).toBe("missing-scenario");
   });
 
+  it("parses a valid set_options message", () => {
+    const result = parseClientMessage(
+      JSON.stringify({ type: "set_options", options: { wallEnabled: true, autoMoveEnabled: false } }),
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.message).toEqual({
+      type: "set_options",
+      options: { wallEnabled: true, autoMoveEnabled: false },
+    });
+  });
+
+  it("rejects set_options without options", () => {
+    const result = parseClientMessage(JSON.stringify({ type: "set_options" }));
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toBe("missing-options");
+  });
+
+  it("rejects set_options with non-boolean fields", () => {
+    const result = parseClientMessage(
+      JSON.stringify({ type: "set_options", options: { wallEnabled: "yes", autoMoveEnabled: true } }),
+    );
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toBe("invalid-options");
+  });
+
   it("rejects null payload", () => {
     const result = parseClientMessage(JSON.stringify(null));
     expect(result.ok).toBe(false);
