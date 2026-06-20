@@ -10,7 +10,8 @@
   },
   "nav": {
     "home": "Startseite",
-    "language": "Sprache"
+    "language": "Sprache",
+    "toggleSound": "Ton umschalten"
   },
   "home": {
     "creating": "Wird erstellt…",
@@ -69,13 +70,21 @@
       "1": "1.",
       "2": "2.",
       "3": "3.",
-      "4": "4."
+      "4": "4.",
+      "5": "5.",
+      "6": "6.",
+      "7": "7.",
+      "8": "8."
     }
   },
   "colors": {
     "blue": "Blau",
     "red": "Rot",
     "green": "Grün",
-    "yellow": "Gelb"
+    "yellow": "Gelb",
+    "purple": "Lila",
+    "orange": "Orange",
+    "cyan": "Türkis",
+    "pink": "Pink"
   }
 }

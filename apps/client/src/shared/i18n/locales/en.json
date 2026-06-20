@@ -10,7 +10,8 @@
   },
   "nav": {
     "home": "Home",
-    "language": "Language"
+    "language": "Language",
+    "toggleSound": "Toggle sound"
   },
   "home": {
     "creating": "Creating…",
@@ -69,13 +70,21 @@
       "1": "1st",
       "2": "2nd",
       "3": "3rd",
-      "4": "4th"
+      "4": "4th",
+      "5": "5th",
+      "6": "6th",
+      "7": "7th",
+      "8": "8th"
     }
   },
   "colors": {
     "blue": "Blue",
     "red": "Red",
     "green": "Green",
-    "yellow": "Yellow"
+    "yellow": "Yellow",
+    "purple": "Purple",
+    "orange": "Orange",
+    "cyan": "Cyan",
+    "pink": "Pink"
   }
 }
