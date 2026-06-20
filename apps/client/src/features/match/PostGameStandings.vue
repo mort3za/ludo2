@@ -28,7 +28,7 @@ const rankedSeats = computed(() => {
 const didWin = computed(() => {
   if (!props.playerId) return false;
   const mySeat = props.state.seats.find((s) => s.playerId === props.playerId);
-  return mySeat != null && props.state.standings[0] === mySeat.index;
+  return mySeat !== undefined && props.state.standings[0] === mySeat.index;
 });
 </script>
 
