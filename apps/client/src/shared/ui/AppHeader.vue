@@ -15,7 +15,7 @@ function logout() {
 </script>
 
 <template>
-  <header v-if="!isHome" class="fixed top-0 inset-x-0 z-40 flex items-center px-4 py-2">
+  <header v-if="!isHome" class="flex items-center px-4 py-2">
     <router-link to="/" class="d-btn d-btn--tertiary"> ← Home </router-link>
     <button
       v-if="session.isLoggedIn"

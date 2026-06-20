@@ -3,6 +3,8 @@ import AppHeader from "@/shared/ui/AppHeader.vue";
 </script>
 
 <template>
-  <AppHeader />
-  <router-view />
+  <div class="min-h-screen flex flex-col">
+    <AppHeader />
+    <router-view />
+  </div>
 </template>
