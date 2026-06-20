@@ -29,6 +29,8 @@ export interface GameAnimationState {
  */
 export function useGameAnimation(
   onAppliedMessage?: (msg: ServerMessage) => void,
+  /** Called once per visual cell-hop while a token moves along its path. */
+  onStep?: () => void,
 ): GameAnimationState {
   const gameState = ref<GameState | null>(null);
   const animating = ref<AnimatingToken | null>(null);
@@ -171,6 +173,7 @@ export function useGameAnimation(
       const timer = setTimeout(
         () => {
           token.cell = cell;
+          onStep?.();
         },
         FIRST_STEP_DELAY_MS + i * STEP_INTERVAL_MS,
       );

@@ -6,6 +6,7 @@ import { useSessionStore } from "@/stores/session";
 import { useGameResultStore } from "@/stores/game-result";
 import { createWsConnection, type WsConnection } from "@/shared/lib/ws";
 import { useGameAnimation } from "@/features/match/use-game-animation";
+import { playSound } from "@/shared/lib/use-sound";
 import { legalMoves, type PlayerColor } from "@ludo/shared";
 import type { ServerMessage } from "@ludo/shared";
 import { playerColorHex } from "@/entities/game/board-geometry";
@@ -25,29 +26,48 @@ const gameResultStore = useGameResultStore();
 const capturedColor = ref<PlayerColor | undefined>(undefined);
 const seatConnectionState = ref<Map<number, boolean>>(new Map());
 const { gameState, animating, stackingTokenId, lastRolledValue, isActionLocked, handleMessage } =
-  useGameAnimation((msg) => {
-    if (msg.type === "turn") {
-      deadline.value = msg.deadline;
-    }
-
-    if (msg.type === "presence") {
-      seatConnectionState.value.set(msg.seat, msg.connected);
-    }
-
-    if (msg.type === "captured" && gameState.value) {
-      const token = gameState.value.tokens.find((t) => t.id === msg.tokenId);
-      if (token) {
-        capturedColor.value = token.color;
+  useGameAnimation(
+    (msg) => {
+      if (msg.type === "rolled") {
+        playSound("diceRoll");
       }
-    }
 
-    if (msg.type === "finished") {
-      if (gameState.value) {
-        gameResultStore.setResult(gameState.value);
+      if (msg.type === "turn") {
+        deadline.value = msg.deadline;
+        playSound("turnChange");
       }
-      vueRouter.push({ name: "post-game", params: { roomId: props.roomId } });
-    }
-  });
+
+      // Fresh game (every token still in its yard) — announce the start.
+      if (
+        msg.type === "state" &&
+        msg.state.status !== "finished" &&
+        msg.state.diceValue === null &&
+        msg.state.tokens.every((t) => t.cell.startsWith("Y/"))
+      ) {
+        playSound("gameStart");
+      }
+
+      if (msg.type === "presence") {
+        seatConnectionState.value.set(msg.seat, msg.connected);
+      }
+
+      if (msg.type === "captured" && gameState.value) {
+        const token = gameState.value.tokens.find((t) => t.id === msg.tokenId);
+        if (token) {
+          capturedColor.value = token.color;
+        }
+      }
+
+      if (msg.type === "finished") {
+        playSound(msg.standings[0] === mySeat.value ? "win" : "gameOver");
+        if (gameState.value) {
+          gameResultStore.setResult(gameState.value);
+        }
+        vueRouter.push({ name: "post-game", params: { roomId: props.roomId } });
+      }
+    },
+    () => playSound("tokenStep"),
+  );
 
 /**
  * Cell whose stack badge should be suppressed: the destination cell during a
@@ -149,6 +169,7 @@ function onRoll() {
 
 function onMove(tokenId: string) {
   if (!canSendAction.value) return;
+  playSound("tokenSelect");
   pendingAction.value = true;
   ws?.send({ type: "move", tokenId });
 }
