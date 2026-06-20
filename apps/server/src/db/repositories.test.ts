@@ -61,12 +61,12 @@ describe("repositories", () => {
       expect(room!.phase).toBe("playing");
     });
 
-    it("defaults game options (wall off, auto-move on, timer on)", () => {
+    it("defaults game options (wall off, auto-move on, timer off)", () => {
       insertRoom(db, "room-1", 4, 0, new Date(1000)).run();
       const room = getRoom(db, "room-1");
       expect(room!.wallEnabled).toBe(false);
       expect(room!.autoMoveEnabled).toBe(true);
-      expect(room!.timerEnabled).toBe(true);
+      expect(room!.timerEnabled).toBe(false);
     });
 
     it("persists updated game options", () => {
@@ -102,7 +102,7 @@ describe("repositories", () => {
       const room = getRoom(legacy, "room-1");
       expect(room!.wallEnabled).toBe(false);
       expect(room!.autoMoveEnabled).toBe(true);
-      expect(room!.timerEnabled).toBe(true);
+      expect(room!.timerEnabled).toBe(false);
     });
   });
 

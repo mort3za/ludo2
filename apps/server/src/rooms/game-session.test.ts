@@ -408,7 +408,12 @@ describe("turn timing", () => {
       { id: "2-4", color: "red", cell: "Y/2/4" },
     ];
 
-    const state = makeState({ tokens, activeSeat: 1, status: "rolling" });
+    const state = makeState({
+      tokens,
+      activeSeat: 1,
+      status: "rolling",
+      options: { wallEnabled: false, autoMoveEnabled: true, timerEnabled: true },
+    });
     const session = createGameSession(state);
     session.rng = { random: () => 0.5, rollDie: () => 3 };
 
@@ -440,7 +445,13 @@ describe("turn timing", () => {
       { id: "2-4", color: "red", cell: "Y/2/4" },
     ];
 
-    const state = makeState({ tokens, activeSeat: 1, status: "moving", diceValue: 3 });
+    const state = makeState({
+      tokens,
+      activeSeat: 1,
+      status: "moving",
+      diceValue: 3,
+      options: { wallEnabled: false, autoMoveEnabled: true, timerEnabled: true },
+    });
     const session = createGameSession(state);
     session.lastRollAt = Date.now();
 
