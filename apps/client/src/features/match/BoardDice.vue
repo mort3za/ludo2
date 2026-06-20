@@ -56,6 +56,17 @@ const landed = ref(false);
 
 let tickTimer: ReturnType<typeof setTimeout> | null = null;
 let landedTimer: ReturnType<typeof setTimeout> | null = null;
+let safetyTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * Hard cap on how long the dice may tumble. The spin is normally stopped by the
+ * server's reveal (`value` going null → number, ~800ms). But that single signal
+ * can be lost — e.g. iOS Safari suspends background pages mid-roll and a
+ * reconnect `state` resync can land with `diceValue: null` — leaving the dice
+ * spinning forever. This guarantees it always settles; the watcher self-corrects
+ * the face if the real value arrives afterwards.
+ */
+const MAX_SPIN_MS = 4000;
 
 /** Pick a random face different from the current one, for visible tumbling. */
 function nextRandomFace() {
@@ -80,6 +91,11 @@ function startSpin() {
     tickTimer = setTimeout(tick, 75);
   };
   tick();
+  if (safetyTimer) clearTimeout(safetyTimer);
+  safetyTimer = setTimeout(() => {
+    safetyTimer = null;
+    if (rolling.value) settle(props.value ?? face.value);
+  }, MAX_SPIN_MS);
 }
 
 /** Stop tumbling and snap to the rolled face with a brief "thunk" pop. */
@@ -87,6 +103,10 @@ function settle(final: number) {
   if (tickTimer) {
     clearTimeout(tickTimer);
     tickTimer = null;
+  }
+  if (safetyTimer) {
+    clearTimeout(safetyTimer);
+    safetyTimer = null;
   }
   rolling.value = false;
   face.value = final;
@@ -121,6 +141,7 @@ function onClick() {
 onUnmounted(() => {
   if (tickTimer) clearTimeout(tickTimer);
   if (landedTimer) clearTimeout(landedTimer);
+  if (safetyTimer) clearTimeout(safetyTimer);
 });
 </script>
 
