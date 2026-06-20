@@ -81,6 +81,18 @@ watch(
   },
 );
 
+/**
+ * Start tumbling immediately on click. The value-driven watch can't be relied
+ * on for this: on the very first roll `value` is already null, so the server's
+ * `value → null` reset is a no-op and the spin would never start. Spinning on
+ * click also makes the dice feel responsive ahead of the server round-trip.
+ */
+function onClick() {
+  if (!props.canRoll) return;
+  startSpin();
+  emit("roll");
+}
+
 onUnmounted(() => {
   if (tickTimer) clearTimeout(tickTimer);
   if (landedTimer) clearTimeout(landedTimer);
@@ -99,7 +111,7 @@ onUnmounted(() => {
       'dice--landed': landed,
     }"
     :style="{ '--dice-glow': color ?? '#3b82f6' }"
-    @click="canRoll && emit('roll')"
+    @click="onClick"
   >
     <svg viewBox="0 0 100 100" class="dice__svg" xmlns="http://www.w3.org/2000/svg">
       <defs>
