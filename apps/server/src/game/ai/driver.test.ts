@@ -27,6 +27,8 @@ function makeSession(stateOverrides: Partial<GameState> = {}): GameSession {
     colorToSeat: { blue: 1, red: 2 },
     seatMisses: new Map(),
     lastRollAt: null,
+    history: [],
+    forcedRolls: new Map(),
   };
 }
 

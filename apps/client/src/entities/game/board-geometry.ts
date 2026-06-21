@@ -29,9 +29,12 @@ function computeClassicFourSeatLayout(): BoardLayout {
   // Home column reaches outward to be adjacent to the tip and stops one cell short
   // of the center, mirroring the arm spacing.
   const homeBase = 2;
-  // T/1 must be the cell adjacent to home (the "start square"). With ARM_ROWS=5 the
-  // arm laid out as [left×5, tip, right×5] puts that cell at flatTrack[ARM_ROWS+2].
-  const startOffset = ARM_ROWS + 2;
+  // T/1 is the "start square" where tokens emerge from the yard: the outermost cell
+  // of the arm's right (inward-returning) column, sitting on the board edge next to
+  // the yard. With ARM_ROWS=5 the arm laid out as [left×5, tip, right×5] puts that
+  // cell at flatTrack[ARM_ROWS+1]. This also places each seat's entry square (the
+  // cell before the home column) on the arm tip, adjacent to H/x/1.
+  const startOffset = ARM_ROWS + 1;
   const yardCenter = 4.3;
   const yardSpacing = 1.6;
   const snap = (value: number) => {

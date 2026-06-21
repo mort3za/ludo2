@@ -7,11 +7,11 @@ function getTrackPoint(id: string) {
 }
 
 describe("computeBoardLayout", () => {
-  it("places the four start squares on the classic A cells", () => {
-    expect(getTrackPoint(startSquare(1, 4))).toMatchObject({ x: 1, y: -5 });
-    expect(getTrackPoint(startSquare(2, 4))).toMatchObject({ x: 5, y: 1 });
-    expect(getTrackPoint(startSquare(3, 4))).toMatchObject({ x: -1, y: 5 });
-    expect(getTrackPoint(startSquare(4, 4))).toMatchObject({ x: -5, y: -1 });
+  it("places the four start squares on the outer-edge A cells", () => {
+    expect(getTrackPoint(startSquare(1, 4))).toMatchObject({ x: 1, y: -6 });
+    expect(getTrackPoint(startSquare(2, 4))).toMatchObject({ x: 6, y: 1 });
+    expect(getTrackPoint(startSquare(3, 4))).toMatchObject({ x: -1, y: 6 });
+    expect(getTrackPoint(startSquare(4, 4))).toMatchObject({ x: -6, y: -1 });
   });
 
   it("leaves the inner ring at distance 1 empty so arm-to-arm transitions don't overlap", () => {
