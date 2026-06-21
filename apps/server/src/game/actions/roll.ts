@@ -19,9 +19,18 @@ export interface RollOutcome {
  *   exceed the consecutive-six limit.
  * - On reaching the limit, the turn is forfeited and consecutive
  *   counter resets.
+ *
+ * `forcedValue` (dev-only) overrides the die draw with a fixed value; the
+ * six-related rules below still apply to it, so a forced 6 behaves like a
+ * real 6 (extra turn / consecutive-six forfeit).
  */
-export function resolveRoll(rng: Rng, consecutiveSixes: number, rules: RollRules): RollOutcome {
-  const value = rng.rollDie(6);
+export function resolveRoll(
+  rng: Rng,
+  consecutiveSixes: number,
+  rules: RollRules,
+  forcedValue?: number,
+): RollOutcome {
+  const value = forcedValue ?? rng.rollDie(6);
 
   if (value !== 6) {
     return {

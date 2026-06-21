@@ -357,6 +357,29 @@ onUnmounted(() => {
         >
           ↩ undo
         </button>
+        <div v-if="gameState" class="flex items-center gap-1 px-1 pt-1">
+          <select
+            v-model.number="debugDiceSeat"
+            class="rounded border border-border bg-surface-card px-1 py-1 text-text-muted"
+          >
+            <option v-for="seat in gameState.seats" :key="seat.index" :value="seat.index">
+              {{ seat.color }}{{ seat.index === mySeat ? " (me)" : "" }}
+            </option>
+          </select>
+          <select
+            v-model.number="debugDiceValue"
+            class="rounded border border-border bg-surface-card px-1 py-1 text-text-muted"
+          >
+            <option v-for="n in 6" :key="n" :value="n">{{ n }}</option>
+          </select>
+          <button
+            type="button"
+            class="rounded px-2 py-1 text-text-muted hover:bg-surface-muted"
+            @click="onDebugSetDice"
+          >
+            🎲 set
+          </button>
+        </div>
       </div>
     </details>
   </main>
