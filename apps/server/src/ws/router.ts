@@ -19,12 +19,15 @@ import {
   handleMove,
   handleTimeout,
   startTurnDeadline,
-  pushHistory,
-  undoLast,
   type GameSession,
 } from "../rooms/game-session.js";
 import { scheduleBotTurn } from "../game/ai/driver.js";
-import { applyDebugScenario } from "./debug-scenarios.js";
+import {
+  handleDebugSetState,
+  handleDebugUndo,
+  handleDebugSetDice,
+  type DebugContext,
+} from "./debug-handlers.js";
 
 export interface WsClient {
   playerId: string;
@@ -91,6 +94,68 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
       for (const msg of msgs) broadcast(roomId, msg);
     });
   }
+
+  /** Init a fresh game, register the session, and broadcast the opening state/turn. */
+  function startGameSession(roomId: string, room: Room, gameId: string): void {
+    const rng = createCryptoRng();
+    const state = initGame(room, gameId, rng);
+    const session = createGameSession(state);
+    gameSessions.set(roomId, session);
+    broadcast(roomId, { type: "state", state });
+    broadcast(roomId, {
+      type: "turn",
+      seat: state.activeSeat,
+      deadline: startTurnDeadline(session),
+    });
+    scheduleTurnTimeout(roomId);
+    scheduleBotIfNeeded(roomId, session);
+  }
+
+  /** After a roll/move: keep the clock running unless the game just ended. */
+  function scheduleOrClear(roomId: string, session: GameSession): void {
+    if (session.state.status !== "finished") {
+      scheduleTurnTimeout(roomId);
+      scheduleBotIfNeeded(roomId, session);
+    } else {
+      clearTurnTimeout(roomId);
+    }
+  }
+
+  /** Guard a roll/move: the sender must be a seated player whose turn it is. */
+  function requireActivePlayer(client: WsClient, session: GameSession): boolean {
+    if (rooms.get(client.roomId)?.spectators.has(client.playerId)) {
+      client.send({ type: "error", message: "not-a-player" });
+      return false;
+    }
+    const seat = session.state.seats.find((s) => s.playerId === client.playerId);
+    if (!seat || seat.index !== session.state.activeSeat) {
+      client.send({ type: "error", message: "not-your-turn" });
+      return false;
+    }
+    return true;
+  }
+
+  /** Guard an owner-only lobby action. */
+  function requireLobbyOwner(client: WsClient, room: Room): boolean {
+    if (room.phase !== "lobby") {
+      client.send({ type: "error", message: "not-in-lobby" });
+      return false;
+    }
+    if (room.ownerId !== client.playerId) {
+      client.send({ type: "error", message: "not-owner" });
+      return false;
+    }
+    return true;
+  }
+
+  const debugCtx: DebugContext = {
+    isProduction,
+    gameSessions,
+    broadcast,
+    clearTurnTimeout,
+    scheduleTurnTimeout,
+    scheduleBotIfNeeded,
+  };
 
   function broadcastLobby(roomId: string, room: Room): void {
     const connected = connectedPlayers.get(roomId) ?? new Set();
@@ -166,18 +231,7 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
         const startResult = startGame(room, client.playerId, gameId);
         if (startResult.ok) {
           rooms.set(client.roomId, startResult.room);
-          const rng = createCryptoRng();
-          const state = initGame(startResult.room, gameId, rng);
-          const session = createGameSession(state);
-          gameSessions.set(client.roomId, session);
-          broadcast(client.roomId, { type: "state", state });
-          broadcast(client.roomId, {
-            type: "turn",
-            seat: state.activeSeat,
-            deadline: startTurnDeadline(session),
-          });
-          scheduleTurnTimeout(client.roomId);
-          scheduleBotIfNeeded(client.roomId, session);
+          startGameSession(client.roomId, startResult.room, gameId);
         } else {
           client.send({ type: "error", message: startResult.error });
         }
@@ -190,26 +244,10 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
           client.send({ type: "error", message: "no-game" });
           break;
         }
-        // Check if spectator
-        const currentRoom = rooms.get(client.roomId);
-        if (currentRoom?.spectators.has(client.playerId)) {
-          client.send({ type: "error", message: "not-a-player" });
-          break;
-        }
-        // Verify it's this player's turn
-        const rollSeat = session.state.seats.find((s) => s.playerId === client.playerId);
-        if (!rollSeat || rollSeat.index !== session.state.activeSeat) {
-          client.send({ type: "error", message: "not-your-turn" });
-          break;
-        }
+        if (!requireActivePlayer(client, session)) break;
         const rollMsgs = handleRoll(session);
         for (const msg of rollMsgs) broadcast(client.roomId, msg);
-        if (session.state.status !== "finished") {
-          scheduleTurnTimeout(client.roomId);
-          scheduleBotIfNeeded(client.roomId, session);
-        } else {
-          clearTurnTimeout(client.roomId);
-        }
+        scheduleOrClear(client.roomId, session);
         break;
       }
 
@@ -219,25 +257,10 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
           client.send({ type: "error", message: "no-game" });
           break;
         }
-        // Check if spectator
-        const currentRoom = rooms.get(client.roomId);
-        if (currentRoom?.spectators.has(client.playerId)) {
-          client.send({ type: "error", message: "not-a-player" });
-          break;
-        }
-        const moveSeat = session.state.seats.find((s) => s.playerId === client.playerId);
-        if (!moveSeat || moveSeat.index !== session.state.activeSeat) {
-          client.send({ type: "error", message: "not-your-turn" });
-          break;
-        }
+        if (!requireActivePlayer(client, session)) break;
         const moveMsgs = handleMove(session, message.tokenId);
         for (const msg of moveMsgs) broadcast(client.roomId, msg);
-        if (session.state.status !== "finished") {
-          scheduleTurnTimeout(client.roomId);
-          scheduleBotIfNeeded(client.roomId, session);
-        } else {
-          clearTurnTimeout(client.roomId);
-        }
+        scheduleOrClear(client.roomId, session);
         break;
       }
 
@@ -261,14 +284,7 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
       }
 
       case "add_bot": {
-        if (room.phase !== "lobby") {
-          client.send({ type: "error", message: "not-in-lobby" });
-          break;
-        }
-        if (room.ownerId !== client.playerId) {
-          client.send({ type: "error", message: "not-owner" });
-          break;
-        }
+        if (!requireLobbyOwner(client, room)) break;
         const result = addBotMember(room);
         if (result.ok) {
           rooms.set(client.roomId, result.room);
@@ -280,14 +296,7 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
       }
 
       case "remove_player": {
-        if (room.phase !== "lobby") {
-          client.send({ type: "error", message: "not-in-lobby" });
-          break;
-        }
-        if (room.ownerId !== client.playerId) {
-          client.send({ type: "error", message: "not-owner" });
-          break;
-        }
+        if (!requireLobbyOwner(client, room)) break;
         const result = removeMember(room, message.playerId);
         if (result.ok) {
           rooms.set(client.roomId, result.room);
@@ -312,111 +321,21 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
         const newGameId = crypto.randomUUID();
         const rematchRoom: Room = { ...room, phase: "playing", gameId: newGameId };
         rooms.set(client.roomId, rematchRoom);
-        const rng = createCryptoRng();
-        const newState = initGame(rematchRoom, newGameId, rng);
-        const newSession = createGameSession(newState);
-        gameSessions.set(client.roomId, newSession);
-        broadcast(client.roomId, { type: "state", state: newState });
-        broadcast(client.roomId, {
-          type: "turn",
-          seat: newState.activeSeat,
-          deadline: startTurnDeadline(newSession),
-        });
-        scheduleTurnTimeout(client.roomId);
-        scheduleBotIfNeeded(client.roomId, newSession);
+        startGameSession(client.roomId, rematchRoom, newGameId);
         break;
       }
 
-      case "debug_set_state": {
-        if (isProduction) {
-          client.send({ type: "error", message: "debug-disabled" });
-          break;
-        }
-        const session = gameSessions.get(client.roomId);
-        if (!session) {
-          client.send({ type: "error", message: "no-game" });
-          break;
-        }
-        const seat = session.state.seats.find((s) => s.playerId === client.playerId);
-        if (!seat) {
-          client.send({ type: "error", message: "not-a-player" });
-          break;
-        }
-        const next = applyDebugScenario(session.state, message.scenario, seat.index);
-        if (!next) {
-          client.send({ type: "error", message: "unknown-scenario" });
-          break;
-        }
-        pushHistory(session);
-        session.state = next;
-        logger.info("WS debug_set_state applied", {
-          roomId: client.roomId,
-          scenario: message.scenario,
-          seat: seat.index,
-        });
-        // Broadcast state only — a "turn" message would reset diceValue/status
-        // on the client and wipe the scenario's mid-turn setup.
-        broadcast(client.roomId, { type: "state", state: next });
+      case "debug_set_state":
+        handleDebugSetState(debugCtx, client, message.scenario);
         break;
-      }
 
-      case "debug_undo": {
-        if (isProduction) {
-          client.send({ type: "error", message: "debug-disabled" });
-          break;
-        }
-        const session = gameSessions.get(client.roomId);
-        if (!session) {
-          client.send({ type: "error", message: "no-game" });
-          break;
-        }
-        const restored = undoLast(session);
-        if (!restored) {
-          client.send({ type: "error", message: "nothing-to-undo" });
-          break;
-        }
-        logger.info("WS debug_undo applied", { roomId: client.roomId });
-        // Cancel the pending turn timer; any in-flight bot timer is neutralised by
-        // the state-identity guard in the bot driver (undoLast swaps session.state).
-        clearTurnTimeout(client.roomId);
-        broadcast(client.roomId, { type: "state", state: restored });
-        // Snapshots are taken at turn boundaries, so a restored state is "rolling"
-        // unless it's a timed-out mid-move. Re-issue the turn (like resync) and
-        // re-drive the bot only when awaiting a roll — handleRoll needs "rolling".
-        if (restored.status === "rolling") {
-          broadcast(client.roomId, {
-            type: "turn",
-            seat: restored.activeSeat,
-            deadline: startTurnDeadline(session),
-          });
-          scheduleTurnTimeout(client.roomId);
-          scheduleBotIfNeeded(client.roomId, session);
-        }
+      case "debug_undo":
+        handleDebugUndo(debugCtx, client);
         break;
-      }
 
-      case "debug_set_dice": {
-        if (isProduction) {
-          client.send({ type: "error", message: "debug-disabled" });
-          break;
-        }
-        const session = gameSessions.get(client.roomId);
-        if (!session) {
-          client.send({ type: "error", message: "no-game" });
-          break;
-        }
-        if (!session.state.seats.some((s) => s.index === message.seat)) {
-          client.send({ type: "error", message: "unknown-seat" });
-          break;
-        }
-        session.forcedRolls.set(message.seat, message.value);
-        logger.info("WS debug_set_dice queued", {
-          roomId: client.roomId,
-          seat: message.seat,
-          value: message.value,
-        });
+      case "debug_set_dice":
+        handleDebugSetDice(debugCtx, client, message.seat, message.value);
         break;
-      }
     }
   }
 
