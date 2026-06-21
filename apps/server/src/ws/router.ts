@@ -19,6 +19,8 @@ import {
   handleMove,
   handleTimeout,
   startTurnDeadline,
+  pushHistory,
+  undoLast,
   type GameSession,
 } from "../rooms/game-session.js";
 import { scheduleBotTurn } from "../game/ai/driver.js";
@@ -345,6 +347,7 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
           client.send({ type: "error", message: "unknown-scenario" });
           break;
         }
+        pushHistory(session);
         session.state = next;
         logger.info("WS debug_set_state applied", {
           roomId: client.roomId,
@@ -354,6 +357,64 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
         // Broadcast state only — a "turn" message would reset diceValue/status
         // on the client and wipe the scenario's mid-turn setup.
         broadcast(client.roomId, { type: "state", state: next });
+        break;
+      }
+
+      case "debug_undo": {
+        if (isProduction) {
+          client.send({ type: "error", message: "debug-disabled" });
+          break;
+        }
+        const session = gameSessions.get(client.roomId);
+        if (!session) {
+          client.send({ type: "error", message: "no-game" });
+          break;
+        }
+        const restored = undoLast(session);
+        if (!restored) {
+          client.send({ type: "error", message: "nothing-to-undo" });
+          break;
+        }
+        logger.info("WS debug_undo applied", { roomId: client.roomId });
+        // Cancel the pending turn timer; any in-flight bot timer is neutralised by
+        // the state-identity guard in the bot driver (undoLast swaps session.state).
+        clearTurnTimeout(client.roomId);
+        broadcast(client.roomId, { type: "state", state: restored });
+        // Snapshots are taken at turn boundaries, so a restored state is "rolling"
+        // unless it's a timed-out mid-move. Re-issue the turn (like resync) and
+        // re-drive the bot only when awaiting a roll — handleRoll needs "rolling".
+        if (restored.status === "rolling") {
+          broadcast(client.roomId, {
+            type: "turn",
+            seat: restored.activeSeat,
+            deadline: startTurnDeadline(session),
+          });
+          scheduleTurnTimeout(client.roomId);
+          scheduleBotIfNeeded(client.roomId, session);
+        }
+        break;
+      }
+
+      case "debug_set_dice": {
+        if (isProduction) {
+          client.send({ type: "error", message: "debug-disabled" });
+          break;
+        }
+        const session = gameSessions.get(client.roomId);
+        if (!session) {
+          client.send({ type: "error", message: "no-game" });
+          break;
+        }
+        if (!session.state.seats.some((s) => s.index === message.seat)) {
+          client.send({ type: "error", message: "unknown-seat" });
+          break;
+        }
+        session.forcedRolls.set(message.seat, message.value);
+        logger.info("WS debug_set_dice queued", {
+          roomId: client.roomId,
+          seat: message.seat,
+          value: message.value,
+        });
         break;
       }
     }

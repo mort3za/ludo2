@@ -4,7 +4,15 @@ type Ok = { ok: true; message: ClientMessage };
 type Err = { ok: false; error: string };
 type ParseResult = Ok | Err;
 
-const SIMPLE_TYPES = new Set(["ready", "start", "roll", "resync", "rematch", "add_bot"]);
+const SIMPLE_TYPES = new Set([
+  "ready",
+  "start",
+  "roll",
+  "resync",
+  "rematch",
+  "add_bot",
+  "debug_undo",
+]);
 
 export function parseClientMessage(raw: string): ParseResult {
   let parsed: unknown;
@@ -67,6 +75,18 @@ export function parseClientMessage(raw: string): ParseResult {
       return { ok: false, error: "missing-scenario" };
     }
     return { ok: true, message: { type: "debug_set_state", scenario: obj["scenario"] } };
+  }
+
+  if (type === "debug_set_dice") {
+    const seat = obj["seat"];
+    const value = obj["value"];
+    if (typeof seat !== "number" || !Number.isInteger(seat)) {
+      return { ok: false, error: "invalid-seat" };
+    }
+    if (typeof value !== "number" || !Number.isInteger(value) || value < 1 || value > 6) {
+      return { ok: false, error: "invalid-value" };
+    }
+    return { ok: true, message: { type: "debug_set_dice", seat, value } };
   }
 
   return { ok: false, error: "unknown-type" };

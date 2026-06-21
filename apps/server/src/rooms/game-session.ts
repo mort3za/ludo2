@@ -14,6 +14,10 @@ export interface GameSession {
   colorToSeat: Record<string, number>;
   seatMisses: Map<number, number>;
   lastRollAt: number | null;
+  /** Dev-only undo stack: state snapshots taken at turn boundaries (before each roll/timeout). */
+  history: GameState[];
+  /** Dev-only: per-seat forced value for that seat's next roll, consumed once. */
+  forcedRolls: Map<number, number>;
 }
 
 export function createGameSession(state: GameState): GameSession {
@@ -22,7 +26,32 @@ export function createGameSession(state: GameState): GameSession {
   for (const seat of state.seats) {
     colorToSeat[seat.color] = seat.index;
   }
-  return { state, rng, colorToSeat, seatMisses: new Map(), lastRollAt: null };
+  return {
+    state,
+    rng,
+    colorToSeat,
+    seatMisses: new Map(),
+    lastRollAt: null,
+    history: [],
+    forcedRolls: new Map(),
+  };
+}
+
+/** Max snapshots kept on the undo stack — bounds debug memory use. */
+const MAX_HISTORY = 100;
+
+/** Push a deep copy of the current state onto the undo stack. */
+export function pushHistory(session: GameSession): void {
+  session.history.push(structuredClone(session.state));
+  if (session.history.length > MAX_HISTORY) session.history.shift();
+}
+
+/** Dev-only: pop the last snapshot and restore it. Returns the restored state, or null if empty. */
+export function undoLast(session: GameSession): GameState | null {
+  const prev = session.history.pop();
+  if (!prev) return null;
+  session.state = prev;
+  return prev;
 }
 
 const ROLL_HOLD_MS = TIMINGS.diceReveal + TIMINGS.diceShow;
@@ -46,10 +75,14 @@ export function handleRoll(session: GameSession): ServerMessage[] {
   const { state, rng } = session;
   if (state.status !== "rolling") return [{ type: "error", message: "not-rolling" }];
 
+  pushHistory(session);
+
   // Player acted — reset their miss counter
   session.seatMisses.set(state.activeSeat, 0);
 
-  const outcome = resolveRoll(rng, state.consecutiveSixes, DEFAULT_RULES);
+  const forced = session.forcedRolls.get(state.activeSeat);
+  if (forced !== undefined) session.forcedRolls.delete(state.activeSeat);
+  const outcome = resolveRoll(rng, state.consecutiveSixes, DEFAULT_RULES, forced);
   const rollAt = Date.now();
   state.diceValue = outcome.value;
   state.consecutiveSixes = outcome.newConsecutiveSixes;
@@ -234,6 +267,8 @@ export function handleTimeout(session: GameSession): ServerMessage[] {
   // Bots never time out — the bot driver handles their turns.
   const activeSeat = state.seats.find((s) => s.index === state.activeSeat);
   if (activeSeat?.isBot) return [];
+
+  pushHistory(session);
 
   const currentMisses = session.seatMisses.get(state.activeSeat) ?? 0;
   const missResult = handleMissedTurn(currentMisses, TIMINGS.kickAfterMisses);

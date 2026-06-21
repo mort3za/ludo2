@@ -29,7 +29,9 @@ export function scheduleBotTurn(
 
   const rollDelayMs = Math.max(ROLL_DELAY_MS, getPendingRollHoldMs(session) + TIMINGS.turnPass);
   setTimeout(() => {
-    if (state.status === "finished") return;
+    // Bail if the state was swapped out from under us (e.g. debug undo / set-state).
+    // Normal play mutates session.state in place, so the reference stays stable.
+    if (session.state !== state || state.status === "finished") return;
 
     const rollMsgs = handleRoll(session);
     broadcast(rollMsgs);
@@ -41,7 +43,7 @@ export function scheduleBotTurn(
       // Multiple legal moves — bot must pick one
       const moveDelayMs = Math.max(MOVE_DELAY_MS, getPendingRollHoldMs(session));
       setTimeout(() => {
-        if (session.state.status === "finished") return;
+        if (session.state !== state || session.state.status === "finished") return;
 
         const seatTokens = session.state.tokens.filter(
           (t) => session.colorToSeat[t.color] === session.state.activeSeat,

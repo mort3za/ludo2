@@ -254,6 +254,17 @@ const debugScenarios = ["home-stretch", "home-jump"];
 function onDebugScenario(scenario: string) {
   ws?.send({ type: "debug_set_state", scenario });
 }
+function onDebugUndo() {
+  ws?.send({ type: "debug_undo" });
+}
+// Dev-only: force a seat's next roll to a chosen value.
+const debugDiceSeat = ref<number | null>(null);
+const debugDiceValue = ref(6);
+function onDebugSetDice() {
+  const seat = debugDiceSeat.value ?? mySeat.value;
+  if (seat === null) return;
+  ws?.send({ type: "debug_set_dice", seat, value: debugDiceValue.value });
+}
 
 onMounted(() => {
   if (!session.token) {
@@ -338,6 +349,13 @@ onUnmounted(() => {
           @click="onDebugScenario(scenario)"
         >
           {{ scenario }}
+        </button>
+        <button
+          type="button"
+          class="rounded px-3 py-1.5 text-left text-text-muted hover:bg-surface-muted"
+          @click="onDebugUndo"
+        >
+          ↩ undo
         </button>
       </div>
     </details>

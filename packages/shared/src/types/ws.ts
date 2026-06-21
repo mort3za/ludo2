@@ -14,7 +14,11 @@ export type ClientMessage =
   /** Lobby-only, owner-only: set the game options for the upcoming game. */
   | { type: "set_options"; options: GameOptions }
   /** Dev-only: replace the live game state with a named test scenario. Ignored in production. */
-  | { type: "debug_set_state"; scenario: string };
+  | { type: "debug_set_state"; scenario: string }
+  /** Dev-only: undo the last roll/move/timeout, restoring the prior state. Ignored in production. */
+  | { type: "debug_undo" }
+  /** Dev-only: force the given seat's next roll to a fixed value (1-6). Ignored in production. */
+  | { type: "debug_set_dice"; seat: number; value: number };
 
 export interface LobbyPlayer {
   playerId: string;
