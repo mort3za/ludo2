@@ -1,5 +1,9 @@
 # Ludo 2
 
+## Engineering Principles
+
+- **Design for the bigger picture.** Before implementing any change, work out the right way to fit it into the existing architecture and abstractions — extend the system at its natural seams, don't bolt on a local hack. Choose the solution a senior engineer would consider correct system-wide. If the right way costs significantly more than a narrow quick fix, surface the tradeoff before proceeding.
+
 ## Tasks & Todos
 
 All implementation work is tracked as Linear issues, **not** in repo files.
