@@ -23,7 +23,7 @@ const VOLUME: Partial<Record<SoundName, number>> = {
   myTurn: 0.5,
   tokenStep: 0.5,
   win: 0.5,
-  gameStart: 0.5,
+  gameStart: 0.4,
 };
 const DEFAULT_VOLUME = 0.6;
 
