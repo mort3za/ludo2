@@ -182,7 +182,9 @@ const server = Bun.serve<WsData>({
           client.send({
             type: "turn",
             seat: session.state.activeSeat,
-            deadline: session.state.options.timerEnabled ? Date.now() + TIMINGS.turnTimeout : 0,
+            // Replay the live turn's deadline so the rejoining client's countdown
+            // matches the still-running server timer — never reset it.
+            deadline: session.turnDeadline,
           });
         }
         // Broadcast reconnect presence to all players in room

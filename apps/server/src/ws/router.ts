@@ -277,7 +277,9 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
           client.send({
             type: "turn",
             seat: session.state.activeSeat,
-            deadline: session.state.options.timerEnabled ? Date.now() + TIMINGS.turnTimeout : 0,
+            // Replay the live turn's deadline (not a fresh one) so a resync never
+            // extends the clock past the still-running server timer.
+            deadline: session.turnDeadline,
           });
         }
         break;

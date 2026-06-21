@@ -14,6 +14,13 @@ export interface GameSession {
   colorToSeat: Record<string, number>;
   seatMisses: Map<number, number>;
   lastRollAt: number | null;
+  /**
+   * Wall-clock deadline (epoch ms) for the current turn, as last broadcast to
+   * clients. 0 when no timer is active. Replayed verbatim on reconnect/resync
+   * so a rejoining client's countdown matches the still-running server timer
+   * instead of being reset to a fresh, longer deadline.
+   */
+  turnDeadline: number;
   /** Dev-only undo stack: state snapshots taken at turn boundaries (before each roll/timeout). */
   history: GameState[];
   /** Dev-only: per-seat forced value for that seat's next roll, consumed once. */
@@ -32,6 +39,7 @@ export function createGameSession(state: GameState): GameSession {
     colorToSeat,
     seatMisses: new Map(),
     lastRollAt: null,
+    turnDeadline: 0,
     history: [],
     forcedRolls: new Map(),
   };
@@ -62,13 +70,18 @@ export function getPendingRollHoldMs(session: GameSession, now = Date.now()): nu
 }
 
 function nextTurnDeadline(session: GameSession, now = Date.now()): number {
-  if (!session.state.options.timerEnabled) return 0;
-  return now + TIMINGS.turnTimeout + getPendingRollHoldMs(session, now) + TIMINGS.turnPass;
+  const deadline = session.state.options.timerEnabled
+    ? now + TIMINGS.turnTimeout + getPendingRollHoldMs(session, now) + TIMINGS.turnPass
+    : 0;
+  session.turnDeadline = deadline;
+  return deadline;
 }
 
 /** Turn deadline for a freshly-started turn (game start, rematch, reconnect). 0 = no timer. */
 export function startTurnDeadline(session: GameSession, now = Date.now()): number {
-  return session.state.options.timerEnabled ? now + TIMINGS.turnTimeout : 0;
+  const deadline = session.state.options.timerEnabled ? now + TIMINGS.turnTimeout : 0;
+  session.turnDeadline = deadline;
+  return deadline;
 }
 
 export function handleRoll(session: GameSession): ServerMessage[] {

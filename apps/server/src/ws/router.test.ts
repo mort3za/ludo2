@@ -191,6 +191,63 @@ describe("WS router", () => {
     });
   });
 
+  // MOR-203: reconnect/resync must not mutate game state or reset the clock.
+  describe("resync preserves state", () => {
+    function setupTimedGame() {
+      let room = makeLobbyRoom(["p1", "p2"]);
+      room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
+      room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
+      room.options = { ...room.options, timerEnabled: true };
+      rooms.set("room-1", room);
+      const router = createRouter(rooms);
+      const c1 = makeMockClient("p1");
+      router.addClient(c1);
+      router.dispatch(c1, { type: "start" });
+      const session = router.getGameSession("room-1")!;
+      return { router, c1, session };
+    }
+
+    function sentMessages(c: WsClient): ServerMessage[] {
+      return (c.send as ReturnType<typeof vi.fn>).mock.calls.map((call) => call[0]);
+    }
+
+    it("replays the live turn deadline instead of recomputing a fresh one", () => {
+      vi.useFakeTimers();
+      try {
+        vi.setSystemTime(new Date("2026-06-21T00:00:00Z"));
+        const { router, c1, session } = setupTimedGame();
+        const originalDeadline = session.turnDeadline;
+        expect(originalDeadline).toBeGreaterThan(0);
+        (c1.send as ReturnType<typeof vi.fn>).mockClear();
+
+        // Player is disconnected for a while, then resyncs. The deadline must
+        // be the turn's original deadline, not Date.now() + turnTimeout.
+        vi.advanceTimersByTime(10_000);
+        router.dispatch(c1, { type: "resync" });
+
+        const turnMsg = sentMessages(c1).find((m) => m.type === "turn");
+        expect(turnMsg).toMatchObject({ type: "turn", deadline: originalDeadline });
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("re-sends an unchanged authoritative state across all fields", () => {
+      const { router, c1, session } = setupTimedGame();
+      // Put the session in a representative mid-game state.
+      session.state.diceValue = 4;
+      session.state.consecutiveSixes = 1;
+      const before = structuredClone(session.state);
+      (c1.send as ReturnType<typeof vi.fn>).mockClear();
+
+      router.dispatch(c1, { type: "resync" });
+
+      const stateMsg = sentMessages(c1).find((m) => m.type === "state");
+      // Turn / active player, dice + phase, tokens, standings, sixes — all intact.
+      expect(stateMsg).toMatchObject({ type: "state", state: before });
+    });
+  });
+
   describe("rematch", () => {
     function setupFinishedGame() {
       let room = makeLobbyRoom(["p1", "p2"]);
