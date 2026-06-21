@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createRouter, type WsClient, type RoomStore } from "./router.js";
 import type { ServerMessage, ClientMessage } from "@ludo/shared";
 import { createRoom, joinRoom, setReady, type Room } from "../rooms/room.js";
+import { initGame } from "../rooms/init-game.js";
+import { createGameSession } from "../rooms/game-session.js";
 
 function makeMockClient(playerId: string): WsClient {
   return {
@@ -318,6 +320,52 @@ describe("WS router", () => {
       const { router, c1 } = setupFinishedGame();
       router.dispatch(c1, { type: "rematch" });
       expect(c1.send).toHaveBeenCalledWith(expect.objectContaining({ type: "turn" }));
+    });
+  });
+
+  // Server-restart resilience: in-progress games are persisted and restored.
+  describe("game persistence", () => {
+    function setupWithDeps() {
+      let room = makeLobbyRoom(["p1", "p2"]);
+      room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
+      room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
+      rooms.set("room-1", room);
+      const persistGame = vi.fn();
+      const deleteGame = vi.fn();
+      const router = createRouter(rooms, { persistGame, deleteGame });
+      const c1 = makeMockClient("p1");
+      router.addClient(c1);
+      return { router, c1, persistGame, deleteGame };
+    }
+
+    it("persists the game when it starts", () => {
+      const { router, c1, persistGame } = setupWithDeps();
+      router.dispatch(c1, { type: "start" });
+      const gameId = router.getGameSession("room-1")!.state.gameId;
+      expect(persistGame).toHaveBeenCalledWith("room-1", gameId, expect.any(String));
+    });
+
+    it("deletes the persisted game once it finishes", () => {
+      const { router, c1, deleteGame } = setupWithDeps();
+      router.dispatch(c1, { type: "start" });
+      const session = router.getGameSession("room-1")!;
+      const gameId = session.state.gameId;
+      // Force a finished game; a state-changing dispatch by the active player
+      // routes through scheduleOrClear, which triggers cleanup.
+      session.state.activeSeat = session.state.seats.find((s) => s.playerId === "p1")!.index;
+      session.state.status = "finished";
+      router.dispatch(c1, { type: "roll" });
+      expect(deleteGame).toHaveBeenCalledWith(gameId);
+    });
+
+    it("restoreSession re-registers a game so it can be played", () => {
+      const mockRng = { random: () => 0.5, rollDie: () => 3 };
+      const room = makeLobbyRoom(["p1", "p2"]);
+      rooms.set("room-1", room);
+      const session = createGameSession(initGame(room, "game-1", mockRng));
+      const router = createRouter(rooms);
+      router.restoreSession("room-1", session);
+      expect(router.getGameSession("room-1")).toBe(session);
     });
   });
 });

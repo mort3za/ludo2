@@ -71,8 +71,11 @@ export function applySchema(db: Db) {
     room_id TEXT NOT NULL,
     status TEXT NOT NULL,
     created_at INTEGER NOT NULL,
-    completed_at INTEGER
+    completed_at INTEGER,
+    snapshot TEXT
   )`);
+  // Migrate pre-existing file databases that lack the snapshot column.
+  addColumnIfMissing(db, "games", "snapshot", "TEXT");
   db.run(sql`CREATE TABLE IF NOT EXISTS move_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     game_id TEXT NOT NULL,

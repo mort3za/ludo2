@@ -65,6 +65,32 @@ export function completeGame(db: Db, id: string, now: Date) {
   return db.update(games).set({ status: "completed", completedAt: now }).where(eq(games.id, id));
 }
 
+/**
+ * Persist (or update) an in-progress game's full state so it survives a server
+ * restart. Upserts a "playing" row keyed by game id.
+ */
+export function saveGameSnapshot(db: Db, id: string, roomId: string, snapshot: string, now: Date) {
+  return db
+    .insert(games)
+    .values({ id, roomId, status: "playing", createdAt: now, snapshot })
+    .onConflictDoUpdate({ target: games.id, set: { snapshot, status: "playing" } });
+}
+
+/** Active games to restore on boot: those still flagged "playing" with a snapshot. */
+export function getActiveGames(db: Db) {
+  return db
+    .select({ roomId: games.roomId, snapshot: games.snapshot })
+    .from(games)
+    .where(eq(games.status, "playing"))
+    .all();
+}
+
+/** Remove a game and its move log entirely — used to clean up a finished game. */
+export function deleteGame(db: Db, id: string): void {
+  db.delete(moveLog).where(eq(moveLog.gameId, id)).run();
+  db.delete(games).where(eq(games.id, id)).run();
+}
+
 // --- Move Log ---
 
 export function appendLogEntry(db: Db, gameId: string, seq: number, entry: LogEntry) {

@@ -26,6 +26,9 @@ export const games = sqliteTable("games", {
   status: text("status").notNull(),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
   completedAt: integer("completed_at", { mode: "timestamp_ms" }),
+  // Full in-progress game state (JSON) so a game survives a server restart.
+  // Written on every state change; cleared when the game finishes.
+  snapshot: text("snapshot"),
 });
 
 export const moveLog = sqliteTable("move_log", {

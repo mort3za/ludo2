@@ -11,8 +11,11 @@ export interface WsConnection {
   close: () => void;
 }
 
-const RECONNECT_DELAYS = [1000, 2000, 4000, 8000];
-const MAX_RECONNECT_ATTEMPTS = RECONNECT_DELAYS.length;
+// Escalating backoff that caps at 15s; the last value repeats for later attempts.
+// ~20 attempts keeps trying for several minutes so players rejoin after a server
+// restart/redeploy instead of being dropped from an in-progress game.
+const RECONNECT_DELAYS = [1000, 2000, 4000, 8000, 15000];
+const MAX_RECONNECT_ATTEMPTS = 20;
 
 export function createWsConnection(roomId: string, token: string): WsConnection {
   const status = ref<WsStatus>("connecting");
@@ -50,7 +53,7 @@ export function createWsConnection(roomId: string, token: string): WsConnection 
       if (ws !== socket) return;
       status.value = "disconnected";
       if (!intentionalClose && reconnectAttempt < MAX_RECONNECT_ATTEMPTS) {
-        const delay = RECONNECT_DELAYS[reconnectAttempt]!;
+        const delay = RECONNECT_DELAYS[Math.min(reconnectAttempt, RECONNECT_DELAYS.length - 1)]!;
         reconnectAttempt++;
         reconnectTimer = setTimeout(() => {
           reconnectTimer = null;

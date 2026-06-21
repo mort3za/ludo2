@@ -21,6 +21,7 @@ import {
   startTurnDeadline,
   type GameSession,
 } from "../rooms/game-session.js";
+import { serializeGame } from "../rooms/game-persistence.js";
 import { scheduleBotTurn } from "../game/ai/driver.js";
 import {
   handleDebugSetState,
@@ -40,6 +41,10 @@ export type RoomStore = Map<string, Room>;
 export interface RouterDeps {
   /** Persist a room's options so they survive across server restarts. */
   persistOptions?: (roomId: string, options: GameOptions) => void;
+  /** Persist an in-progress game's full state so it survives a server restart. */
+  persistGame?: (roomId: string, gameId: string, snapshot: string) => void;
+  /** Remove a finished game's persisted state so no residue is left behind. */
+  deleteGame?: (gameId: string) => void;
 }
 
 export interface Router {
@@ -50,6 +55,8 @@ export interface Router {
   removeClient: (client: WsClient) => void;
   handleClose: (client: WsClient) => void;
   getGameSession: (roomId: string) => GameSession | undefined;
+  /** Re-register a game restored from persistence and resume its timers/bots. */
+  restoreSession: (roomId: string, session: GameSession) => void;
 }
 
 export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
@@ -77,6 +84,7 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
         if ((session.state.status as string) !== "finished") {
           scheduleTurnTimeout(roomId);
         }
+        persistOrCleanup(roomId, session);
       }, TIMINGS.turnTimeout),
     );
   }
@@ -92,6 +100,8 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
   function scheduleBotIfNeeded(roomId: string, session: GameSession): void {
     scheduleBotTurn(session, (msgs) => {
       for (const msg of msgs) broadcast(roomId, msg);
+      // Bot turns mutate state directly — persist so a restart doesn't replay them.
+      persistOrCleanup(roomId, session);
     });
   }
 
@@ -109,6 +119,26 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
     });
     scheduleTurnTimeout(roomId);
     scheduleBotIfNeeded(roomId, session);
+    persistOrCleanup(roomId, session);
+  }
+
+  /** Re-register a game restored from persistence and resume its timers/bots. */
+  function restoreSession(roomId: string, session: GameSession): void {
+    gameSessions.set(roomId, session);
+    scheduleTurnTimeout(roomId);
+    scheduleBotIfNeeded(roomId, session);
+  }
+
+  /** Write the live game state to storage, or remove it once the game ends. */
+  function persistOrCleanup(roomId: string, session: GameSession): void {
+    if (session.state.status === "finished") {
+      deps.deleteGame?.(session.state.gameId);
+      return;
+    }
+    const room = rooms.get(roomId);
+    if (room) {
+      deps.persistGame?.(roomId, session.state.gameId, serializeGame(room, session));
+    }
   }
 
   /** After a roll/move: keep the clock running unless the game just ended. */
@@ -119,6 +149,7 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
     } else {
       clearTurnTimeout(roomId);
     }
+    persistOrCleanup(roomId, session);
   }
 
   /** Guard a roll/move: the sender must be a seated player whose turn it is. */
@@ -398,6 +429,7 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
     removeClient,
     handleClose,
     getGameSession,
+    restoreSession,
   };
 
   function getGameSession(roomId: string): GameSession | undefined {

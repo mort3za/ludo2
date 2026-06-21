@@ -11,7 +11,15 @@ import { createRouter, type WsClient, type RoomStore } from "./ws/router.js";
 import { parseClientMessage } from "./ws/protocol.js";
 import { createHttpHandler } from "./http/routes.js";
 import { createDb, applySchema } from "./db/connection.js";
-import { getRoom, purgeOldGames, updateRoomOptions } from "./db/repositories.js";
+import {
+  getRoom,
+  purgeOldGames,
+  updateRoomOptions,
+  saveGameSnapshot,
+  deleteGame,
+  getActiveGames,
+} from "./db/repositories.js";
+import { deserializeGame } from "./rooms/game-persistence.js";
 import { SERVER_PORT, TIMINGS, MAX_SEATS, type ServerMessage } from "@ludo/shared";
 import { logger } from "./lib/logger.js";
 import type { ServerWebSocket } from "bun";
@@ -49,7 +57,21 @@ applySchema(db);
 const rooms: RoomStore = new Map();
 const router = createRouter(rooms, {
   persistOptions: (roomId, options) => updateRoomOptions(db, roomId, options).run(),
+  persistGame: (roomId, gameId, snapshot) =>
+    saveGameSnapshot(db, gameId, roomId, snapshot, new Date()).run(),
+  deleteGame: (gameId) => deleteGame(db, gameId),
 });
+
+// Restore games that were in progress before a restart so players can resume
+// where they left off (requires a file-backed DB_PATH; :memory: starts empty).
+for (const row of getActiveGames(db)) {
+  if (!row.snapshot) continue;
+  const restored = deserializeGame(row.roomId, row.snapshot, Date.now());
+  if (!restored) continue;
+  rooms.set(row.roomId, restored.room);
+  router.restoreSession(row.roomId, restored.session);
+}
+
 const httpHandler = createHttpHandler({ auth, db });
 
 // Map Bun WebSocket → WsClient for lifecycle management
