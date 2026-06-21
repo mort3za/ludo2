@@ -11,13 +11,20 @@ interface Weights {
 const PROFILES: Record<BotPersonality, Weights> = {
   // Captures dominate; low regard for safety. Legacy behavior baseline.
   aggressor: { capture: 1000, deploy: 500, escape: 300, progress: 1 },
-  // Escaping danger dominates; captures still valued; cautious advance.
-  defender: { capture: 500, deploy: 250, escape: 900, progress: 1 },
-  // Max advancement + eager deploy; captures incidental.
-  sprinter: { capture: 400, deploy: 800, escape: 200, progress: 5 },
+  // Safety-first, but kicking stays a strong priority (just below escaping).
+  defender: { capture: 800, deploy: 250, escape: 900, progress: 1 },
+  // Advancement + eager deploy lead, but kicking is now a strong priority too.
+  sprinter: { capture: 700, deploy: 800, escape: 200, progress: 5 },
 };
 
 const DEFAULT_PERSONALITY: BotPersonality = "aggressor";
+
+/**
+ * A track token is "near home" when it sits within one die roll of its home
+ * entry square — i.e. close to finishing. Such a token has the most to lose
+ * if kicked back to the yard, so saving it can outrank a capture.
+ */
+const NEAR_HOME_WINDOW = 6;
 
 /**
  * Pick the best legal move for a bot seat using heuristics weighted by personality.
@@ -73,15 +80,32 @@ function score(
   weights: Weights,
 ): number {
   const progress = tokenProgress(move.to, trackLen, startIdx);
+  const fromParsed = parseCell(move.from);
+  const inDanger = isInDanger(move.from, state, myColor, trackLen);
+
+  // Highest priority: rescue a threatened token that is near home. Losing a
+  // nearly-finished token costs the most progress, so for every personality
+  // this beats a plain capture (capture + escape weights combined).
+  if (inDanger && isNearHome(move.from, trackLen, startIdx)) {
+    return weights.capture + weights.escape + progress;
+  }
 
   if (isCapture(move.to, state, myColor)) return weights.capture + progress;
 
-  const fromParsed = parseCell(move.from);
   if (fromParsed.kind === "yard") return weights.deploy;
 
-  if (isInDanger(move.from, state, myColor, trackLen)) return weights.escape + progress;
+  if (inDanger) return weights.escape + progress;
 
   return weights.progress * progress;
+}
+
+/** True when a track cell is within one die roll of its seat's home entry. */
+function isNearHome(fromCell: string, trackLen: number, startIdx: number): boolean {
+  const parsed = parseCell(fromCell);
+  if (parsed.kind !== "track") return false;
+  const progress = tokenProgress(fromCell, trackLen, startIdx);
+  // Max track progress (the entry square) is trackLen - 1.
+  return progress >= trackLen - 1 - NEAR_HOME_WINDOW;
 }
 
 /** True when destination is a track cell with exactly one opponent token. */

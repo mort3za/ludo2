@@ -152,6 +152,48 @@ describe("pickMove", () => {
       expect(pickMove(moves, state, 1, "sprinter").tokenId).toBe("b1");
     });
 
+    it.each(["aggressor", "defender", "sprinter"] as const)(
+      "%s rescues a threatened near-home token instead of capturing",
+      (personality) => {
+        // trackLen = 22 (2 seats × 11), seat-1 start = T/1, home entry = T/22.
+        // b1 at T/18 is near home (progress 17 ≥ 22−1−6) and threatened by r2 at T/13.
+        const state = makeState(
+          [
+            t("b1", "blue", "T/18"), // near home, threatened — should be rescued
+            t("b2", "blue", "T/5"), // can capture r1
+            t("r1", "red", "T/8"), // lone opponent (capture target)
+            t("r2", "red", "T/13"), // 5 steps behind b1 → threat
+          ],
+          1,
+          3,
+        );
+        const moves = [
+          move("b1", "T/18", "T/21"), // advance the endangered near-home token
+          move("b2", "T/5", "T/8"), // capture r1
+        ];
+        expect(pickMove(moves, state, 1, personality).tokenId).toBe("b1");
+      },
+    );
+
+    it("does not rescue over capture when the threatened token is far from home", () => {
+      // Same threat geometry but on early track cells: capture should win for aggressor.
+      const state = makeState(
+        [
+          t("b1", "blue", "T/5"), // threatened but far from home
+          t("b2", "blue", "T/10"), // can capture r1
+          t("r1", "red", "T/13"), // lone opponent
+          t("r2", "red", "T/3"), // 2 steps behind b1 → threat
+        ],
+        1,
+        3,
+      );
+      const moves = [
+        move("b1", "T/5", "T/8"), // escape (not near home)
+        move("b2", "T/10", "T/13"), // capture
+      ];
+      expect(pickMove(moves, state, 1, "aggressor").tokenId).toBe("b2");
+    });
+
     it("sprinter picks furthest token advance when no capture/deploy/escape", () => {
       const state = makeState([t("b1", "blue", "T/3"), t("b2", "blue", "T/10")]);
       const moves = [
