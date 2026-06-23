@@ -161,18 +161,69 @@ const startSquareColors = computed(() => {
     class="bg-frost w-full h-full rounded-lg transition-transform duration-500"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <!-- Track cells -->
-    <template v-for="cell in layout.track" :key="cell.id">
-      <circle
-        :cx="cell.x"
-        :cy="cell.y"
-        :r="layout.cellSize"
-        :fill="startSquareColors.get(cell.id) ?? 'var(--color-board-cell)'"
-        :opacity="startSquareColors.get(cell.id) ? 0.7 : 1"
-        :stroke="startSquareColors.get(cell.id) ?? 'var(--color-board-cell-edge)'"
-        :stroke-width="layout.cellSize * 0.15"
-      />
-      <!-- Block indicator ring (2 same-color tokens on this cell) -->
+    <!--
+      Static board layers (track, homes, yards, safe stars) depend only on
+      board size and seat colors — never on token positions. Memoize the whole
+      group so a token hop (which mutates token.cell and re-renders this
+      component every ~220ms) doesn't re-diff ~76 unchanging SVG nodes.
+    -->
+    <g v-memo="[boardSize, seatColorMap, rotation]">
+      <!-- Track cells -->
+      <template v-for="cell in layout.track" :key="cell.id">
+        <circle
+          :cx="cell.x"
+          :cy="cell.y"
+          :r="layout.cellSize"
+          :fill="startSquareColors.get(cell.id) ?? 'var(--color-board-cell)'"
+          :opacity="startSquareColors.get(cell.id) ? 0.7 : 1"
+          :stroke="startSquareColors.get(cell.id) ?? 'var(--color-board-cell-edge)'"
+          :stroke-width="layout.cellSize * 0.15"
+        />
+        <!-- Safe marker (star) -->
+        <path
+          v-if="safeSquares.has(cell.id)"
+          :d="STAR_PATH"
+          fill="var(--color-board-star)"
+          :opacity="startSquareColors.get(cell.id) ? 0.7 : 1"
+          :transform="`translate(${cell.x} ${cell.y}) rotate(${-rotation}) scale(${layout.cellSize * 0.05})`"
+        />
+      </template>
+
+      <!-- Home columns -->
+      <template v-for="(homeCol, si) in layout.homes" :key="`home-${si}`">
+        <circle
+          v-for="cell in homeCol"
+          :key="cell.id"
+          :cx="cell.x"
+          :cy="cell.y"
+          :r="layout.cellSize"
+          :fill="resolvedSeatColor(si + 1)"
+          :opacity="0.7"
+          :stroke="resolvedSeatColor(si + 1)"
+          :stroke-width="layout.cellSize * 0.15"
+          stroke-opacity="0.5"
+        />
+      </template>
+
+      <!-- Yards -->
+      <template v-for="(yardCells, si) in layout.yards" :key="`yard-${si}`">
+        <circle
+          v-for="cell in yardCells"
+          :key="cell.id"
+          :cx="cell.x"
+          :cy="cell.y"
+          :r="layout.cellSize"
+          :fill="resolvedSeatColor(si + 1)"
+          :opacity="0.7"
+          :stroke="resolvedSeatColor(si + 1)"
+          :stroke-width="layout.cellSize * 0.15"
+          stroke-opacity="0.4"
+        />
+      </template>
+    </g>
+
+    <!-- Block indicator rings (2 same-color tokens on a cell) — depends on tokens -->
+    <template v-for="cell in layout.track" :key="`block-${cell.id}`">
       <circle
         v-if="blockedTrackCells.has(cell.id)"
         :cx="cell.x"
@@ -182,46 +233,6 @@ const startSquareColors = computed(() => {
         :stroke="blockedTrackCells.get(cell.id)"
         :stroke-width="layout.cellSize * 0.18"
         stroke-opacity="0.75"
-      />
-      <!-- Safe marker (star) -->
-      <path
-        v-if="safeSquares.has(cell.id)"
-        :d="STAR_PATH"
-        fill="var(--color-board-star)"
-        :opacity="startSquareColors.get(cell.id) ? 0.7 : 1"
-        :transform="`translate(${cell.x} ${cell.y}) rotate(${-rotation}) scale(${layout.cellSize * 0.05})`"
-      />
-    </template>
-
-    <!-- Home columns -->
-    <template v-for="(homeCol, si) in layout.homes" :key="`home-${si}`">
-      <circle
-        v-for="cell in homeCol"
-        :key="cell.id"
-        :cx="cell.x"
-        :cy="cell.y"
-        :r="layout.cellSize"
-        :fill="resolvedSeatColor(si + 1)"
-        :opacity="0.7"
-        :stroke="resolvedSeatColor(si + 1)"
-        :stroke-width="layout.cellSize * 0.15"
-        stroke-opacity="0.5"
-      />
-    </template>
-
-    <!-- Yards -->
-    <template v-for="(yardCells, si) in layout.yards" :key="`yard-${si}`">
-      <circle
-        v-for="cell in yardCells"
-        :key="cell.id"
-        :cx="cell.x"
-        :cy="cell.y"
-        :r="layout.cellSize"
-        :fill="resolvedSeatColor(si + 1)"
-        :opacity="0.7"
-        :stroke="resolvedSeatColor(si + 1)"
-        :stroke-width="layout.cellSize * 0.15"
-        stroke-opacity="0.4"
       />
     </template>
 
