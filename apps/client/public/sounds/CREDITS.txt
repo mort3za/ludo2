@@ -13,7 +13,7 @@ Event mapping (renamed from the original Kenney files):
   token-step.ogg    Digital Audio / pepSound1   (play once per step)
   turn-change.ogg   Interface Sounds / bong_001
   my-turn.ogg            Synthesized locally (soft ascending two-note cue, when it becomes the local player's turn) — CC0
-  game-start.ogg    Music Jingles (Retro) / jingles-retro_00
+  game-start.ogg         Synthesized locally (soft ascending C-major arpeggio, gentler than the old retro jingle) — CC0
   win.ogg           Music Jingles (Retro) / jingles-retro_07
   game-over.ogg          Digital Audio / lowThreeTone
   token-capture-win.ogg  Synthesized locally (rising fanfare, for the attacker) — CC0
