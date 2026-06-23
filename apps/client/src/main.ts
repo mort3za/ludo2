@@ -17,3 +17,11 @@ app.use(VueQueryPlugin);
 app.use(router);
 app.use(i18n);
 app.mount("#app");
+
+// Register the service worker that caches background images. Production only,
+// so dev hot-reload is never served from a stale cache.
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}
