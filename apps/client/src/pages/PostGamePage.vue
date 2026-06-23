@@ -23,7 +23,7 @@ const isOwner = computed(() => {
 
 const rematchAvailable = computed(() => {
   if (!isOwner.value || !gameResult.endedAt) return false;
-  return Date.now() < gameResult.endedAt + TIMINGS.postGameWindow * 1000;
+  return Date.now() < gameResult.endedAt + TIMINGS.postGameWindow;
 });
 
 let ws: WsConnection | null = null;

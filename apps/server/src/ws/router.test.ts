@@ -388,11 +388,11 @@ describe("WS router", () => {
       room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
       rooms.set("room-1", room);
       const persistGame = vi.fn();
-      const deleteGame = vi.fn();
-      const router = createRouter(rooms, { persistGame, deleteGame });
+      const completeGame = vi.fn();
+      const router = createRouter(rooms, { persistGame, completeGame });
       const c1 = makeMockClient("p1");
       router.addClient(c1);
-      return { router, c1, persistGame, deleteGame };
+      return { router, c1, persistGame, completeGame };
     }
 
     it("persists the game when it starts", () => {
@@ -402,8 +402,8 @@ describe("WS router", () => {
       expect(persistGame).toHaveBeenCalledWith("room-1", gameId, expect.any(String));
     });
 
-    it("deletes the persisted game once it finishes", () => {
-      const { router, c1, deleteGame } = setupWithDeps();
+    it("flags the persisted game completed and enters post-game once it finishes", () => {
+      const { router, c1, completeGame } = setupWithDeps();
       router.dispatch(c1, { type: "start" });
       const session = router.getGameSession("room-1")!;
       const gameId = session.state.gameId;
@@ -412,7 +412,12 @@ describe("WS router", () => {
       session.state.activeSeat = session.state.seats.find((s) => s.playerId === "p1")!.index;
       session.state.status = "finished";
       router.dispatch(c1, { type: "roll" });
-      expect(deleteGame).toHaveBeenCalledWith(gameId);
+      expect(completeGame).toHaveBeenCalledWith(gameId);
+      // The room is kept alive in its post-game window, not destroyed, so the
+      // result stays viewable and the same link can host a rematch.
+      const room = rooms.get("room-1")!;
+      expect(room.phase).toBe("post-game");
+      expect(room.gameEndedAt).not.toBeNull();
     });
 
     it("restoreSession re-registers a game so it can be played", () => {

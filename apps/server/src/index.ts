@@ -16,6 +16,7 @@ import {
   purgeOldGames,
   updateRoomOptions,
   saveGameSnapshot,
+  completeGame,
   deleteGame,
   getActiveGames,
 } from "./db/repositories.js";
@@ -59,7 +60,7 @@ const router = createRouter(rooms, {
   persistOptions: (roomId, options) => updateRoomOptions(db, roomId, options).run(),
   persistGame: (roomId, gameId, snapshot) =>
     saveGameSnapshot(db, gameId, roomId, snapshot, new Date()).run(),
-  deleteGame: (gameId) => deleteGame(db, gameId),
+  completeGame: (gameId) => completeGame(db, gameId, new Date()).run(),
 });
 
 // Restore games that were in progress before a restart so players can resume
@@ -266,16 +267,22 @@ let expireInterval = setInterval(() => {
   const now = Date.now();
   let expiredCount = 0;
   for (const [roomId, room] of rooms) {
-    // A lobby room is reclaimed only once everybody has left — i.e. no client
-    // is connected. Disconnected members are retained (their seats and the
-    // room's ownership persist), so emptiness is measured by live connections,
-    // not by the members map.
+    // A room is reclaimed only once everybody has left — i.e. no client is
+    // connected — and its phase window has elapsed: idle lobbies, and finished
+    // games past their post-game viewing/rematch window. Disconnected members
+    // are retained (their seats and the room's ownership persist), so emptiness
+    // is measured by live connections, not by the members map.
     if (
       isExpired(room, now) &&
-      room.phase === "lobby" &&
+      (room.phase === "lobby" || room.phase === "post-game") &&
       !router.hasConnectedPlayers(roomId) &&
       room.spectators.size === 0
     ) {
+      // The persisted game is kept (flagged completed) for the whole post-game
+      // window so a mid-window restart doesn't lose it; delete it now.
+      if (room.phase === "post-game" && room.gameId) {
+        deleteGame(db, room.gameId);
+      }
       rooms.delete(roomId);
       router.forgetRoom(roomId);
       expiredCount++;

@@ -9,6 +9,7 @@ import {
   addBotMember,
   removeMember,
   renameMember,
+  endGame,
   type Room,
 } from "../rooms/room.js";
 import { initGame } from "../rooms/init-game.js";
@@ -43,8 +44,12 @@ export interface RouterDeps {
   persistOptions?: (roomId: string, options: GameOptions) => void;
   /** Persist an in-progress game's full state so it survives a server restart. */
   persistGame?: (roomId: string, gameId: string, snapshot: string) => void;
-  /** Remove a finished game's persisted state so no residue is left behind. */
-  deleteGame?: (gameId: string) => void;
+  /**
+   * Flag a finished game as completed so it is not restored as in-progress on a
+   * restart inside the post-game window. The row itself is reclaimed later — by
+   * the idle sweep once the window elapses, or by the retention purge.
+   */
+  completeGame?: (gameId: string) => void;
 }
 
 export interface Router {
@@ -133,13 +138,19 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
     scheduleBotIfNeeded(roomId, session);
   }
 
-  /** Write the live game state to storage, or remove it once the game ends. */
+  /** Write the live game state to storage, or wind it down once the game ends. */
   function persistOrCleanup(roomId: string, session: GameSession): void {
+    const room = rooms.get(roomId);
     if (session.state.status === "finished") {
-      deps.deleteGame?.(session.state.gameId);
+      // Move the room into its post-game window (once) so the result stays
+      // viewable and the same link can host a rematch; the idle sweep reclaims
+      // it — and deletes the persisted game — after the window elapses.
+      if (room && room.phase === "playing") {
+        rooms.set(roomId, endGame(room, Date.now()));
+      }
+      deps.completeGame?.(session.state.gameId);
       return;
     }
-    const room = rooms.get(roomId);
     if (room) {
       deps.persistGame?.(roomId, session.state.gameId, serializeGame(room, session));
     }
@@ -371,7 +382,12 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
         }
         clearTurnTimeout(client.roomId);
         const newGameId = crypto.randomUUID();
-        const rematchRoom: Room = { ...room, phase: "playing", gameId: newGameId };
+        const rematchRoom: Room = {
+          ...room,
+          phase: "playing",
+          gameId: newGameId,
+          gameEndedAt: null,
+        };
         rooms.set(client.roomId, rematchRoom);
         startGameSession(client.roomId, rematchRoom, newGameId);
         break;
