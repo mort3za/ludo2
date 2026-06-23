@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <style>
+    .top   { fill: #3a4d30; }
+    .right { fill: #28361f; }
+    .left  { fill: #16230f; }
+    .pip   { fill: #f3f6ec; }
+    @media (prefers-color-scheme: dark) {
+      .top   { fill: #ffffff; }
+      .right { fill: #e0e5d5; }
+      .left  { fill: #c5ccb6; }
+      .pip   { fill: #16230f; }
+    }
+  </style>
+  <!-- isometric cube: top rhombus + left & right parallelograms -->
+  <polygon class="left"  points="4,11 16,18 16,30 4,23" />
+  <polygon class="right" points="16,18 28,11 28,23 16,30" />
+  <polygon class="top"   points="16,4 28,11 16,18 4,11" />
+  <!-- top face: 1 pip -->
+  <circle class="pip" cx="16" cy="11" r="1.6" />
+  <!-- left face: 2 pips -->
+  <circle class="pip" cx="7.36" cy="16.32" r="1.5" />
+  <circle class="pip" cx="12.64" cy="24.68" r="1.5" />
+  <!-- right face: 3 pips -->
+  <circle class="pip" cx="19" cy="19.25" r="1.5" />
+  <circle class="pip" cx="22" cy="20.5" r="1.5" />
+  <circle class="pip" cx="25" cy="21.75" r="1.5" />
+</svg>
