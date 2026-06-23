@@ -11,6 +11,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@fontsource-variable/dm-sans": "^5.2.8",
+    "@fontsource-variable/vazirmatn": "^5.2.8",
     "@ludo/shared": "workspace:*",
     "@tanstack/vue-query": "^5.0.0",
     "pinia": "^3.0.0",

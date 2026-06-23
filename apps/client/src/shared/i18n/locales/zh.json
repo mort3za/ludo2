@@ -105,7 +105,9 @@
     "detailsTitle": "详情",
     "versionLabel": "版本",
     "builtWithLabel": "技术栈",
-    "builtWith": "Vue 3、Vite、Tailwind CSS 与 Bun。"
+    "builtWith": "Vue 3、Vite、Tailwind CSS 与 Bun。",
+    "privacyTitle": "隐私",
+    "privacy": "无 Cookie、无追踪、无分析。游戏仅在你的设备上保存会话和偏好设置（主题、语言、声音），所有字体均由本站提供——你的数据绝不会发送给第三方。"
   },
   "howto": {
     "title": "玩法说明",

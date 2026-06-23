@@ -105,7 +105,9 @@
     "detailsTitle": "詳細",
     "versionLabel": "バージョン",
     "builtWithLabel": "使用技術",
-    "builtWith": "Vue 3、Vite、Tailwind CSS、Bun。"
+    "builtWith": "Vue 3、Vite、Tailwind CSS、Bun。",
+    "privacyTitle": "プライバシー",
+    "privacy": "Cookieなし、トラッキングなし、解析なし。このゲームはセッションと設定（テーマ・言語・サウンド）のみをお使いの端末に保存し、すべてのフォントはこのサイトから配信されます。あなたのデータが第三者に送信されることはありません。"
   },
   "howto": {
     "title": "遊び方",

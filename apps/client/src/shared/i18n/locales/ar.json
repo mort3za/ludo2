@@ -105,7 +105,9 @@
     "detailsTitle": "التفاصيل",
     "versionLabel": "الإصدار",
     "builtWithLabel": "مبني باستخدام",
-    "builtWith": "Vue 3 وVite وTailwind CSS وBun."
+    "builtWith": "Vue 3 وVite وTailwind CSS وBun.",
+    "privacyTitle": "الخصوصية",
+    "privacy": "بلا كوكيز، بلا تتبّع، بلا تحليلات. تحفظ اللعبة جلستك وتفضيلاتك (المظهر واللغة والصوت) على جهازك فقط، وتُحمَّل جميع الخطوط من هذا الموقع — لا تُرسَل بياناتك أبدًا إلى أطراف ثالثة."
   },
   "howto": {
     "title": "كيفية اللعب",

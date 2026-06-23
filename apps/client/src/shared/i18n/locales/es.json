@@ -105,7 +105,9 @@
     "detailsTitle": "Detalles",
     "versionLabel": "Versión",
     "builtWithLabel": "Construido con",
-    "builtWith": "Vue 3, Vite, Tailwind CSS y Bun."
+    "builtWith": "Vue 3, Vite, Tailwind CSS y Bun.",
+    "privacyTitle": "Privacidad",
+    "privacy": "Sin cookies, sin rastreo, sin analíticas. El juego solo guarda tu sesión y tus preferencias (tema, idioma, sonido) en tu dispositivo, y todas las fuentes se sirven desde este sitio: tus datos nunca se envían a terceros."
   },
   "howto": {
     "title": "Cómo jugar",

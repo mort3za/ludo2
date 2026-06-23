@@ -105,7 +105,9 @@
     "detailsTitle": "Details",
     "versionLabel": "Versie",
     "builtWithLabel": "Gebouwd met",
-    "builtWith": "Vue 3, Vite, Tailwind CSS en Bun."
+    "builtWith": "Vue 3, Vite, Tailwind CSS en Bun.",
+    "privacyTitle": "Privacy",
+    "privacy": "Geen cookies, geen tracking, geen analyse. Het spel slaat alleen je sessie en voorkeuren (thema, taal, geluid) op je apparaat op, en alle lettertypen worden vanaf deze site geleverd — je gegevens worden nooit naar derden gestuurd."
   },
   "howto": {
     "title": "Speluitleg",

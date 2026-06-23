@@ -105,7 +105,9 @@
     "detailsTitle": "Ayrıntılar",
     "versionLabel": "Sürüm",
     "builtWithLabel": "Kullanılan teknolojiler",
-    "builtWith": "Vue 3, Vite, Tailwind CSS ve Bun."
+    "builtWith": "Vue 3, Vite, Tailwind CSS ve Bun.",
+    "privacyTitle": "Gizlilik",
+    "privacy": "Çerez yok, takip yok, analiz yok. Oyun yalnızca oturumunuzu ve tercihlerinizi (tema, dil, ses) cihazınızda saklar ve tüm yazı tipleri bu siteden sunulur — verileriniz asla üçüncü taraflara gönderilmez."
   },
   "howto": {
     "title": "Nasıl oynanır",

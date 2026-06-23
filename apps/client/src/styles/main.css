@@ -1,4 +1,9 @@
 @import "tailwindcss";
+/* Self-hosted fonts (bundled by Vite) — avoids any third-party connection to
+   Google Fonts and the visitor-IP transfer that comes with it. */
+@import "@fontsource-variable/dm-sans/opsz.css";
+@import "@fontsource-variable/dm-sans/opsz-italic.css";
+@import "@fontsource-variable/vazirmatn/wght.css";
 @import "./button.css";
 @import "./background.css";
 
@@ -39,8 +44,8 @@
 
   /* — Font Family — */
   --font-sans:
-    "akkurat", "DM Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, sans-serif;
+    "akkurat", "DM Sans Variable", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, sans-serif;
   --font-mono: "fragmentMono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* — Spacing — */
@@ -161,5 +166,6 @@ main {
 /* Persian locale: prefer Vazirmatn. `font-sans` utilities resolve `var(--font-sans)`
    at use-site, so overriding the variable here re-fonts the whole RTL subtree. */
 [lang="fa"] {
-  --font-sans: "Vazirmatn", "akkurat", "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans:
+    "Vazirmatn Variable", "akkurat", "DM Sans Variable", ui-sans-serif, system-ui, sans-serif;
 }

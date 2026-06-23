@@ -105,7 +105,9 @@
     "detailsTitle": "Details",
     "versionLabel": "Version",
     "builtWithLabel": "Erstellt mit",
-    "builtWith": "Vue 3, Vite, Tailwind CSS und Bun."
+    "builtWith": "Vue 3, Vite, Tailwind CSS und Bun.",
+    "privacyTitle": "Datenschutz",
+    "privacy": "Keine Cookies, kein Tracking, keine Analyse. Das Spiel speichert nur deine Sitzung und Einstellungen (Design, Sprache, Ton) auf deinem Gerät, und alle Schriftarten werden von dieser Website ausgeliefert – deine Daten werden niemals an Dritte weitergegeben."
   },
   "howto": {
     "title": "Spielanleitung",

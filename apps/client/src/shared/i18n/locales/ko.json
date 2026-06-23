@@ -105,7 +105,9 @@
     "detailsTitle": "세부 정보",
     "versionLabel": "버전",
     "builtWithLabel": "사용 기술",
-    "builtWith": "Vue 3, Vite, Tailwind CSS, Bun."
+    "builtWith": "Vue 3, Vite, Tailwind CSS, Bun.",
+    "privacyTitle": "개인정보",
+    "privacy": "쿠키 없음, 추적 없음, 분석 없음. 이 게임은 세션과 설정(테마, 언어, 소리)만 사용자의 기기에 저장하며, 모든 글꼴은 이 사이트에서 제공됩니다. 사용자의 데이터는 절대 제3자에게 전송되지 않습니다."
   },
   "howto": {
     "title": "게임 방법",

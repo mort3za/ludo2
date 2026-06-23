@@ -51,6 +51,13 @@ const version = __APP_VERSION__;
 
       <DCard elevated class="p-4 flex flex-col gap-2">
         <h2 class="text-body font-sans font-medium text-text-primary">
+          {{ t("about.privacyTitle") }}
+        </h2>
+        <p class="text-body-sm font-sans text-text-primary">{{ t("about.privacy") }}</p>
+      </DCard>
+
+      <DCard elevated class="p-4 flex flex-col gap-2">
+        <h2 class="text-body font-sans font-medium text-text-primary">
           {{ t("about.detailsTitle") }}
         </h2>
         <dl class="text-body-sm font-sans text-text-primary flex flex-col gap-1">

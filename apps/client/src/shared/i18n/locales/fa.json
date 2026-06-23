@@ -111,7 +111,9 @@
     "detailsTitle": "جزئیات",
     "versionLabel": "نسخه",
     "builtWithLabel": "ساخته‌شده با",
-    "builtWith": "Vue 3، Vite، Tailwind CSS و Bun."
+    "builtWith": "Vue 3، Vite، Tailwind CSS و Bun.",
+    "privacyTitle": "حریم خصوصی",
+    "privacy": "بدون کوکی، بدون ردیابی، بدون آنالیز. بازی فقط نشست و تنظیمات شما (پوسته، زبان، صدا) را روی دستگاهتان ذخیره می‌کند و همهٔ فونت‌ها از همین سایت بارگذاری می‌شوند؛ داده‌های شما هرگز به اشخاص ثالث ارسال نمی‌شود."
   },
   "howto": {
     "title": "آموزش بازی",
