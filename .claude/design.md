@@ -72,11 +72,17 @@ Adaline employs a serene, naturally-inspired aesthetic, combining a nearly monoc
 
 ### Border Radius
 
-| Element  | Value |
-| -------- | ----- |
-| images   | 8px   |
-| buttons  | 20px  |
-| navItems | 20px  |
+| Element                           | Value |
+| --------------------------------- | ----- |
+| cards / popovers / inputs / boxes | 8px   |
+| images                            | 8px   |
+| buttons                           | 20px  |
+| navItems                          | 20px  |
+
+**Default for rectangular surfaces:** cards, popovers, inputs, dialogs and any
+boxed/rectangular element use an 8px radius — never square corners. Apply it via
+the `rounded-card` utility (token `--radius-card`), so the radius stays
+consistent and is changed in one place.
 
 ### Shadows
 
@@ -233,6 +239,7 @@ Create a navigation bar: use Canvas Ice (#fbfdf6) background. Left-aligned links
   --radius-2xl: 20px;
 
   /* Named Radii */
+  --radius-card: 8px;
   --radius-images: 8px;
   --radius-buttons: 20px;
   --radius-navitems: 20px;
@@ -288,6 +295,7 @@ Create a navigation bar: use Canvas Ice (#fbfdf6) background. Left-aligned links
   --spacing-160: 160px;
 
   /* Border Radius */
+  --radius-card: 8px;
   --radius-lg: 8px;
   --radius-2xl: 20px;
 

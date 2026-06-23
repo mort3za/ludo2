@@ -20,6 +20,14 @@
     "creating": "Oluşturuluyor…",
     "error": "Bir şeyler ters gitti"
   },
+  "playerName": {
+    "edit": "Adını düzenle",
+    "title": "Adın",
+    "placeholder": "Adını gir",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "errorLength": "Ad 2–20 karakter olmalıdır"
+  },
   "room": {
     "joining": "Odaya katılınıyor…",
     "title": "Oyunu ayarla",

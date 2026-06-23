@@ -51,6 +51,13 @@ export function parseClientMessage(raw: string): ParseResult {
     return { ok: true, message: { type: "remove_player", playerId: obj["playerId"] } };
   }
 
+  if (type === "set_name") {
+    if (typeof obj["name"] !== "string") {
+      return { ok: false, error: "missing-name" };
+    }
+    return { ok: true, message: { type: "set_name", name: obj["name"] } };
+  }
+
   if (type === "set_options") {
     const options = obj["options"];
     if (typeof options !== "object" || options === null) {

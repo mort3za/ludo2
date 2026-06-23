@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { DButton, LocaleSelect, ThemeSelect } from "@/shared/ui";
+import { DButton, LocaleSelect, PlayerNameButton, ThemeSelect } from "@/shared/ui";
 import { guestLogin, createRoom } from "@/shared/api/client";
 import { useSessionStore } from "@/stores/session";
 
@@ -32,6 +32,7 @@ async function play() {
   <main class="mt-0! min-h-screen flex flex-col">
     <header class="flex items-center gap-3 px-4 py-2">
       <ThemeSelect class="ms-auto" />
+      <PlayerNameButton />
       <LocaleSelect />
     </header>
 

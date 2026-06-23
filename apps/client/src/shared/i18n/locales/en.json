@@ -26,6 +26,14 @@
     "creating": "Creating…",
     "error": "Something went wrong"
   },
+  "playerName": {
+    "edit": "Edit your name",
+    "title": "Your name",
+    "placeholder": "Enter your name",
+    "save": "Save",
+    "cancel": "Cancel",
+    "errorLength": "Name must be 2–20 characters"
+  },
   "room": {
     "joining": "Joining room…",
     "title": "Setup the Game",

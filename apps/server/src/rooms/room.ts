@@ -60,7 +60,29 @@ export function createRoom(id: string, boardSize: number, now: number): Room {
   };
 }
 
-export function joinRoom(room: Room, playerId: string): Result<{ room: Room }> {
+/** Max length for a human-chosen display name; longer input is clamped. */
+const MAX_PLAYER_NAME_LEN = 20;
+
+/**
+ * Normalize a client-supplied name into a safe display string, or null if it
+ * is not a usable name. Strips control characters, trims, and clamps length —
+ * the server is authoritative and never trusts the raw client value.
+ */
+export function sanitizePlayerName(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const cleaned = [...raw]
+    .filter((ch) => ch >= " " && ch !== "\u007f")
+    .join("")
+    .trim();
+  if (cleaned.length < 2) return null;
+  return cleaned.slice(0, MAX_PLAYER_NAME_LEN);
+}
+
+export function joinRoom(
+  room: Room,
+  playerId: string,
+  requestedName?: string,
+): Result<{ room: Room }> {
   if (room.phase !== "lobby") {
     return { ok: false, error: "not-in-lobby" };
   }
@@ -75,11 +97,13 @@ export function joinRoom(room: Room, playerId: string): Result<{ room: Room }> {
   }
 
   const members = cloneMembers(room.members);
-  const name = nextPlayerName(members, room.boardSize);
+  const name = sanitizePlayerName(requestedName) ?? nextPlayerName(members, room.boardSize);
   members.set(playerId, { playerId, name, ready: false, kind: "human" });
 
-  const currentOwner = room.ownerId ? room.members.get(room.ownerId) : undefined;
-  const ownerId = currentOwner?.kind === "human" ? room.ownerId : playerId;
+  // Ownership is sticky: the first human to join owns the room permanently.
+  // It is never reassigned — not when the owner disconnects, and not to a
+  // later joiner — so a new player can never seize a disconnected owner's room.
+  const ownerId = room.ownerId ?? playerId;
 
   return {
     ok: true,
@@ -130,7 +154,9 @@ export function addBotMember(
   let n = 1;
   while (members.has(`bot:${n}`)) n++;
   const botId = `bot:${n}`;
-  const name = nextPlayerName(members, room.boardSize);
+  // Bots use their own `Bot_N` namespace (N = bot slot), independent of the
+  // human `PlayerN` sequence, so they read clearly as AI in the lobby.
+  const name = `Bot_${n}`;
 
   // Assign a random personality: default uses crypto.getRandomValues for uniform selection.
   const personality: BotPersonality =
@@ -169,35 +195,6 @@ function nextPlayerName(members: Map<string, RoomMember>, boardSize: number): st
   return `Player${members.size + 1}`;
 }
 
-export function leaveRoom(room: Room, playerId: string): Result<{ room: Room }> {
-  if (!room.members.has(playerId) && !room.spectators.has(playerId)) {
-    return { ok: false, error: "not-in-room" };
-  }
-
-  const members = cloneMembers(room.members);
-  members.delete(playerId);
-
-  const spectators = cloneSpectators(room.spectators);
-  spectators.delete(playerId);
-
-  let ownerId = room.ownerId;
-  if (ownerId === playerId) {
-    let nextOwner: string | null = null;
-    for (const m of members.values()) {
-      if (m.kind === "human") {
-        nextOwner = m.playerId;
-        break;
-      }
-    }
-    ownerId = nextOwner;
-  }
-
-  return {
-    ok: true,
-    room: { ...room, members, spectators, ownerId },
-  };
-}
-
 export function setReady(room: Room, playerId: string, ready: boolean): Result<{ room: Room }> {
   const existing = room.members.get(playerId);
   if (!existing) {
@@ -207,6 +204,23 @@ export function setReady(room: Room, playerId: string, ready: boolean): Result<{
   const members = cloneMembers(room.members);
   members.set(playerId, { ...existing, ready });
 
+  return { ok: true, room: { ...room, members, spectators: cloneSpectators(room.spectators) } };
+}
+
+/** Change a member's own display name. Rejects names that fail sanitization. */
+export function renameMember(
+  room: Room,
+  playerId: string,
+  requestedName: string,
+): Result<{ room: Room }> {
+  const existing = room.members.get(playerId);
+  if (!existing) return { ok: false, error: "not-in-room" };
+
+  const name = sanitizePlayerName(requestedName);
+  if (!name) return { ok: false, error: "invalid-name" };
+
+  const members = cloneMembers(room.members);
+  members.set(playerId, { ...existing, name });
   return { ok: true, room: { ...room, members, spectators: cloneSpectators(room.spectators) } };
 }
 

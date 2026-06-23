@@ -20,6 +20,14 @@
     "creating": "作成中…",
     "error": "問題が発生しました"
   },
+  "playerName": {
+    "edit": "名前を編集",
+    "title": "あなたの名前",
+    "placeholder": "名前を入力してください",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "errorLength": "名前は2〜20文字で入力してください"
+  },
   "room": {
     "joining": "ルームに参加中…",
     "title": "ゲームの設定",

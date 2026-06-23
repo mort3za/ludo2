@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { DButton, DCard } from "@/shared/ui";
 import { useSessionStore } from "@/stores/session";
 import { guestLogin, refreshToken } from "@/shared/api/client";
 import { createWsConnection, type WsConnection } from "@/shared/lib/ws";
+import { usePlayerName } from "@/shared/lib/use-player-name";
 import ReconnectBanner from "@/features/match/ReconnectBanner.vue";
 import type { ServerMessage, LobbyPlayer, GameOptions } from "@ludo/shared";
 
@@ -13,6 +14,7 @@ const props = defineProps<{ roomId: string }>();
 const { t } = useI18n();
 const router = useRouter();
 const session = useSessionStore();
+const { playerName } = usePlayerName();
 
 const players = ref<LobbyPlayer[]>([]);
 const ownerId = ref("");
@@ -68,6 +70,12 @@ function connectWs() {
   ws.onMessage(handleMessage);
   joined.value = true;
 }
+
+// Push a name edited from the lobby header to the server so the lobby list
+// reflects it live. The initial name is already sent via the WS query string.
+watch(playerName, (name) => {
+  ws?.send({ type: "set_name", name });
+});
 
 async function joinAsGuest() {
   connecting.value = true;

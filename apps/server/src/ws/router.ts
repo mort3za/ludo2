@@ -6,9 +6,9 @@ import {
   setOptions,
   canStart,
   startGame,
-  leaveRoom,
   addBotMember,
   removeMember,
+  renameMember,
   type Room,
 } from "../rooms/room.js";
 import { initGame } from "../rooms/init-game.js";
@@ -54,6 +54,10 @@ export interface Router {
   addClient: (client: WsClient) => void;
   removeClient: (client: WsClient) => void;
   handleClose: (client: WsClient) => void;
+  /** Whether any client is currently connected to the room. */
+  hasConnectedPlayers: (roomId: string) => boolean;
+  /** Drop a removed room's internal bookkeeping (connection/session tracking). */
+  forgetRoom: (roomId: string) => void;
   getGameSession: (roomId: string) => GameSession | undefined;
   /** Re-register a game restored from persistence and resume its timers/bots. */
   restoreSession: (roomId: string, session: GameSession) => void;
@@ -241,6 +245,21 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
         break;
       }
 
+      case "set_name": {
+        if (room.phase !== "lobby") {
+          client.send({ type: "error", message: "not-in-lobby" });
+          break;
+        }
+        const result = renameMember(room, client.playerId, message.name);
+        if (result.ok) {
+          rooms.set(client.roomId, result.room);
+          broadcastLobby(client.roomId, result.room);
+        } else {
+          client.send({ type: "error", message: result.error });
+        }
+        break;
+      }
+
       case "set_options": {
         const result = setOptions(room, client.playerId, message.options);
         if (result.ok) {
@@ -403,11 +422,12 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
     if (!room) return;
 
     if (room.phase === "lobby") {
-      const result = leaveRoom(room, client.playerId);
-      if (result.ok) {
-        rooms.set(client.roomId, result.room);
-        broadcastLobby(client.roomId, result.room);
-      }
+      // Retain the member as disconnected — ownership and the seat are preserved
+      // so the player (including the owner) can reconnect. removeClient already
+      // cleared their connection flag; re-broadcast so others see them greyed out.
+      // The room itself is reclaimed by the idle-expiry sweep once nobody is
+      // connected anymore.
+      broadcastLobby(client.roomId, room);
     } else if (room.phase === "playing") {
       // In-game disconnect: broadcast presence update
       const seat =
@@ -428,9 +448,21 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
     addClient,
     removeClient,
     handleClose,
+    hasConnectedPlayers,
+    forgetRoom,
     getGameSession,
     restoreSession,
   };
+
+  function hasConnectedPlayers(roomId: string): boolean {
+    return (connectedPlayers.get(roomId)?.size ?? 0) > 0;
+  }
+
+  function forgetRoom(roomId: string): void {
+    connectedPlayers.delete(roomId);
+    gameSessions.delete(roomId);
+    clearTurnTimeout(roomId);
+  }
 
   function getGameSession(roomId: string): GameSession | undefined {
     return gameSessions.get(roomId);

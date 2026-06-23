@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   createRoom,
   joinRoom,
-  leaveRoom,
+  removeMember,
   setReady,
   canStart,
   startGame,
@@ -58,7 +58,7 @@ describe("joinRoom", () => {
     room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
     room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
     room = (joinRoom(room, "p3") as { ok: true; room: Room }).room;
-    room = (leaveRoom(room, "p2") as { ok: true; room: Room }).room;
+    room = (removeMember(room, "p2") as { ok: true; room: Room }).room;
     const result = joinRoom(room, "p4");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -109,43 +109,43 @@ describe("joinRoom", () => {
   });
 });
 
-describe("leaveRoom", () => {
-  it("removes a non-owner player", () => {
+// Ownership is sticky: assigned to the first human to join, never reassigned.
+describe("ownership stickiness", () => {
+  it("keeps ownership with the original owner when a later player joins", () => {
     let room = createRoom("room-1", S, 1000);
     room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
-    room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
-    const result = leaveRoom(room, "p2");
+    const result = joinRoom(room, "p2");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.room.members.size).toBe(1);
     expect(result.room.ownerId).toBe("p1");
   });
 
-  it("transfers ownership when owner leaves", () => {
+  it("does not transfer ownership to a new joiner while the owner is absent from members", () => {
+    // Mirrors the disconnect+join race: the owner is gone from the members map
+    // (or yet to reconnect), yet ownerId must still point at them — a fresh
+    // joiner must never seize the room.
     let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "owner") as { ok: true; room: Room }).room;
+    room = { ...room, members: new Map() };
+    const result = joinRoom(room, "late");
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.room.ownerId).toBe("owner");
+    expect(result.room.members.has("late")).toBe(true);
+  });
+
+  it("re-grants ownership to the original owner on rejoin (stable playerId)", () => {
+    let room = createRoom("room-1", S, 1000);
+    room = (joinRoom(room, "owner") as { ok: true; room: Room }).room;
     room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
-    const result = leaveRoom(room, "p1");
+    // Owner drops out of members, p2 stays, then the owner reconnects.
+    const membersWithoutOwner = new Map(room.members);
+    membersWithoutOwner.delete("owner");
+    room = { ...room, members: membersWithoutOwner };
+    const result = joinRoom(room, "owner");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.room.ownerId).toBe("p2");
-    expect(result.room.members.has("p1")).toBe(false);
-  });
-
-  it("sets ownerId to null when last player leaves", () => {
-    let room = createRoom("room-1", S, 1000);
-    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
-    const result = leaveRoom(room, "p1");
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    expect(result.room.ownerId).toBeNull();
-    expect(result.room.members.size).toBe(0);
-  });
-
-  it("rejects if player not in room", () => {
-    const room = createRoom("room-1", S, 1000);
-    const result = leaveRoom(room, "ghost");
-    expect(result.ok).toBe(false);
+    expect(result.room.ownerId).toBe("owner");
   });
 });
 
@@ -356,10 +356,10 @@ describe("addBotMember", () => {
     const bot = [...result.room.members.values()][0]!;
     expect(bot.kind).toBe("bot");
     expect(bot.ready).toBe(true);
-    expect(bot.name).toBe("Player1");
+    expect(bot.name).toBe("Bot_1");
   });
 
-  it("bot does not claim Player1 if a human already has it", () => {
+  it("bot names are independent of the human PlayerN sequence", () => {
     let room = createRoom("room-1", 4, 1000);
     room = (joinRoom(room, "p1") as { ok: true; room: Room }).room; // Player1
     const result = addBotMember(room);
@@ -367,7 +367,7 @@ describe("addBotMember", () => {
     if (!result.ok) return;
     const members = [...result.room.members.values()];
     const bot = members.find((m) => m.kind === "bot")!;
-    expect(bot.name).toBe("Player2");
+    expect(bot.name).toBe("Bot_1");
   });
 
   it("two bots get sequential names", () => {
@@ -375,8 +375,8 @@ describe("addBotMember", () => {
     room = (addBotMember(room) as { ok: true; room: Room }).room;
     room = (addBotMember(room) as { ok: true; room: Room }).room;
     const names = [...room.members.values()].map((m) => m.name);
-    expect(names).toContain("Player1");
-    expect(names).toContain("Player2");
+    expect(names).toContain("Bot_1");
+    expect(names).toContain("Bot_2");
   });
 
   it("returns error when room is full", () => {

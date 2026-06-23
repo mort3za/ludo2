@@ -19,6 +19,8 @@ export interface Seat {
   playerId: string | null;
   isBot: boolean;
   personality?: BotPersonality;
+  /** Display name, snapshotted from the lobby member when the game starts. */
+  name?: string;
 }
 
 /** Per-game options chosen in the lobby before the game starts. */

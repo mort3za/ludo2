@@ -40,6 +40,7 @@ export function initGame(room: Room, gameId: string, rng: Rng): GameState {
       playerId: member ? member[0] : null,
       isBot: member ? member[1].kind === "bot" : false,
       personality: member && member[1].kind === "bot" ? member[1].personality : undefined,
+      name: member ? member[1].name : undefined,
     });
 
     if (!member) continue;

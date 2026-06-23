@@ -3,4 +3,5 @@ export { default as DCard } from "./DCard.vue";
 export { default as DInput } from "./DInput.vue";
 export { default as DPill } from "./DPill.vue";
 export { default as LocaleSelect } from "./LocaleSelect.vue";
+export { default as PlayerNameButton } from "./PlayerNameButton.vue";
 export { default as ThemeSelect } from "./ThemeSelect.vue";

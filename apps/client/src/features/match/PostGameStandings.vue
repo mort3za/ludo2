@@ -49,7 +49,9 @@ const didWin = computed(() => {
           class="w-4 h-4 rounded-full inline-block"
           :style="{ backgroundColor: playerColorHex(seat.color) }"
         />
-        <span class="text-text-primary">{{ t("postgame.seat", { index: seat.index }) }}</span>
+        <span class="text-text-primary">{{
+          seat.name ?? t("postgame.seat", { index: seat.index })
+        }}</span>
       </li>
     </ol>
   </DCard>

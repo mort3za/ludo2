@@ -20,6 +20,14 @@
     "creating": "Wird erstellt…",
     "error": "Etwas ist schiefgelaufen"
   },
+  "playerName": {
+    "edit": "Namen bearbeiten",
+    "title": "Dein Name",
+    "placeholder": "Gib deinen Namen ein",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "errorLength": "Der Name muss 2–20 Zeichen lang sein"
+  },
   "room": {
     "joining": "Raum wird betreten…",
     "title": "Spiel einrichten",

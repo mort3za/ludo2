@@ -20,6 +20,14 @@
     "creating": "创建中…",
     "error": "出错了"
   },
+  "playerName": {
+    "edit": "编辑你的名字",
+    "title": "你的名字",
+    "placeholder": "输入你的名字",
+    "save": "保存",
+    "cancel": "取消",
+    "errorLength": "名字必须为 2–20 个字符"
+  },
   "room": {
     "joining": "正在加入房间…",
     "title": "设置游戏",

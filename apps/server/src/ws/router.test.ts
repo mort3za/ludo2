@@ -119,6 +119,63 @@ describe("WS router", () => {
     });
   });
 
+  describe("lobby disconnect retains members", () => {
+    it("keeps a disconnected member in the room and never transfers ownership", () => {
+      const room = makeLobbyRoom(["p1", "p2"]); // p1 is owner
+      rooms.set("room-1", room);
+      const router = createRouter(rooms);
+      const c1 = makeMockClient("p1");
+      const c2 = makeMockClient("p2");
+      router.addClient(c1);
+      router.addClient(c2);
+
+      router.handleClose(c1); // owner disconnects
+
+      const after = rooms.get("room-1")!;
+      expect(after.members.has("p1")).toBe(true); // retained, not removed
+      expect(after.ownerId).toBe("p1"); // ownership never moves
+      expect(router.hasConnectedPlayers("room-1")).toBe(true); // p2 still here
+    });
+
+    it("broadcasts the disconnected member as not-connected", () => {
+      const room = makeLobbyRoom(["p1", "p2"]);
+      rooms.set("room-1", room);
+      const router = createRouter(rooms);
+      const c1 = makeMockClient("p1");
+      const c2 = makeMockClient("p2");
+      router.addClient(c1);
+      router.addClient(c2);
+
+      router.handleClose(c1);
+
+      const lobbyMsg = (c2.send as ReturnType<typeof vi.fn>).mock.calls
+        .map((call) => call[0] as ServerMessage)
+        .reverse()
+        .find((m): m is Extract<ServerMessage, { type: "lobby" }> => m.type === "lobby");
+      expect(lobbyMsg).toBeDefined();
+      const p1Entry = lobbyMsg!.players.find((p) => p.playerId === "p1");
+      expect(p1Entry?.connected).toBe(false);
+      expect(lobbyMsg!.ownerId).toBe("p1");
+    });
+
+    it("reports no connected players once everyone has disconnected", () => {
+      const room = makeLobbyRoom(["p1", "p2"]);
+      rooms.set("room-1", room);
+      const router = createRouter(rooms);
+      const c1 = makeMockClient("p1");
+      const c2 = makeMockClient("p2");
+      router.addClient(c1);
+      router.addClient(c2);
+
+      router.handleClose(c1);
+      router.handleClose(c2);
+
+      expect(router.hasConnectedPlayers("room-1")).toBe(false);
+      // Room and its members survive in memory until the expiry sweep reclaims it.
+      expect(rooms.get("room-1")!.members.size).toBe(2);
+    });
+  });
+
   describe("getGameSession", () => {
     it("returns undefined when no game is active", () => {
       const room = makeLobbyRoom(["p1", "p2"]);

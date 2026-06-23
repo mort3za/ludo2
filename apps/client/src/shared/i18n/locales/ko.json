@@ -20,6 +20,14 @@
     "creating": "생성 중…",
     "error": "문제가 발생했습니다"
   },
+  "playerName": {
+    "edit": "이름 편집",
+    "title": "이름",
+    "placeholder": "이름을 입력하세요",
+    "save": "저장",
+    "cancel": "취소",
+    "errorLength": "이름은 2~20자여야 합니다"
+  },
   "room": {
     "joining": "방에 참가하는 중…",
     "title": "게임 설정",

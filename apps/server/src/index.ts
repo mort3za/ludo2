@@ -82,6 +82,8 @@ const wsConnections = new Set<ServerWebSocket<WsData>>();
 interface WsData {
   playerId: string;
   roomId: string;
+  /** Client-chosen display name, validated server-side on join. */
+  name?: string;
 }
 
 const server = Bun.serve<WsData>({
@@ -107,8 +109,9 @@ const server = Bun.serve<WsData>({
         return new Response("Invalid token", { status: 401 });
       }
 
+      const name = url.searchParams.get("name") ?? undefined;
       const upgraded = server.upgrade(req, {
-        data: { playerId: result.playerId, roomId },
+        data: { playerId: result.playerId, roomId, name },
       });
       if (!upgraded) {
         return new Response("WebSocket upgrade failed", { status: 400 });
@@ -164,7 +167,7 @@ const server = Bun.serve<WsData>({
       // Join room
       const room = rooms.get(roomId)!;
       const isExistingMember = room.members.has(playerId) || room.spectators.has(playerId);
-      let joinResult = joinRoom(room, playerId);
+      let joinResult = joinRoom(room, playerId, ws.data.name);
 
       // If room is full and game is running, allow as spectator
       if (!joinResult.ok && joinResult.error === "room-full" && room.phase === "playing") {
@@ -188,8 +191,14 @@ const server = Bun.serve<WsData>({
 
       if (!joinResult.ok && !isExistingMember) {
         client.send({ type: "error", message: joinResult.error });
-      } else if (joinResult.ok && joinResult.room.phase === "lobby") {
-        router.broadcastLobby(roomId, joinResult.room);
+      } else {
+        // Broadcast for a fresh join OR a reconnect of a retained member, so
+        // everyone sees the updated presence and the (re)joining client gets a
+        // lobby snapshot. addClient above already marked them connected.
+        const current = rooms.get(roomId)!;
+        if (current.phase === "lobby") {
+          router.broadcastLobby(roomId, current);
+        }
       }
 
       // Re-emit game state for reconnecting players and spectators
@@ -257,13 +266,18 @@ let expireInterval = setInterval(() => {
   const now = Date.now();
   let expiredCount = 0;
   for (const [roomId, room] of rooms) {
+    // A lobby room is reclaimed only once everybody has left — i.e. no client
+    // is connected. Disconnected members are retained (their seats and the
+    // room's ownership persist), so emptiness is measured by live connections,
+    // not by the members map.
     if (
       isExpired(room, now) &&
       room.phase === "lobby" &&
-      room.members.size === 0 &&
+      !router.hasConnectedPlayers(roomId) &&
       room.spectators.size === 0
     ) {
       rooms.delete(roomId);
+      router.forgetRoom(roomId);
       expiredCount++;
     }
   }

@@ -1,5 +1,6 @@
 import { ref, type Ref } from "vue";
 import { apiConfig } from "@/shared/config/api";
+import { getPlayerName } from "@/shared/lib/use-player-name";
 import type { ClientMessage, ServerMessage } from "@ludo/shared";
 
 export type WsStatus = "connecting" | "connected" | "disconnected";
@@ -28,7 +29,10 @@ export function createWsConnection(roomId: string, token: string): WsConnection 
   function connect() {
     const base = apiConfig.baseUrl || globalThis.location.origin;
     const wsBase = base.replace(/^http/, "ws");
-    const socket = new WebSocket(`${wsBase}/ws/${roomId}?token=${encodeURIComponent(token)}`);
+    const name = getPlayerName();
+    const socket = new WebSocket(
+      `${wsBase}/ws/${roomId}?token=${encodeURIComponent(token)}&name=${encodeURIComponent(name)}`,
+    );
     ws = socket;
     status.value = "connecting";
 

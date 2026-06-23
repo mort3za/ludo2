@@ -20,6 +20,14 @@
     "creating": "Aanmaken…",
     "error": "Er ging iets mis"
   },
+  "playerName": {
+    "edit": "Je naam bewerken",
+    "title": "Je naam",
+    "placeholder": "Voer je naam in",
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "errorLength": "De naam moet 2–20 tekens bevatten"
+  },
   "room": {
     "joining": "Bezig met deelnemen aan kamer…",
     "title": "Spel instellen",

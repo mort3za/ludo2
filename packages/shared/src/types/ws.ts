@@ -13,6 +13,8 @@ export type ClientMessage =
   | { type: "remove_player"; playerId: string }
   /** Lobby-only, owner-only: set the game options for the upcoming game. */
   | { type: "set_options"; options: GameOptions }
+  /** Lobby-only: change the sender's own display name. */
+  | { type: "set_name"; name: string }
   /** Dev-only: replace the live game state with a named test scenario. Ignored in production. */
   | { type: "debug_set_state"; scenario: string }
   /** Dev-only: undo the last roll/move/timeout, restoring the prior state. Ignored in production. */

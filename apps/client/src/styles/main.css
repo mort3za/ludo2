@@ -61,6 +61,9 @@
 
   /* — Border Radius — */
   --radius-sm: 8px;
+  /* Default radius for cards, popovers, inputs and any rectangular surface.
+     Applied via the `rounded-card` utility — the standard for boxed UI. */
+  --radius-card: 8px;
   --radius-pill: 999px;
 
   /* — Shadows — */

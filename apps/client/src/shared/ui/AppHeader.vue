@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import { useLocale } from "@/shared/i18n/useLocale";
 import { useSound } from "@/shared/lib/use-sound";
 import LocaleSelect from "./LocaleSelect.vue";
+import PlayerNameButton from "./PlayerNameButton.vue";
 import ThemeSelect from "./ThemeSelect.vue";
 
 const { t } = useI18n();
@@ -71,6 +72,7 @@ const backArrow = computed(() => (dir.value === "rtl" ? "→" : "←"));
         </svg>
       </button>
       <ThemeSelect />
+      <PlayerNameButton v-if="showLanguage" />
       <LocaleSelect v-if="showLanguage" />
     </div>
   </header>

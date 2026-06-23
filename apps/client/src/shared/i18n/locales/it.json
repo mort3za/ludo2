@@ -20,6 +20,14 @@
     "creating": "Creazione…",
     "error": "Qualcosa è andato storto"
   },
+  "playerName": {
+    "edit": "Modifica il tuo nome",
+    "title": "Il tuo nome",
+    "placeholder": "Inserisci il tuo nome",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "errorLength": "Il nome deve contenere da 2 a 20 caratteri"
+  },
   "room": {
     "joining": "Accesso alla stanza…",
     "title": "Imposta la partita",
