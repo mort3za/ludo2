@@ -65,10 +65,10 @@ describe("home-column rules", () => {
 
   describe("entry from track to home", () => {
     it("enters home column when passing through entry square", () => {
-      // Seat 1 entry is skipped when turning home, so 3 steps lands on H/1/3.
+      // Seat 1 walks onto its entry square T/44, so 3 steps lands on H/1/2.
       const seatTokens = [makeToken("t1", "T/43", "blue")];
       const moves = legalMoves(seatTokens, 3, 1, S, seatTokens);
-      expect(moves[0]!.to).toBe("H/1/3");
+      expect(moves[0]!.to).toBe("H/1/2");
     });
 
     it("can enter home jumping over an occupied first home cell", () => {
@@ -76,8 +76,8 @@ describe("home-column rules", () => {
         makeToken("t1", "T/43", "blue"),
         makeToken("t2", "H/1/1", "blue"), // occupies H/1/1
       ];
-      // From T/43, step 2: passes over H/1/1(occupied), lands on H/1/2(empty)
-      const moves = legalMoves(seatTokens, 2, 1, S, seatTokens);
+      // From T/43, step 3: T/44(entry), passes over H/1/1(occupied), lands on H/1/2(empty)
+      const moves = legalMoves(seatTokens, 3, 1, S, seatTokens);
       const t1Move = moves.find((m) => m.tokenId === "t1");
       expect(t1Move).toBeDefined();
       expect(t1Move!.to).toBe("H/1/2");

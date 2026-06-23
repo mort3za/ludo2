@@ -38,15 +38,16 @@ describe("legalMoves (shared)", () => {
     });
 
     it("wraps around track end into home column", () => {
+      // T/43 + 3 = T/44 (entry), H/1/1, H/1/2
       const tokens = [makeToken("t1", "T/43")];
       const moves = legalMoves(tokens, 3, 1, S, []);
-      expect(moves[0]!.to).toBe("H/1/3");
+      expect(moves[0]!.to).toBe("H/1/2");
     });
 
-    it("skips the owner's entry square when entering home", () => {
+    it("walks onto the owner's entry square before entering home", () => {
       const tokens = [makeToken("t1", "T/43")];
       const moves = legalMoves(tokens, 1, 1, S, []);
-      expect(moves).toEqual([{ tokenId: "t1", from: "T/43", to: "H/1/1" }]);
+      expect(moves).toEqual([{ tokenId: "t1", from: "T/43", to: "T/44" }]);
     });
   });
 

@@ -64,8 +64,8 @@ describe("applyDebugScenario", () => {
       const next = applyDebugScenario(base, "home-jump", 1)!;
       const blue = next.tokens.filter((t) => t.color === "blue");
 
-      // Resident mid-column + approach token one cell before entry (T/22 − 1 = T/21).
-      expect(blue.map((t) => t.cell).sort()).toEqual([home(1, 2), "T/21", "Y/1/3", "Y/1/4"]);
+      // Resident mid-column + approach token on the entry square (T/22).
+      expect(blue.map((t) => t.cell).sort()).toEqual([home(1, 2), "T/22", "Y/1/3", "Y/1/4"]);
       expect(next.activeSeat).toBe(1);
       expect(next.status).toBe("moving");
       expect(next.diceValue).toBe(3);
@@ -76,14 +76,14 @@ describe("applyDebugScenario", () => {
       const blue = next.tokens.filter((t) => t.color === "blue");
       const moves = legalMoves(blue, next.diceValue!, 1, next.seats.length, next.tokens);
 
-      const jump = moves.find((m) => m.from === "T/21");
+      const jump = moves.find((m) => m.from === "T/22");
       expect(jump).toBeDefined();
       expect(jump!.to).toBe(home(1, 3));
     });
 
     it("pushes red one cell ahead of the approach token so it cannot trade hits", () => {
       const next = applyDebugScenario(base, "home-jump", 1)!;
-      expect(next.tokens.filter((t) => t.color === "red")).toEqual([tok("2-1", "red", "T/22")]);
+      expect(next.tokens.filter((t) => t.color === "red")).toEqual([tok("2-1", "red", "T/1")]);
     });
   });
 });

@@ -14,12 +14,12 @@ function homeToken(seat: number, index: number, color: "blue" | "red"): Token {
 }
 
 /**
- * Track cell one step before seat 1's home entry, so a roll of 1 lands exactly
- * on the last empty home cell H/1/1 (deepest cells fill first). Derived per
- * board size: entry = T/(S*11), so this is T/(S*11 - 1).
+ * Seat 1's entry square (its last walkable track cell before home), so a roll
+ * of 1 lands exactly on the last empty home cell H/1/1 (deepest cells fill
+ * first). Derived per board size: entry = T/(S*11).
  */
 function entryApproach(S: number): string {
-  return `T/${S * 11 - 1}`;
+  return `T/${S * 11}`;
 }
 
 describe("handleMove — standings and finished", () => {

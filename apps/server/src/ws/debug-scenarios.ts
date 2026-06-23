@@ -57,7 +57,7 @@ const homeStretch: DebugScenario = (state, requesterSeat) => {
 
 /**
  * Home jump-over repro: a resident token sits mid home-column while another
- * token stands one cell before the home entry. With the forced roll of 3 the
+ * token stands on the home-entry square. With the forced roll of 3 the
  * approach token turns into the home column and must jump *over* the resident
  * to land on an empty home cell — the move that was wrongly rejected before.
  *
@@ -72,9 +72,9 @@ const homeJump: DebugScenario = (state, requesterSeat) => {
   const trackLen = S * CELLS_PER_ARM;
   const entryParsed = parseCell(entrySquare(requesterSeat, S));
   const entryIdx = entryParsed.kind === "track" ? entryParsed.index : 0;
-  // One cell before the home entry: a roll of 3 turns into home and lands on
+  // On the home-entry square: a roll of 3 turns into home and lands on
   // H/<seat>/3, passing over the resident parked at H/<seat>/2.
-  const approachIdx = ((entryIdx - 1 - 1 + trackLen) % trackLen) + 1;
+  const approachIdx = entryIdx;
 
   const myTokens: Token[] = [
     { id: `${requesterSeat}-1`, color: seat.color, cell: home(requesterSeat, 2) },

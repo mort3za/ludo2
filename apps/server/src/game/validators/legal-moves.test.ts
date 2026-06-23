@@ -39,9 +39,9 @@ describe("legalMoves", () => {
 
     it("wraps around track end", () => {
       const tokens = [makeToken("t1", "T/43")];
-      // Seat 1 skips the entry square when turning home, so 3 steps lands on H/1/3.
+      // Seat 1 walks onto its entry square T/44, so 3 steps lands on H/1/2.
       const moves = legalMoves(tokens, 3, 1, S, []);
-      expect(moves[0]!.to).toBe("H/1/3");
+      expect(moves[0]!.to).toBe("H/1/2");
     });
   });
 
