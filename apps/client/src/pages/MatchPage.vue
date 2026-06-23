@@ -218,7 +218,7 @@ watch(isDeadlocked, (stuck) => {
 });
 
 function onServerMessage(msg: ServerMessage) {
-  console.log("[ws]", msg.type, msg);
+  if (import.meta.env.DEV) console.log("[ws]", msg.type, msg);
   pendingAction.value = false;
   handleMessage(msg);
 

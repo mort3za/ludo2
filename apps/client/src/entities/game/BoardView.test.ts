@@ -48,6 +48,20 @@ function hasStackBadge(container: HTMLElement) {
   );
 }
 
+/**
+ * Token positions live on the wrapping <g>'s `transform: translate(Xpx, Ypx)`
+ * (GPU-composited), not the circle's cx/cy. Read them back as `x,y` strings.
+ */
+function tokenPositions(container: HTMLElement): string[] {
+  return [...container.querySelectorAll('circle[stroke="var(--color-board-ink)"]')].map(
+    (circle) => {
+      const transform = (circle.parentElement as Element | null)?.getAttribute("style") ?? "";
+      const match = transform.match(/translate\(\s*(-?[\d.]+)px,\s*(-?[\d.]+)px\s*\)/);
+      return match ? `${match[1]},${match[2]}` : "";
+    },
+  );
+}
+
 describe("BoardView", () => {
   it("shows a stack badge when two tokens share a cell", async () => {
     const container = await renderBoard();
@@ -71,12 +85,10 @@ describe("BoardView", () => {
       ],
     });
 
-    const tokenPositions = [
-      ...container.querySelectorAll('circle[stroke="var(--color-board-ink)"]'),
-    ].map((element) => `${element.getAttribute("cx")},${element.getAttribute("cy")}`);
+    const positions = tokenPositions(container);
     const expectedPositions = computeBoardLayout(4).homes[0]!.map((cell) => `${cell.x},${cell.y}`);
 
-    expect(new Set(tokenPositions)).toEqual(new Set(expectedPositions));
+    expect(new Set(positions)).toEqual(new Set(expectedPositions));
     expect(hasStackBadge(container)).toBe(false);
   });
 
@@ -89,15 +101,13 @@ describe("BoardView", () => {
       ],
     });
 
-    const tokenPositions = [
-      ...container.querySelectorAll('circle[stroke="var(--color-board-ink)"]'),
-    ].map((element) => `${element.getAttribute("cx")},${element.getAttribute("cy")}`);
+    const positions = tokenPositions(container);
     const homeCells = computeBoardLayout(4).homes[0]!;
     const expectedPositions = [homeCells[1]!, homeCells[2]!, homeCells[3]!].map(
       (cell) => `${cell.x},${cell.y}`,
     );
 
-    expect(new Set(tokenPositions)).toEqual(new Set(expectedPositions));
+    expect(new Set(positions)).toEqual(new Set(expectedPositions));
     expect(hasStackBadge(container)).toBe(false);
   });
 });

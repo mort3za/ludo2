@@ -140,13 +140,18 @@ const blockedTrackCells = computed(() => {
   return result;
 });
 
-/** Color each start square to its seat color. */
-function startSquareColor(cellId: string): string | null {
+/**
+ * Map start-square cell ID → its seat color. Depends only on board size and
+ * seats, so it is computed once and reused — not recomputed on every token hop
+ * during a move animation (which re-renders the whole board template).
+ */
+const startSquareColors = computed(() => {
+  const map = new Map<string, string>();
   for (let si = 1; si <= props.boardSize; si++) {
-    if (cellId === startSquare(si, props.boardSize)) return resolvedSeatColor(si);
+    map.set(startSquare(si, props.boardSize), resolvedSeatColor(si));
   }
-  return null;
-}
+  return map;
+});
 </script>
 
 <template>
@@ -162,9 +167,9 @@ function startSquareColor(cellId: string): string | null {
         :cx="cell.x"
         :cy="cell.y"
         :r="layout.cellSize"
-        :fill="startSquareColor(cell.id) ?? 'var(--color-board-cell)'"
-        :opacity="startSquareColor(cell.id) ? 0.7 : 1"
-        :stroke="startSquareColor(cell.id) ?? 'var(--color-board-cell-edge)'"
+        :fill="startSquareColors.get(cell.id) ?? 'var(--color-board-cell)'"
+        :opacity="startSquareColors.get(cell.id) ? 0.7 : 1"
+        :stroke="startSquareColors.get(cell.id) ?? 'var(--color-board-cell-edge)'"
         :stroke-width="layout.cellSize * 0.15"
       />
       <!-- Block indicator ring (2 same-color tokens on this cell) -->
@@ -183,7 +188,7 @@ function startSquareColor(cellId: string): string | null {
         v-if="safeSquares.has(cell.id)"
         :d="STAR_PATH"
         fill="var(--color-board-star)"
-        :opacity="startSquareColor(cell.id) ? 0.7 : 1"
+        :opacity="startSquareColors.get(cell.id) ? 0.7 : 1"
         :transform="`translate(${cell.x} ${cell.y}) rotate(${-rotation}) scale(${layout.cellSize * 0.05})`"
       />
     </template>
@@ -221,19 +226,32 @@ function startSquareColor(cellId: string): string | null {
     </template>
 
     <!-- Tokens -->
+    <!--
+      Position is animated via CSS `transform: translate` on the wrapping <g>,
+      not the SVG cx/cy attributes. Transforms are GPU-composited, so the move
+      animation runs off the main thread — keeping touch input and audio smooth
+      on mobile instead of forcing a per-frame layout/paint.
+    -->
     <template v-if="tokens">
-      <circle
+      <g
         v-for="token in renderedTokens"
         :key="token.id"
-        :cx="cellPositions.get(displayCellOf(token))?.x ?? 0"
-        :cy="cellPositions.get(displayCellOf(token))?.y ?? 0"
-        :r="layout.cellSize * 0.7"
-        :fill="playerColorHex(token.color)"
-        stroke="var(--color-board-ink)"
-        :stroke-width="layout.cellSize * 0.12"
-        :class="['transition-all duration-300', legalSet.has(token.id) && 'legal-token']"
-        @click="legalSet.has(token.id) && emit('move', token.id)"
-      />
+        :class="['token-pos', token.id === animatingTokenId && 'token-animating']"
+        :style="{
+          transform: `translate(${cellPositions.get(displayCellOf(token))?.x ?? 0}px, ${cellPositions.get(displayCellOf(token))?.y ?? 0}px)`,
+        }"
+      >
+        <circle
+          cx="0"
+          cy="0"
+          :r="layout.cellSize * 0.7"
+          :fill="playerColorHex(token.color)"
+          stroke="var(--color-board-ink)"
+          :stroke-width="layout.cellSize * 0.12"
+          :class="legalSet.has(token.id) && 'legal-token'"
+          @click="legalSet.has(token.id) && emit('move', token.id)"
+        />
+      </g>
     </template>
 
     <!-- Token stack badges: small count badge when 2+ tokens share a cell -->
@@ -266,10 +284,22 @@ function startSquareColor(cellId: string): string | null {
 </template>
 
 <style scoped>
+/* Token position transition — animates the GPU-composited transform only. */
+.token-pos {
+  transition: transform 300ms ease;
+}
+
+/* Promote only the actively-moving token to its own layer, not all 16. */
+.token-animating {
+  will-change: transform;
+}
+
 .legal-token {
   cursor: pointer;
   transform-box: fill-box;
   transform-origin: center;
+  /* Static glow — animating `filter` per frame is expensive on mobile GPUs. */
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.85));
   animation: legal-token-pulse 0.9s ease-in-out infinite;
 }
 
@@ -277,11 +307,9 @@ function startSquareColor(cellId: string): string | null {
   0%,
   100% {
     transform: scale(1);
-    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.7));
   }
   50% {
     transform: scale(1.18);
-    filter: drop-shadow(0 0 7px rgba(255, 255, 255, 1));
   }
 }
 </style>
