@@ -8,7 +8,7 @@ import {
   HOME_COLUMN_LENGTH,
   TOKENS_PER_PLAYER,
 } from "@ludo/shared";
-import type { GameState, Token } from "@ludo/shared";
+import type { GameState, PlayerColor, Token } from "@ludo/shared";
 
 /**
  * A dev-only scenario builder. Takes the live game state plus the seat of the
@@ -107,10 +107,92 @@ const homeJump: DebugScenario = (state, requesterSeat) => {
   };
 };
 
+/**
+ * MOR-202 repro: the requester's token walks (forced roll of 6) over a stretch
+ * of opponents arranged to cover every case the stack-count badge touches:
+ *
+ *   +2  one opponent (single)            — behind the stack, on the path
+ *   +4  two opponents, different colors  — a genuine "2" stack the mover walks
+ *                                          over (different colors so it is NOT
+ *                                          a block, which would stop the mover)
+ *   +5  one opponent (single)            — after the stack, on the path
+ *   +6  empty                            — where the mover lands
+ *   +7  two opponents                    — a second "2" stack just OFF the
+ *                                          path, near the cluster: a control
+ *                                          that must stay "2" untouched
+ *
+ * As the mover hops across, the badge must reflect only the settled, resting
+ * cells: the single cells must never flash a "2", the +4 cell must stay "2"
+ * (never "3") while the mover sits on it, and the off-path +7 stack must hold
+ * a steady "2" throughout.
+ */
+const moveOverOpponents: DebugScenario = (state, requesterSeat) => {
+  const seat = state.seats.find((s) => s.index === requesterSeat);
+  if (!seat) return state;
+
+  const S = state.seats.length;
+  const trackLen = S * CELLS_PER_ARM;
+  const entryParsed = parseCell(entrySquare(requesterSeat, S));
+  const entryIdx = entryParsed.kind === "track" ? entryParsed.index : 0;
+  const at = (offset: number) => track(((entryIdx + offset - 1 + trackLen) % trackLen) + 1);
+
+  // Mover on the entry square; the rest parked in the yard, out of the way.
+  const myTokens: Token[] = [
+    { id: `${requesterSeat}-1`, color: seat.color, cell: at(0) },
+    { id: `${requesterSeat}-2`, color: seat.color, cell: yard(requesterSeat, 2) },
+    { id: `${requesterSeat}-3`, color: seat.color, cell: yard(requesterSeat, 3) },
+    { id: `${requesterSeat}-4`, color: seat.color, cell: yard(requesterSeat, 4) },
+  ];
+
+  // Rebuild every opponent seat's tokens: place the few we want on the path,
+  // park the rest in their yards. `positions[i]` overrides token i's cell.
+  const opponentSeats = state.seats.filter((s) => s.index !== requesterSeat);
+  const placeSeat = (seatIndex: number, color: PlayerColor, positions: string[]): Token[] =>
+    state.tokens
+      .filter((t) => t.color === color)
+      .map((t, i) => ({ ...t, cell: positions[i] ?? yard(seatIndex, i + 1) }));
+
+  const seatA = opponentSeats[0];
+  const seatB = opponentSeats[1];
+
+  let oppTokens: Token[] = [];
+  if (seatA && seatB) {
+    // Two opponent colors available. seatA covers the leading single (+2), one
+    // half of the on-path +4 stack, and the off-path +7 pair (two same-color
+    // tokens — a block, but harmless since the mover never reaches it). seatB
+    // covers the other half of the +4 stack and the trailing single (+5).
+    oppTokens = [
+      ...placeSeat(seatA.index, seatA.color, [at(2), at(4), at(7), at(7)]),
+      ...placeSeat(seatB.index, seatB.color, [at(4), at(5)]),
+      ...opponentSeats.slice(2).flatMap((s) => placeSeat(s.index, s.color, [])),
+    ];
+  } else if (seatA) {
+    // Only one opponent color (e.g. 2-player): the on-path mixed stack isn't
+    // reachable, so just the leading/after singles plus the off-path +7 pair.
+    oppTokens = placeSeat(seatA.index, seatA.color, [at(2), at(5), at(7), at(7)]);
+  }
+
+  // Any token belonging to neither the requester nor a repositioned opponent
+  // seat is left untouched (normally none — every seat is one or the other).
+  const untouched = state.tokens.filter(
+    (t) => t.color !== seat.color && opponentSeats.every((s) => s.color !== t.color),
+  );
+
+  return {
+    ...state,
+    tokens: [...untouched, ...oppTokens, ...myTokens],
+    activeSeat: requesterSeat,
+    status: "moving",
+    diceValue: 6,
+    consecutiveSixes: 0,
+  };
+};
+
 /** Registry of available dev scenarios, keyed by the name sent from the client. */
 export const DEBUG_SCENARIOS: Record<string, DebugScenario> = {
   "home-stretch": homeStretch,
   "home-jump": homeJump,
+  "move-over-opponents": moveOverOpponents,
 };
 
 /** Apply a named scenario, or return `null` if the name is unknown. */

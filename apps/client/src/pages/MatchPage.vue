@@ -132,6 +132,7 @@ function activeSeatHasNoMoves(diceValue: number): boolean {
     state.seats.length,
     state.tokens,
     state.options.wallEnabled,
+    state.options.startGuardEnabled,
   );
   return moves.length === 0;
 }
@@ -183,6 +184,7 @@ const legalTokenIds = computed(() => {
     state.seats.length,
     state.tokens,
     state.options.wallEnabled,
+    state.options.startGuardEnabled,
   );
   return moves.map((m) => m.tokenId);
 });
@@ -257,7 +259,7 @@ function onMove(tokenId: string) {
 
 // Dev-only: jump the live game to a named test scenario (see server debug-scenarios.ts).
 const isDev = import.meta.env.DEV;
-const debugScenarios = ["home-stretch", "home-jump"];
+const debugScenarios = ["home-stretch", "home-jump", "move-over-opponents"];
 function onDebugScenario(scenario: string) {
   ws?.send({ type: "debug_set_state", scenario });
 }

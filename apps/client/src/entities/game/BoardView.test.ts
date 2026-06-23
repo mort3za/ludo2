@@ -25,7 +25,11 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-async function renderBoard(options?: { hiddenStackBadgeCellId?: string; tokens?: Token[] }) {
+async function renderBoard(options?: {
+  hiddenStackBadgeCellId?: string;
+  tokens?: Token[];
+  animatingTokenId?: string;
+}) {
   const container = document.createElement("div");
   document.body.appendChild(container);
 
@@ -34,6 +38,7 @@ async function renderBoard(options?: { hiddenStackBadgeCellId?: string; tokens?:
     tokens: options?.tokens ?? tokens,
     seats,
     hiddenStackBadgeCellId: options?.hiddenStackBadgeCellId,
+    animatingTokenId: options?.animatingTokenId,
   });
   mountedApps.push(app);
   app.mount(container);
@@ -71,6 +76,12 @@ describe("BoardView", () => {
 
   it("hides the stack badge for the capture cell while a token is being kicked", async () => {
     const container = await renderBoard({ hiddenStackBadgeCellId: "T/8" });
+
+    expect(hasStackBadge(container)).toBe(false);
+  });
+
+  it("excludes the animating token so no badge flashes over opponents mid-move", async () => {
+    const container = await renderBoard({ animatingTokenId: "b1" });
 
     expect(hasStackBadge(container)).toBe(false);
   });

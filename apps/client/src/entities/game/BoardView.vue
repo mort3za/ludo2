@@ -116,11 +116,17 @@ function resolvedSeatColor(seatIndex: number): string {
   return seatColorMap.value.get(seatIndex) ?? "#888";
 }
 
-/** Map cell ID → token count for cells with 2+ tokens (for stack badge). */
+/**
+ * Map cell ID → token count for cells with 2+ tokens (for stack badge).
+ * The animating token is excluded: mid-animation it hops across cells (some
+ * occupied by opponents), and counting it there flashes a spurious "2" badge.
+ * The badge should reflect only the settled, resting state of a cell.
+ */
 const stackedCells = computed(() => {
   const tokens = props.tokens ?? [];
   const counts = new Map<string, number>();
   for (const token of tokens) {
+    if (token.id === props.animatingTokenId) continue;
     const cell = displayCellOf(token);
     counts.set(cell, (counts.get(cell) ?? 0) + 1);
   }
@@ -309,8 +315,9 @@ const startSquareColors = computed(() => {
   cursor: pointer;
   transform-box: fill-box;
   transform-origin: center;
-  /* Static glow — animating `filter` per frame is expensive on mobile GPUs. */
-  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.85));
+  /* No drop-shadow: a filter on an element that animates every frame forces
+     the GPU to re-rasterize the filtered region per frame — costly on older
+     mobiles. The scale pulse alone signals which tokens are tappable. */
   animation: legal-token-pulse 0.9s ease-in-out infinite;
 }
 
@@ -321,6 +328,13 @@ const startSquareColors = computed(() => {
   }
   50% {
     transform: scale(1.18);
+  }
+}
+
+/* Respect reduced-motion: drop the continuous pulse entirely. */
+@media (prefers-reduced-motion: reduce) {
+  .legal-token {
+    animation: none;
   }
 }
 </style>
