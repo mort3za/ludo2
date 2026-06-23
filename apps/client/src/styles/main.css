@@ -71,9 +71,19 @@
 
   /* — Layout — */
   --header-height: 36px;
-  /* Board/match column width: full-width on mobile (minus the p-2 page
-     padding, 8px each side), clamped between 360px and 50rem. */
-  --board-width: clamp(22.5rem, calc(100vw - 16px), 50rem);
+  /* Vertical chrome around the square board in the match column: the status
+     line above, the timer below, the inter-row gaps, and page padding. Used to
+     cap the board by height so it never overflows a short viewport. */
+  --board-vchrome: 6rem;
+  /* Board/match column width. Driven by viewport width (full-width on mobile
+     minus the 8px page padding each side, clamped 360px–50rem), but also capped
+     by available height — the board is square, so on a short viewport (e.g. a
+     16:9 tablet in landscape) the height budget wins and keeps the full board
+     visible. Only the header section may then need a slight scroll. */
+  --board-width: min(
+    clamp(22.5rem, calc(100vw - 16px), 50rem),
+    calc(100dvh - var(--board-vchrome))
+  );
 }
 
 /* — Primitives (Layer 1) —
