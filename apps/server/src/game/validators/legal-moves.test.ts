@@ -173,7 +173,9 @@ describe("legalMoves", () => {
         makeToken("t3", "T/1", "blue"),
       ];
       const allTokens = [...seatTokens];
-      const moves = legalMoves(seatTokens, 6, 1, S, allTokens);
+      // startGuard disabled so this isolates the wall rule (own block must not
+      // count as an opponent block); the start-guard rule is tested separately.
+      const moves = legalMoves(seatTokens, 6, 1, S, allTokens, true, false);
       // t1 can deploy (own block), t2 and t3 can move
       expect(moves.find((m) => m.tokenId === "t1")).toBeDefined();
     });

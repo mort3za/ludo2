@@ -240,6 +240,7 @@ export function setOptions(
         wallEnabled: options.wallEnabled,
         autoMoveEnabled: options.autoMoveEnabled,
         timerEnabled: options.timerEnabled,
+        startGuardEnabled: options.startGuardEnabled,
       },
       members: cloneMembers(room.members),
       spectators: cloneSpectators(room.spectators),

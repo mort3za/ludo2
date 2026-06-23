@@ -50,6 +50,8 @@
     "autoMoveHint": "Play your move automatically when only one is possible.",
     "turnTimer": "Turn timer",
     "turnTimerHint": "Cap each turn at 30 seconds. Turn off for unlimited time.",
+    "startGuard": "Guard start square",
+    "startGuardHint": "Can't bring out a new token while one of yours sits on your start square.",
     "settings": "Game settings",
     "imReady": "I'm Ready",
     "youreReady": "You're Ready",

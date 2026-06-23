@@ -85,14 +85,24 @@ describe("parseClientMessage", () => {
     const result = parseClientMessage(
       JSON.stringify({
         type: "set_options",
-        options: { wallEnabled: true, autoMoveEnabled: false, timerEnabled: false },
+        options: {
+          wallEnabled: true,
+          autoMoveEnabled: false,
+          timerEnabled: false,
+          startGuardEnabled: true,
+        },
       }),
     );
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.message).toEqual({
       type: "set_options",
-      options: { wallEnabled: true, autoMoveEnabled: false, timerEnabled: false },
+      options: {
+        wallEnabled: true,
+        autoMoveEnabled: false,
+        timerEnabled: false,
+        startGuardEnabled: true,
+      },
     });
   });
 

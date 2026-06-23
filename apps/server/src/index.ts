@@ -156,6 +156,7 @@ const server = Bun.serve<WsData>({
             wallEnabled: dbRoom.wallEnabled,
             autoMoveEnabled: dbRoom.autoMoveEnabled,
             timerEnabled: dbRoom.timerEnabled,
+            startGuardEnabled: dbRoom.startGuardEnabled,
           };
         }
         for (let i = 0; i < botCount; i++) {

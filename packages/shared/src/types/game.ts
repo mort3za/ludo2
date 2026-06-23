@@ -40,6 +40,11 @@ export interface GameOptions {
    * have unlimited time and missed-turn kicks are disabled. Default on.
    */
   timerEnabled: boolean;
+  /**
+   * When true, a player cannot deploy another token out of the yard while one
+   * of their own tokens already sits on their start square. Default on.
+   */
+  startGuardEnabled: boolean;
 }
 
 export interface GameState {

@@ -28,6 +28,34 @@ describe("legalMoves (shared)", () => {
       const moves = legalMoves(tokens, 6, 2, S, []);
       expect(moves[0]!.to).toBe("T/12");
     });
+
+    it("start guard blocks deploy when own token already on start square", () => {
+      const yardToken = makeToken("t1", "Y/1/2", "blue");
+      const onStart = makeToken("t2", "T/1", "blue");
+      const moves = legalMoves([yardToken], 6, 1, S, [onStart, yardToken]);
+      expect(moves).toEqual([]);
+    });
+
+    it("start guard still lets the token on the start square move", () => {
+      const seatTokens = [makeToken("t1", "Y/1/2", "blue"), makeToken("t2", "T/1", "blue")];
+      const moves = legalMoves(seatTokens, 6, 1, S, seatTokens);
+      // No deploy for the yard token, but the start-square token can advance.
+      expect(moves.map((m) => m.tokenId)).toEqual(["t2"]);
+    });
+
+    it("deploy onto own start square is allowed when start guard is disabled", () => {
+      const yardToken = makeToken("t1", "Y/1/2", "blue");
+      const onStart = makeToken("t2", "T/1", "blue");
+      const moves = legalMoves([yardToken], 6, 1, S, [onStart, yardToken], true, false);
+      expect(moves).toEqual([{ tokenId: "t1", from: "Y/1/2", to: "T/1" }]);
+    });
+
+    it("start guard does not block deploy when only an opponent sits on the start square", () => {
+      const yardToken = makeToken("t1", "Y/1/2", "blue");
+      const opponent = makeToken("r1", "T/1", "red");
+      const moves = legalMoves([yardToken], 6, 1, S, [opponent, yardToken]);
+      expect(moves).toEqual([{ tokenId: "t1", from: "Y/1/2", to: "T/1" }]);
+    });
   });
 
   describe("track movement", () => {
@@ -167,7 +195,9 @@ describe("legalMoves (shared)", () => {
         makeToken("t3", "T/1", "blue"),
       ];
       const allTokens = [...seatTokens];
-      const moves = legalMoves(seatTokens, 6, 1, S, allTokens);
+      // startGuard disabled so this isolates the wall rule (own block must not
+      // count as an opponent block); the start-guard rule is tested separately.
+      const moves = legalMoves(seatTokens, 6, 1, S, allTokens, true, false);
       expect(moves.find((m) => m.tokenId === "t1")).toBeDefined();
     });
 

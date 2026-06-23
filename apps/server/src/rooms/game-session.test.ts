@@ -360,7 +360,12 @@ describe("auto-move option (single legal move)", () => {
       tokens: singleMoveTokens,
       activeSeat: 1,
       status: "rolling",
-      options: { wallEnabled: false, autoMoveEnabled: false, timerEnabled: true },
+      options: {
+        wallEnabled: false,
+        autoMoveEnabled: false,
+        timerEnabled: true,
+        startGuardEnabled: false,
+      },
     });
     const session = createGameSession(state);
     session.rng = { random: () => 0.5, rollDie: () => 3 };
@@ -380,7 +385,12 @@ describe("auto-move option (single legal move)", () => {
       tokens: singleMoveTokens,
       activeSeat: 1,
       status: "rolling",
-      options: { wallEnabled: false, autoMoveEnabled: false, timerEnabled: true },
+      options: {
+        wallEnabled: false,
+        autoMoveEnabled: false,
+        timerEnabled: true,
+        startGuardEnabled: false,
+      },
     });
     const session = createGameSession(state);
     session.rng = { random: () => 0.5, rollDie: () => 3 };
@@ -412,7 +422,12 @@ describe("turn timing", () => {
       tokens,
       activeSeat: 1,
       status: "rolling",
-      options: { wallEnabled: false, autoMoveEnabled: true, timerEnabled: true },
+      options: {
+        wallEnabled: false,
+        autoMoveEnabled: true,
+        timerEnabled: true,
+        startGuardEnabled: false,
+      },
     });
     const session = createGameSession(state);
     session.rng = { random: () => 0.5, rollDie: () => 3 };
@@ -450,7 +465,12 @@ describe("turn timing", () => {
       activeSeat: 1,
       status: "moving",
       diceValue: 3,
-      options: { wallEnabled: false, autoMoveEnabled: true, timerEnabled: true },
+      options: {
+        wallEnabled: false,
+        autoMoveEnabled: true,
+        timerEnabled: true,
+        startGuardEnabled: false,
+      },
     });
     const session = createGameSession(state);
     session.lastRollAt = Date.now();

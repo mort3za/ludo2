@@ -21,6 +21,8 @@ export interface LegalMove {
  * @param S - total number of seats in the game
  * @param allTokens - all tokens on the board (for block checks)
  * @param wallEnabled - when false, the wall (block) rule is ignored entirely
+ * @param startGuardEnabled - when true, a yard token cannot deploy while one of
+ *   the seat's own tokens already occupies the start square
  */
 export function legalMoves(
   seatTokens: Token[],
@@ -29,6 +31,7 @@ export function legalMoves(
   S: number,
   allTokens: Token[],
   wallEnabled = true,
+  startGuardEnabled = true,
 ): LegalMove[] {
   const moves: LegalMove[] = [];
   const blocks = wallEnabled
@@ -50,6 +53,14 @@ export function legalMoves(
       // Deploy requires a 6
       if (diceValue === 6) {
         const dest = startSquare(seat, S);
+        // Start-guard rule: can't deploy while one of our own tokens already
+        // occupies the start square.
+        if (
+          startGuardEnabled &&
+          allTokens.some((t) => t.color === token.color && t.cell === dest)
+        ) {
+          continue;
+        }
         // Check if opponent block is on start square
         const blockColor = blocks.get(dest);
         if (blockColor !== undefined && blockColor !== token.color) {

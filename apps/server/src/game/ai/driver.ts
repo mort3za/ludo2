@@ -55,6 +55,7 @@ export function scheduleBotTurn(
           session.state.seats.length,
           session.state.tokens,
           session.state.options.wallEnabled,
+          session.state.options.startGuardEnabled,
         );
 
         if (moves.length === 0) return;

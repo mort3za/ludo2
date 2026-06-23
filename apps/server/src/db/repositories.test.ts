@@ -61,12 +61,13 @@ describe("repositories", () => {
       expect(room!.phase).toBe("playing");
     });
 
-    it("defaults game options (wall off, auto-move on, timer off)", () => {
+    it("defaults game options (wall off, auto-move on, timer off, start-guard on)", () => {
       insertRoom(db, "room-1", 4, 0, new Date(1000)).run();
       const room = getRoom(db, "room-1");
       expect(room!.wallEnabled).toBe(false);
       expect(room!.autoMoveEnabled).toBe(true);
       expect(room!.timerEnabled).toBe(false);
+      expect(room!.startGuardEnabled).toBe(true);
     });
 
     it("persists updated game options", () => {
@@ -75,11 +76,13 @@ describe("repositories", () => {
         wallEnabled: true,
         autoMoveEnabled: false,
         timerEnabled: false,
+        startGuardEnabled: false,
       }).run();
       const room = getRoom(db, "room-1");
       expect(room!.wallEnabled).toBe(true);
       expect(room!.autoMoveEnabled).toBe(false);
       expect(room!.timerEnabled).toBe(false);
+      expect(room!.startGuardEnabled).toBe(false);
     });
 
     it("migrates a legacy rooms table missing the option columns", () => {
@@ -103,6 +106,7 @@ describe("repositories", () => {
       expect(room!.wallEnabled).toBe(false);
       expect(room!.autoMoveEnabled).toBe(true);
       expect(room!.timerEnabled).toBe(false);
+      expect(room!.startGuardEnabled).toBe(true);
     });
   });
 

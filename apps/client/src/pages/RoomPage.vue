@@ -23,6 +23,7 @@ const options = ref<GameOptions>({
   wallEnabled: false,
   autoMoveEnabled: true,
   timerEnabled: false,
+  startGuardEnabled: true,
 });
 const gameStarted = ref(false);
 const joined = ref(false);
@@ -246,12 +247,29 @@ const canAddBot = computed(
       <div class="mb-6">
         <button
           type="button"
-          class="flex w-full items-center justify-between font-sans text-body-sm text-text-primary"
+          class="flex w-full items-center justify-between gap-2 rounded-sm bg-surface-muted px-3 py-2.5 font-sans text-body-sm text-text-primary transition-colors hover:bg-border"
           :aria-expanded="showSettings"
           data-testid="settings-toggle"
           @click="showSettings = !showSettings"
         >
-          <span>{{ t("room.settings") }}</span>
+          <span class="flex items-center gap-2">
+            <svg
+              class="w-4 h-4 text-text-muted"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+              />
+            </svg>
+            <span class="font-medium">{{ t("room.settings") }}</span>
+          </span>
           <svg
             class="w-4 h-4 text-text-muted transition-transform"
             :class="showSettings ? 'rotate-180' : ''"
@@ -327,6 +345,27 @@ const canAddBot = computed(
               :disabled="!isOwner"
               data-testid="timer-toggle"
               @change="setOption('timerEnabled', ($event.target as HTMLInputElement).checked)"
+            />
+            <span
+              class="relative h-6 w-11 shrink-0 rounded-full bg-border transition-colors after:absolute after:top-0.5 after:inset-s-0.5 after:size-5 after:rounded-full after:bg-on-accent after:transition-transform peer-checked:bg-success peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5"
+            ></span>
+          </label>
+
+          <label
+            class="flex items-center justify-between gap-3"
+            :class="isOwner ? 'cursor-pointer' : 'opacity-60'"
+          >
+            <span class="font-sans">
+              <span class="block text-body-sm text-text-primary">{{ t("room.startGuard") }}</span>
+              <span class="block text-caption text-text-muted">{{ t("room.startGuardHint") }}</span>
+            </span>
+            <input
+              type="checkbox"
+              class="peer sr-only"
+              :checked="options.startGuardEnabled"
+              :disabled="!isOwner"
+              data-testid="start-guard-toggle"
+              @change="setOption('startGuardEnabled', ($event.target as HTMLInputElement).checked)"
             />
             <span
               class="relative h-6 w-11 shrink-0 rounded-full bg-border transition-colors after:absolute after:top-0.5 after:inset-s-0.5 after:size-5 after:rounded-full after:bg-on-accent after:transition-transform peer-checked:bg-success peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5"

@@ -120,6 +120,7 @@ export function handleRoll(session: GameSession): ServerMessage[] {
     state.seats.length,
     state.tokens,
     state.options.wallEnabled,
+    state.options.startGuardEnabled,
   );
 
   if (moves.length === 0) {
@@ -167,6 +168,7 @@ export function handleMove(session: GameSession, tokenId: string): ServerMessage
     state.seats.length,
     state.tokens,
     state.options.wallEnabled,
+    state.options.startGuardEnabled,
   );
   const move = moves.find((m) => m.tokenId === tokenId);
   if (!move) {
