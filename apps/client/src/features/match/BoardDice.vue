@@ -4,6 +4,12 @@ import { ref, watch, onUnmounted } from "vue";
 const props = defineProps<{
   /** Settled dice value (1–6), or null while no roll has resolved yet / rolling. */
   value: number | null;
+  /**
+   * Counter bumped once per actual roll to trigger the spin animation. Spinning
+   * is driven by this — never by `value` going null — so a reconnect state resync
+   * (which can carry `value: null` for an idle turn) doesn't phantom-spin.
+   */
+  rollNonce?: number;
   /** Whether the local player may roll right now. */
   canRoll: boolean;
   /** Accent color used for the "ready" glow (active seat color). */
@@ -59,12 +65,11 @@ let landedTimer: ReturnType<typeof setTimeout> | null = null;
 let safetyTimer: ReturnType<typeof setTimeout> | null = null;
 
 /**
- * Hard cap on how long the dice may tumble. The spin is normally stopped by the
- * server's reveal (`value` going null → number, ~800ms). But that single signal
- * can be lost — e.g. iOS Safari suspends background pages mid-roll and a
- * reconnect `state` resync can land with `diceValue: null` — leaving the dice
- * spinning forever. This guarantees it always settles; the watcher self-corrects
- * the face if the real value arrives afterwards.
+ * Hard cap on how long the dice may tumble. A spin is normally stopped by the
+ * reveal (`value` arriving ~800ms after the roll). Defense-in-depth in case that
+ * settle signal is ever lost (e.g. iOS Safari suspends the page mid-roll),
+ * leaving the dice spinning forever. The watcher self-corrects the face if the
+ * real value arrives afterwards.
  */
 const MAX_SPIN_MS = 4000;
 
@@ -118,12 +123,19 @@ function settle(final: number) {
   }, 320);
 }
 
+// Settle to the revealed face. A null value (idle / not-yet-rolled, e.g. from a
+// reconnect resync) is intentionally a no-op here — it must not start a spin.
 watch(
   () => props.value,
   (val) => {
-    if (val === null) startSpin();
-    else settle(val);
+    if (val !== null) settle(val);
   },
+);
+
+// The spin is driven solely by an explicit roll event, never by `value`.
+watch(
+  () => props.rollNonce,
+  () => startSpin(),
 );
 
 /**

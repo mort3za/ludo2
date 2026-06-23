@@ -25,64 +25,71 @@ const session = useSessionStore();
 const gameResultStore = useGameResultStore();
 const capturedColor = ref<PlayerColor | undefined>(undefined);
 const seatConnectionState = ref<Map<number, boolean>>(new Map());
-const { gameState, animating, stackingTokenId, lastRolledValue, isActionLocked, handleMessage } =
-  useGameAnimation(
-    (msg) => {
-      if (msg.type === "rolled") {
-        playSound("diceRoll");
-        // The roller has nothing to do with this dice — cue it once the dice
-        // has settled so it reads as a follow-up to the roll, not a clash.
-        if (activeSeatHasNoMoves(msg.value)) {
-          if (noMovesTimer !== null) clearTimeout(noMovesTimer);
-          noMovesTimer = setTimeout(() => {
-            noMovesTimer = null;
-            playSound("noMoves");
-          }, TIMINGS.diceReveal);
-        }
+const {
+  gameState,
+  animating,
+  stackingTokenId,
+  lastRolledValue,
+  rollNonce,
+  isActionLocked,
+  handleMessage,
+} = useGameAnimation(
+  (msg) => {
+    if (msg.type === "rolled") {
+      playSound("diceRoll");
+      // The roller has nothing to do with this dice — cue it once the dice
+      // has settled so it reads as a follow-up to the roll, not a clash.
+      if (activeSeatHasNoMoves(msg.value)) {
+        if (noMovesTimer !== null) clearTimeout(noMovesTimer);
+        noMovesTimer = setTimeout(() => {
+          noMovesTimer = null;
+          playSound("noMoves");
+        }, TIMINGS.diceReveal);
       }
+    }
 
-      if (msg.type === "turn") {
-        deadline.value = msg.deadline;
-        // A distinct soft cue when it becomes our turn, so it's recognizable
-        // without watching the board; everyone else hears the generic change.
-        playSound(msg.seat === mySeat.value ? "myTurn" : "turnChange");
-      }
+    if (msg.type === "turn") {
+      deadline.value = msg.deadline;
+      // A distinct soft cue when it becomes our turn, so it's recognizable
+      // without watching the board; everyone else hears the generic change.
+      playSound(msg.seat === mySeat.value ? "myTurn" : "turnChange");
+    }
 
-      // Fresh game (every token still in its yard) — announce the start.
-      if (
-        msg.type === "state" &&
-        msg.state.status !== "finished" &&
-        msg.state.diceValue === null &&
-        msg.state.tokens.every((t) => t.cell.startsWith("Y/"))
-      ) {
-        playSound("gameStart");
-      }
+    // Fresh game (every token still in its yard) — announce the start.
+    if (
+      msg.type === "state" &&
+      msg.state.status !== "finished" &&
+      msg.state.diceValue === null &&
+      msg.state.tokens.every((t) => t.cell.startsWith("Y/"))
+    ) {
+      playSound("gameStart");
+    }
 
-      if (msg.type === "presence") {
-        seatConnectionState.value.set(msg.seat, msg.connected);
-      }
+    if (msg.type === "presence") {
+      seatConnectionState.value.set(msg.seat, msg.connected);
+    }
 
-      if (msg.type === "captured" && gameState.value) {
-        const token = gameState.value.tokens.find((t) => t.id === msg.tokenId);
-        if (token) {
-          capturedColor.value = token.color;
-          // The attacker is the active player; they hear a victory cue, while
-          // the captured player and everyone else hear the sad one.
-          const isAttacker = mySeat.value !== null && mySeat.value === gameState.value.activeSeat;
-          playSound(isAttacker ? "tokenCaptureWin" : "tokenCaptureSad");
-        }
+    if (msg.type === "captured" && gameState.value) {
+      const token = gameState.value.tokens.find((t) => t.id === msg.tokenId);
+      if (token) {
+        capturedColor.value = token.color;
+        // The attacker is the active player; they hear a victory cue, while
+        // the captured player and everyone else hear the sad one.
+        const isAttacker = mySeat.value !== null && mySeat.value === gameState.value.activeSeat;
+        playSound(isAttacker ? "tokenCaptureWin" : "tokenCaptureSad");
       }
+    }
 
-      if (msg.type === "finished") {
-        playSound(msg.standings[0] === mySeat.value ? "win" : "gameOver");
-        if (gameState.value) {
-          gameResultStore.setResult(gameState.value);
-        }
-        vueRouter.push({ name: "post-game", params: { roomId: props.roomId } });
+    if (msg.type === "finished") {
+      playSound(msg.standings[0] === mySeat.value ? "win" : "gameOver");
+      if (gameState.value) {
+        gameResultStore.setResult(gameState.value);
       }
-    },
-    () => playSound("tokenStep"),
-  );
+      vueRouter.push({ name: "post-game", params: { roomId: props.roomId } });
+    }
+  },
+  () => playSound("tokenStep"),
+);
 
 /**
  * Cell whose stack badge should be suppressed: the destination cell during a
@@ -320,6 +327,7 @@ onUnmounted(() => {
         >
           <BoardDice
             :value="lastRolledValue"
+            :roll-nonce="rollNonce"
             :can-roll="canRoll"
             :color="activeSeatColor"
             @roll="onRoll"

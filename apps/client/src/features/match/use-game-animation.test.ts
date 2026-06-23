@@ -34,6 +34,26 @@ describe("useGameAnimation", () => {
     vi.useRealTimers();
   });
 
+  it("bumps rollNonce only on real rolls — a reconnect resync never requests a spin", () => {
+    const applied = vi.fn();
+    const { lastRolledValue, rollNonce, handleMessage } = useGameAnimation(applied);
+
+    // Initial sync of an idle, not-yet-rolled turn (diceValue: null).
+    handleMessage({ type: "state", state: makeState() });
+    expect(rollNonce.value).toBe(0);
+    expect(lastRolledValue.value).toBeNull();
+
+    // A real roll requests a spin.
+    handleMessage({ type: "rolled", seat: 1, value: 3 });
+    expect(rollNonce.value).toBe(1);
+
+    // Reconnect resync mid-game (e.g. iOS background → foreground). diceValue is
+    // null because the active player hasn't rolled yet — this must NOT spin.
+    handleMessage({ type: "state", state: makeState({ diceValue: null }) });
+    expect(rollNonce.value).toBe(1);
+    expect(lastRolledValue.value).toBeNull();
+  });
+
   it("holds move and turn messages until the roll has been revealed and shown", () => {
     vi.useFakeTimers();
     const applied = vi.fn();

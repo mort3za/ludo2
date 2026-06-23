@@ -13,6 +13,13 @@ export interface GameAnimationState {
   animating: Ref<AnimatingToken | null>;
   stackingTokenId: Ref<string | null>;
   lastRolledValue: Ref<number | null>;
+  /**
+   * Bumped once per actual `rolled` event to request a dice spin. Decoupled from
+   * `lastRolledValue` so a `state` resync (reconnect) — which can legitimately
+   * carry `diceValue: null` for an idle, not-yet-rolled turn — never triggers a
+   * phantom spin. Animations are driven by events, not by full-state syncs.
+   */
+  rollNonce: Ref<number>;
   isActionLocked: Ref<boolean>;
   handleMessage: (msg: ServerMessage) => void;
 }
@@ -37,6 +44,7 @@ export function useGameAnimation(
   const stackingTokenId = ref<string | null>(null);
   // Persists across turn changes — only replaced when next player rolls.
   const lastRolledValue = ref<number | null>(null);
+  const rollNonce = ref(0);
   const isActionLocked = ref(false);
 
   /** Timestamp of the last "rolled" message, used to keep dice visible briefly. */
@@ -276,6 +284,7 @@ export function useGameAnimation(
         isActionLocked.value = true;
         if (pendingDiceTimer) clearTimeout(pendingDiceTimer);
         lastRolledValue.value = null;
+        rollNonce.value++;
         const rolledValue = msg.value;
         pendingDiceTimer = setTimeout(() => {
           lastRolledValue.value = rolledValue;
@@ -333,5 +342,13 @@ export function useGameAnimation(
     applyMessage(msg);
   }
 
-  return { gameState, animating, stackingTokenId, lastRolledValue, isActionLocked, handleMessage };
+  return {
+    gameState,
+    animating,
+    stackingTokenId,
+    lastRolledValue,
+    rollNonce,
+    isActionLocked,
+    handleMessage,
+  };
 }
