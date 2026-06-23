@@ -235,7 +235,12 @@ onUnmounted(() => {
   cursor: pointer;
 }
 .dice--ready .dice__svg {
-  animation: dice-breathe 1.6s ease-in-out infinite;
+  /* Static glow set once + a transform-only float. Animating `filter` per
+     frame re-rasterizes the drop-shadow on every frame, which tanks frame
+     rate on older mobile GPUs. The glow is now constant; only the
+     GPU-composited transform animates. */
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.25)) drop-shadow(0 0 8px var(--dice-glow));
+  animation: dice-float 1.6s ease-in-out infinite;
 }
 .dice--ready:hover .dice__svg {
   transform: scale(1.06);
@@ -254,15 +259,13 @@ onUnmounted(() => {
   animation: dice-pop 0.32s ease-out;
 }
 
-@keyframes dice-breathe {
+@keyframes dice-float {
   0%,
   100% {
     transform: translateY(0);
-    filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.25)) drop-shadow(0 0 0 var(--dice-glow));
   }
   50% {
     transform: translateY(-6%);
-    filter: drop-shadow(0 6px 7px rgba(0, 0, 0, 0.22)) drop-shadow(0 0 9px var(--dice-glow));
   }
 }
 
