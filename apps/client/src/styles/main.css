@@ -63,6 +63,9 @@
 
   /* — Layout — */
   --header-height: 36px;
+  /* Board/match column width: full-width on mobile (minus the p-2 page
+     padding, 8px each side), clamped between 360px and 50rem. */
+  --board-width: clamp(22.5rem, calc(100vw - 16px), 50rem);
 }
 
 /* — Primitives (Layer 1) —

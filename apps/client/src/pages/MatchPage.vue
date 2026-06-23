@@ -290,7 +290,10 @@ onUnmounted(() => {
 
     <SpectatorBadge v-if="isSpectator && gameState" />
 
-    <div v-if="gameState" class="w-full max-w-lg flex flex-col items-center gap-3 sm:gap-4">
+    <div
+      v-if="gameState"
+      class="w-full max-w-(--board-width) flex flex-col items-center gap-3 sm:gap-4"
+    >
       <GameControls
         v-if="mySeat !== null"
         :state="gameState"
@@ -300,7 +303,7 @@ onUnmounted(() => {
         :seat-connected="seatConnectionState.get(gameState?.activeSeat ?? -1) ?? true"
       />
 
-      <div class="relative w-full aspect-square max-w-xs sm:max-w-lg">
+      <div class="relative w-full aspect-square max-w-(--board-width)">
         <BoardView
           class="w-full h-full"
           :board-size="gameState.seats.length"
