@@ -104,12 +104,6 @@
   "about": {
     "title": "Over",
     "description": "Ludo 2 is een realtime multiplayer-versie van het klassieke bordspel Mens-erger-je-niet, voor 4 tot 8 spelers.",
-    "openSourceTitle": "Open source",
-    "openSource": "Dit project is open source. De volledige broncode staat op GitHub, waar feedback welkom is.",
-    "viewOnGithub": "Bekijk op GitHub",
-    "issuesTitle": "Probleem gevonden?",
-    "issues": "Als je een bug tegenkomt of een functie wilt aanvragen, open dan een melding in de GitHub-issuetracker.",
-    "reportIssue": "Een probleem melden",
     "detailsTitle": "Details",
     "versionLabel": "Versie",
     "builtWithLabel": "Gebouwd met",

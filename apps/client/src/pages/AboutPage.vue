@@ -4,8 +4,6 @@ import { DCard } from "@/shared/ui";
 
 const { t } = useI18n();
 
-const REPO_URL = "https://github.com/mort3za/ludo2";
-const ISSUES_URL = `${REPO_URL}/issues`;
 const version = __APP_VERSION__;
 </script>
 
@@ -16,38 +14,6 @@ const version = __APP_VERSION__;
         {{ t("about.title") }}
       </h1>
       <p class="text-body-sm font-sans text-text-primary">{{ t("about.description") }}</p>
-
-      <DCard elevated class="p-4 flex flex-col gap-2">
-        <h2 class="text-body font-sans font-medium text-text-primary">
-          {{ t("about.openSourceTitle") }}
-        </h2>
-        <p class="text-body-sm font-sans text-text-primary">{{ t("about.openSource") }}</p>
-        <a
-          :href="REPO_URL"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="d-btn d-btn--ghost self-start"
-          data-testid="repo-link"
-        >
-          {{ t("about.viewOnGithub") }}
-        </a>
-      </DCard>
-
-      <DCard elevated class="p-4 flex flex-col gap-2">
-        <h2 class="text-body font-sans font-medium text-text-primary">
-          {{ t("about.issuesTitle") }}
-        </h2>
-        <p class="text-body-sm font-sans text-text-primary">{{ t("about.issues") }}</p>
-        <a
-          :href="ISSUES_URL"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="d-btn d-btn--ghost self-start"
-          data-testid="issues-link"
-        >
-          {{ t("about.reportIssue") }}
-        </a>
-      </DCard>
 
       <DCard elevated class="p-4 flex flex-col gap-2">
         <h2 class="text-body font-sans font-medium text-text-primary">

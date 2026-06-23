@@ -104,12 +104,6 @@
   "about": {
     "title": "Informazioni",
     "description": "Ludo 2 è un'implementazione multigiocatore in tempo reale del classico gioco da tavolo Ludo, per 4 a 8 giocatori.",
-    "openSourceTitle": "Open source",
-    "openSource": "Questo progetto è open source. Il suo codice sorgente completo è ospitato su GitHub, dove il feedback è benvenuto.",
-    "viewOnGithub": "Vedi su GitHub",
-    "issuesTitle": "Hai trovato un problema?",
-    "issues": "Se riscontri un bug o vuoi richiedere una funzionalità, apri una segnalazione sul tracker delle issue di GitHub.",
-    "reportIssue": "Segnala un problema",
     "detailsTitle": "Dettagli",
     "versionLabel": "Versione",
     "builtWithLabel": "Realizzato con",

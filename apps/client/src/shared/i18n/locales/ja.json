@@ -104,12 +104,6 @@
   "about": {
     "title": "概要",
     "description": "Ludo 2 は、4〜8人でプレイできる、定番ボードゲーム「ルド」のリアルタイム・マルチプレイヤー版です。",
-    "openSourceTitle": "オープンソース",
-    "openSource": "このプロジェクトはオープンソースです。完全なソースコードは GitHub にホストされており、フィードバックを歓迎します。",
-    "viewOnGithub": "GitHub で見る",
-    "issuesTitle": "問題を見つけましたか？",
-    "issues": "バグに遭遇した場合や機能をリクエストしたい場合は、GitHub のイシュートラッカーで報告を作成してください。",
-    "reportIssue": "問題を報告する",
     "detailsTitle": "詳細",
     "versionLabel": "バージョン",
     "builtWithLabel": "使用技術",

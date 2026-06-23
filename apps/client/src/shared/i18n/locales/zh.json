@@ -104,12 +104,6 @@
   "about": {
     "title": "关于",
     "description": "Ludo 2 是经典棋盘游戏飞行棋的实时多人在线实现，支持 4 到 8 名玩家。",
-    "openSourceTitle": "开源",
-    "openSource": "本项目是开源的。完整源代码托管在 GitHub 上，欢迎反馈。",
-    "viewOnGithub": "在 GitHub 上查看",
-    "issuesTitle": "发现问题？",
-    "issues": "如果你遇到错误或想请求新功能，请在 GitHub 问题追踪器上提交报告。",
-    "reportIssue": "报告问题",
     "detailsTitle": "详情",
     "versionLabel": "版本",
     "builtWithLabel": "技术栈",

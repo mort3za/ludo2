@@ -9,7 +9,7 @@
     "multiplayer",
     "real-time"
   ],
-  "license": "MIT",
+  "license": "UNLICENSED",
   "author": "Morteza Ziyaeimehr <morteza.zym@gmail.com>",
   "workspaces": [
     "apps/*",

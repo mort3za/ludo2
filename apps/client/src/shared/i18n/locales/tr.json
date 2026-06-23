@@ -104,12 +104,6 @@
   "about": {
     "title": "Hakkında",
     "description": "Ludo 2, klasik masa oyunu Ludo'nun 4 ila 8 oyuncuyu destekleyen gerçek zamanlı çok oyunculu bir uygulamasıdır.",
-    "openSourceTitle": "Açık kaynak",
-    "openSource": "Bu proje açık kaynaktır. Tüm kaynak kodu GitHub'da barındırılmaktadır; geri bildirimler memnuniyetle karşılanır.",
-    "viewOnGithub": "GitHub'da görüntüle",
-    "issuesTitle": "Bir sorun mu buldun?",
-    "issues": "Bir hatayla karşılaşırsan veya bir özellik talep etmek istersen, lütfen GitHub sorun takipçisinde bir kayıt aç.",
-    "reportIssue": "Sorun bildir",
     "detailsTitle": "Ayrıntılar",
     "versionLabel": "Sürüm",
     "builtWithLabel": "Kullanılan teknolojiler",

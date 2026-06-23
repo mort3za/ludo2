@@ -104,12 +104,6 @@
   "about": {
     "title": "À propos",
     "description": "Ludo 2 est une implémentation multijoueur en temps réel du jeu de plateau classique Petits Chevaux, pour 4 à 8 joueurs.",
-    "openSourceTitle": "Open source",
-    "openSource": "Ce projet est open source. Son code source complet est hébergé sur GitHub, où les retours sont les bienvenus.",
-    "viewOnGithub": "Voir sur GitHub",
-    "issuesTitle": "Un problème ?",
-    "issues": "Si vous rencontrez un bug ou souhaitez demander une fonctionnalité, veuillez ouvrir un rapport sur le suivi des problèmes GitHub.",
-    "reportIssue": "Signaler un problème",
     "detailsTitle": "Détails",
     "versionLabel": "Version",
     "builtWithLabel": "Conçu avec",

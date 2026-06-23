@@ -110,12 +110,6 @@
   "about": {
     "title": "About",
     "description": "Ludo 2 is a real-time multiplayer implementation of the classic board game Ludo, supporting 4 to 8 players.",
-    "openSourceTitle": "Open Source",
-    "openSource": "This project is open source. Its complete source code is hosted on GitHub, where feedback is welcome.",
-    "viewOnGithub": "View on GitHub",
-    "issuesTitle": "Found a problem?",
-    "issues": "If you encounter a bug or would like to request a feature, please open a report on the GitHub issue tracker.",
-    "reportIssue": "Report an issue",
     "detailsTitle": "Details",
     "versionLabel": "Version",
     "builtWithLabel": "Built with",
