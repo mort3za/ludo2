@@ -266,11 +266,17 @@ function onDebugScenario(scenario: string) {
 function onDebugUndo() {
   ws?.send({ type: "debug_undo" });
 }
-// Dev-only: force a seat's next roll to a chosen value.
-const debugDiceSeat = ref<number | null>(null);
+// Dev-only: force a seat's next roll to a chosen value. Defaults to my own seat.
+const debugDiceSeatOverride = ref<number | null>(null);
+const debugDiceSeat = computed<number | null>({
+  get: () => debugDiceSeatOverride.value ?? mySeat.value,
+  set: (v) => {
+    debugDiceSeatOverride.value = v;
+  },
+});
 const debugDiceValue = ref(6);
 function onDebugSetDice() {
-  const seat = debugDiceSeat.value ?? mySeat.value;
+  const seat = debugDiceSeat.value;
   if (seat === null) return;
   ws?.send({ type: "debug_set_dice", seat, value: debugDiceValue.value });
 }
@@ -344,28 +350,29 @@ onUnmounted(() => {
 
     <details
       v-if="isDev && mySeat !== null"
+      dir="ltr"
       class="fixed bottom-4 left-4 z-50 font-sans text-body-sm"
     >
       <summary
-        class="cursor-pointer list-none rounded border border-border bg-surface-card px-3 py-1.5 text-text-muted shadow-sm"
+        class="cursor-pointer list-none rounded border border-border bg-surface-card px-3 py-1.5 text-text-muted shadow-sm select-none hover:bg-surface-muted"
       >
         🐛 Debug
       </summary>
       <div
-        class="mt-1 flex flex-col gap-1 rounded border border-border bg-surface-card p-1 shadow-sm"
+        class="absolute bottom-full left-0 mb-1 flex w-max flex-col gap-1 rounded border border-border bg-surface-card p-1 shadow-sm"
       >
         <button
           v-for="scenario in debugScenarios"
           :key="scenario"
           type="button"
-          class="rounded px-3 py-1.5 text-left text-text-muted hover:bg-surface-muted"
+          class="cursor-pointer rounded px-3 py-1.5 text-left text-text-muted hover:bg-surface-muted"
           @click="onDebugScenario(scenario)"
         >
           {{ scenario }}
         </button>
         <button
           type="button"
-          class="rounded px-3 py-1.5 text-left text-text-muted hover:bg-surface-muted"
+          class="cursor-pointer rounded px-3 py-1.5 text-left text-text-muted hover:bg-surface-muted"
           @click="onDebugUndo"
         >
           ↩ undo
@@ -373,7 +380,7 @@ onUnmounted(() => {
         <div v-if="gameState" class="flex items-center gap-1 px-1 pt-1">
           <select
             v-model.number="debugDiceSeat"
-            class="rounded border border-border bg-surface-card px-1 py-1 text-text-muted"
+            class="cursor-pointer rounded border border-border bg-surface-card px-1 py-1 text-text-muted"
           >
             <option v-for="seat in gameState.seats" :key="seat.index" :value="seat.index">
               {{ seat.color }}{{ seat.index === mySeat ? " (me)" : "" }}
@@ -381,13 +388,13 @@ onUnmounted(() => {
           </select>
           <select
             v-model.number="debugDiceValue"
-            class="rounded border border-border bg-surface-card px-1 py-1 text-text-muted"
+            class="cursor-pointer rounded border border-border bg-surface-card px-1 py-1 text-text-muted"
           >
             <option v-for="n in 6" :key="n" :value="n">{{ n }}</option>
           </select>
           <button
             type="button"
-            class="rounded px-2 py-1 text-text-muted hover:bg-surface-muted"
+            class="cursor-pointer rounded px-2 py-1 text-text-muted hover:bg-surface-muted"
             @click="onDebugSetDice"
           >
             🎲 set
