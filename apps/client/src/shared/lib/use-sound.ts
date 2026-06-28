@@ -19,7 +19,7 @@ export type SoundName = keyof typeof SOUND_SRC;
 
 /** Per-sound volume; jingles are mastered louder than the UI blips. */
 const VOLUME: Partial<Record<SoundName, number>> = {
-  diceRoll: 0.7,
+  diceRoll: 0.5,
   myTurn: 0.5,
   tokenStep: 0.5,
   win: 0.5,
