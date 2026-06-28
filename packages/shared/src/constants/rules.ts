@@ -4,6 +4,7 @@ export const DEFAULT_GAME_OPTIONS = {
   autoMoveEnabled: true,
   timerEnabled: false,
   startGuardEnabled: true,
+  consecutiveSixLimitEnabled: false,
 } as const;
 
 /** Default rule flags */

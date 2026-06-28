@@ -95,7 +95,13 @@ export function handleRoll(session: GameSession): ServerMessage[] {
 
   const forced = session.forcedRolls.get(state.activeSeat);
   if (forced !== undefined) session.forcedRolls.delete(state.activeSeat);
-  const outcome = resolveRoll(rng, state.consecutiveSixes, DEFAULT_RULES, forced);
+  const rollRules = {
+    ...DEFAULT_RULES,
+    consecutiveSixLimit: state.options.consecutiveSixLimitEnabled
+      ? DEFAULT_RULES.consecutiveSixLimit
+      : Infinity,
+  };
+  const outcome = resolveRoll(rng, state.consecutiveSixes, rollRules, forced);
   const rollAt = Date.now();
   state.diceValue = outcome.value;
   state.consecutiveSixes = outcome.newConsecutiveSixes;

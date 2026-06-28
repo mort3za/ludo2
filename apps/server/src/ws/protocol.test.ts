@@ -90,6 +90,7 @@ describe("parseClientMessage", () => {
           autoMoveEnabled: false,
           timerEnabled: false,
           startGuardEnabled: true,
+          consecutiveSixLimitEnabled: false,
         },
       }),
     );
@@ -102,6 +103,7 @@ describe("parseClientMessage", () => {
         autoMoveEnabled: false,
         timerEnabled: false,
         startGuardEnabled: true,
+        consecutiveSixLimitEnabled: false,
       },
     });
   });

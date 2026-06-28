@@ -52,6 +52,8 @@
     "turnTimerHint": "Cap each turn at 30 seconds. Turn off for unlimited time.",
     "startGuard": "Guard start square",
     "startGuardHint": "Can't bring out a new token while one of yours sits on your start square.",
+    "consecutiveSixLimit": "Limit consecutive sixes",
+    "consecutiveSixLimitHint": "Forfeit your turn if you roll three 6s in a row (max two 6s allowed).",
     "settings": "Game settings",
     "imReady": "I'm Ready",
     "youreReady": "You're Ready",

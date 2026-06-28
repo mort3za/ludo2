@@ -15,6 +15,9 @@ export const rooms = sqliteTable("rooms", {
   autoMoveEnabled: integer("auto_move_enabled", { mode: "boolean" }).notNull().default(true),
   timerEnabled: integer("timer_enabled", { mode: "boolean" }).notNull().default(false),
   startGuardEnabled: integer("start_guard_enabled", { mode: "boolean" }).notNull().default(true),
+  consecutiveSixLimitEnabled: integer("consecutive_six_limit_enabled", { mode: "boolean" })
+    .notNull()
+    .default(false),
   phase: text("phase", { enum: ["lobby", "playing", "post-game"] }).notNull(),
   gameId: text("game_id"),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),

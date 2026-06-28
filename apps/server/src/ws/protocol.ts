@@ -63,15 +63,19 @@ export function parseClientMessage(raw: string): ParseResult {
     if (typeof options !== "object" || options === null) {
       return { ok: false, error: "missing-options" };
     }
-    const { wallEnabled, autoMoveEnabled, timerEnabled, startGuardEnabled } = options as Record<
-      string,
-      unknown
-    >;
+    const {
+      wallEnabled,
+      autoMoveEnabled,
+      timerEnabled,
+      startGuardEnabled,
+      consecutiveSixLimitEnabled,
+    } = options as Record<string, unknown>;
     if (
       typeof wallEnabled !== "boolean" ||
       typeof autoMoveEnabled !== "boolean" ||
       typeof timerEnabled !== "boolean" ||
-      typeof startGuardEnabled !== "boolean"
+      typeof startGuardEnabled !== "boolean" ||
+      typeof consecutiveSixLimitEnabled !== "boolean"
     ) {
       return { ok: false, error: "invalid-options" };
     }
@@ -79,7 +83,13 @@ export function parseClientMessage(raw: string): ParseResult {
       ok: true,
       message: {
         type: "set_options",
-        options: { wallEnabled, autoMoveEnabled, timerEnabled, startGuardEnabled },
+        options: {
+          wallEnabled,
+          autoMoveEnabled,
+          timerEnabled,
+          startGuardEnabled,
+          consecutiveSixLimitEnabled,
+        },
       },
     };
   }

@@ -44,6 +44,7 @@ export function updateRoomOptions(
     autoMoveEnabled: boolean;
     timerEnabled: boolean;
     startGuardEnabled: boolean;
+    consecutiveSixLimitEnabled: boolean;
   },
 ) {
   return db
@@ -53,6 +54,7 @@ export function updateRoomOptions(
       autoMoveEnabled: options.autoMoveEnabled,
       timerEnabled: options.timerEnabled,
       startGuardEnabled: options.startGuardEnabled,
+      consecutiveSixLimitEnabled: options.consecutiveSixLimitEnabled,
     })
     .where(eq(rooms.id, id));
 }

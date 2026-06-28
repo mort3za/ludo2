@@ -58,6 +58,7 @@ export function applySchema(db: Db) {
     auto_move_enabled INTEGER NOT NULL DEFAULT 1,
     timer_enabled INTEGER NOT NULL DEFAULT 1,
     start_guard_enabled INTEGER NOT NULL DEFAULT 1,
+    consecutive_six_limit_enabled INTEGER NOT NULL DEFAULT 0,
     phase TEXT NOT NULL,
     game_id TEXT,
     created_at INTEGER NOT NULL,
@@ -68,6 +69,7 @@ export function applySchema(db: Db) {
   addColumnIfMissing(db, "rooms", "auto_move_enabled", "INTEGER NOT NULL DEFAULT 1");
   addColumnIfMissing(db, "rooms", "timer_enabled", "INTEGER NOT NULL DEFAULT 1");
   addColumnIfMissing(db, "rooms", "start_guard_enabled", "INTEGER NOT NULL DEFAULT 1");
+  addColumnIfMissing(db, "rooms", "consecutive_six_limit_enabled", "INTEGER NOT NULL DEFAULT 0");
   db.run(sql`CREATE TABLE IF NOT EXISTS games (
     id TEXT PRIMARY KEY,
     room_id TEXT NOT NULL,

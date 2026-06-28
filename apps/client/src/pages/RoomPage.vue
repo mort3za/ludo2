@@ -24,6 +24,7 @@ const options = ref<GameOptions>({
   autoMoveEnabled: true,
   timerEnabled: false,
   startGuardEnabled: true,
+  consecutiveSixLimitEnabled: false,
 });
 const gameStarted = ref(false);
 const joined = ref(false);
@@ -366,6 +367,33 @@ const canAddBot = computed(
               :disabled="!isOwner"
               data-testid="start-guard-toggle"
               @change="setOption('startGuardEnabled', ($event.target as HTMLInputElement).checked)"
+            />
+            <span
+              class="relative h-6 w-11 shrink-0 rounded-full bg-border transition-colors after:absolute after:top-0.5 after:inset-s-0.5 after:size-5 after:rounded-full after:bg-on-accent after:transition-transform peer-checked:bg-success peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5"
+            ></span>
+          </label>
+
+          <label
+            class="flex items-center justify-between gap-3"
+            :class="isOwner ? 'cursor-pointer' : 'opacity-60'"
+          >
+            <span class="font-sans">
+              <span class="block text-body-sm text-text-primary">{{
+                t("room.consecutiveSixLimit")
+              }}</span>
+              <span class="block text-caption text-text-muted">{{
+                t("room.consecutiveSixLimitHint")
+              }}</span>
+            </span>
+            <input
+              type="checkbox"
+              class="peer sr-only"
+              :checked="options.consecutiveSixLimitEnabled"
+              :disabled="!isOwner"
+              data-testid="consecutive-six-limit-toggle"
+              @change="
+                setOption('consecutiveSixLimitEnabled', ($event.target as HTMLInputElement).checked)
+              "
             />
             <span
               class="relative h-6 w-11 shrink-0 rounded-full bg-border transition-colors after:absolute after:top-0.5 after:inset-s-0.5 after:size-5 after:rounded-full after:bg-on-accent after:transition-transform peer-checked:bg-success peer-checked:after:translate-x-5 rtl:peer-checked:after:-translate-x-5"

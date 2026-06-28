@@ -365,6 +365,7 @@ describe("auto-move option (single legal move)", () => {
         autoMoveEnabled: false,
         timerEnabled: true,
         startGuardEnabled: false,
+        consecutiveSixLimitEnabled: false,
       },
     });
     const session = createGameSession(state);
@@ -390,6 +391,7 @@ describe("auto-move option (single legal move)", () => {
         autoMoveEnabled: false,
         timerEnabled: true,
         startGuardEnabled: false,
+        consecutiveSixLimitEnabled: false,
       },
     });
     const session = createGameSession(state);
@@ -427,6 +429,7 @@ describe("turn timing", () => {
         autoMoveEnabled: true,
         timerEnabled: true,
         startGuardEnabled: false,
+        consecutiveSixLimitEnabled: false,
       },
     });
     const session = createGameSession(state);
@@ -470,6 +473,7 @@ describe("turn timing", () => {
         autoMoveEnabled: true,
         timerEnabled: true,
         startGuardEnabled: false,
+        consecutiveSixLimitEnabled: false,
       },
     });
     const session = createGameSession(state);

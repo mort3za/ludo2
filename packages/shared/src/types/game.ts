@@ -45,6 +45,11 @@ export interface GameOptions {
    * of their own tokens already sits on their start square. Default on.
    */
   startGuardEnabled: boolean;
+  /**
+   * When true, rolling three consecutive 6s forfeits the turn (i.e. a maximum
+   * of two 6s in a row are allowed). Default off.
+   */
+  consecutiveSixLimitEnabled: boolean;
 }
 
 export interface GameState {

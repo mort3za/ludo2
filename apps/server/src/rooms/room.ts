@@ -241,6 +241,7 @@ export function setOptions(
         autoMoveEnabled: options.autoMoveEnabled,
         timerEnabled: options.timerEnabled,
         startGuardEnabled: options.startGuardEnabled,
+        consecutiveSixLimitEnabled: options.consecutiveSixLimitEnabled,
       },
       members: cloneMembers(room.members),
       spectators: cloneSpectators(room.spectators),

@@ -77,6 +77,7 @@ describe("repositories", () => {
         autoMoveEnabled: false,
         timerEnabled: false,
         startGuardEnabled: false,
+        consecutiveSixLimitEnabled: false,
       }).run();
       const room = getRoom(db, "room-1");
       expect(room!.wallEnabled).toBe(true);
