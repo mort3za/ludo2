@@ -144,16 +144,24 @@ export function handleRoll(session: GameSession): ServerMessage[] {
     return messages;
   }
 
+  const activeIsBot = state.seats.find((s) => s.index === state.activeSeat)?.isBot ?? false;
+  const shouldAutoMove = activeIsBot || state.options.autoMoveEnabled;
+
   if (moves.length === 1) {
     // Forced move — auto-pick for bots always, and for humans unless the
     // lobby disabled auto-move. When disabled, fall through to wait for a pick.
-    const activeIsBot = state.seats.find((s) => s.index === state.activeSeat)?.isBot ?? false;
-    if (activeIsBot || state.options.autoMoveEnabled) {
+    if (shouldAutoMove) {
       return [...messages, ...handleMove(session, moves[0]!.tokenId)];
     }
   }
 
-  // Multiple legal moves (or a single move with auto-move off) — wait for pick.
+  // All available moves are yard deployments — all yard tokens are logically
+  // identical (same destination), so auto-pick one without requiring selection.
+  if (shouldAutoMove && moves.every((m) => m.from.startsWith("Y/"))) {
+    return [...messages, ...handleMove(session, moves[0]!.tokenId)];
+  }
+
+  // Multiple non-equivalent moves (or auto-move off) — wait for pick.
   state.status = "moving";
   return messages;
 }
