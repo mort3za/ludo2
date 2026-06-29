@@ -104,10 +104,8 @@
   "about": {
     "title": "Informazioni",
     "description": "Ludo 2 è un'implementazione multigiocatore in tempo reale del classico gioco da tavolo Ludo, per 4 a 8 giocatori.",
-    "detailsTitle": "Dettagli",
     "versionLabel": "Versione",
-    "builtWithLabel": "Realizzato con",
-    "builtWith": "Vue 3, Vite, Tailwind CSS e Bun.",
+    "developerLabel": "Sviluppatore",
     "privacyTitle": "Privacy",
     "privacy": "Nessun cookie, nessun tracciamento, nessuna analisi. Il gioco salva solo la tua sessione e le preferenze (tema, lingua, audio) sul tuo dispositivo, e tutti i caratteri sono forniti da questo sito: i tuoi dati non vengono mai inviati a terzi."
   },

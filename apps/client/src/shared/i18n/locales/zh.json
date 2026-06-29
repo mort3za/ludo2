@@ -104,10 +104,8 @@
   "about": {
     "title": "关于",
     "description": "Ludo 2 是经典棋盘游戏飞行棋的实时多人在线实现，支持 4 到 8 名玩家。",
-    "detailsTitle": "详情",
     "versionLabel": "版本",
-    "builtWithLabel": "技术栈",
-    "builtWith": "Vue 3、Vite、Tailwind CSS 与 Bun。",
+    "developerLabel": "开发者",
     "privacyTitle": "隐私",
     "privacy": "无 Cookie、无追踪、无分析。游戏仅在你的设备上保存会话和偏好设置（主题、语言、声音），所有字体均由本站提供——你的数据绝不会发送给第三方。"
   },

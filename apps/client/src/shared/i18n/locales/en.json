@@ -114,10 +114,8 @@
   "about": {
     "title": "About",
     "description": "Ludo 2 is a real-time multiplayer implementation of the classic board game Ludo, supporting 4 to 8 players.",
-    "detailsTitle": "Details",
     "versionLabel": "Version",
-    "builtWithLabel": "Built with",
-    "builtWith": "Vue 3, Vite, Tailwind CSS, and Bun.",
+    "developerLabel": "Developer",
     "privacyTitle": "Privacy",
     "privacy": "No cookies, no tracking, no analytics. The game stores only your session and preferences (theme, language, sound) on your device, and all fonts are served from this site — your data is never sent to third parties."
   },

@@ -104,10 +104,8 @@
   "about": {
     "title": "概要",
     "description": "Ludo 2 は、4〜8人でプレイできる、定番ボードゲーム「ルド」のリアルタイム・マルチプレイヤー版です。",
-    "detailsTitle": "詳細",
     "versionLabel": "バージョン",
-    "builtWithLabel": "使用技術",
-    "builtWith": "Vue 3、Vite、Tailwind CSS、Bun。",
+    "developerLabel": "開発者",
     "privacyTitle": "プライバシー",
     "privacy": "Cookieなし、トラッキングなし、解析なし。このゲームはセッションと設定（テーマ・言語・サウンド）のみをお使いの端末に保存し、すべてのフォントはこのサイトから配信されます。あなたのデータが第三者に送信されることはありません。"
   },

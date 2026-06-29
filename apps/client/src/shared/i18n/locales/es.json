@@ -104,10 +104,8 @@
   "about": {
     "title": "Acerca de",
     "description": "Ludo 2 es una implementación multijugador en tiempo real del clásico juego de mesa Parchís, para 4 a 8 jugadores.",
-    "detailsTitle": "Detalles",
     "versionLabel": "Versión",
-    "builtWithLabel": "Construido con",
-    "builtWith": "Vue 3, Vite, Tailwind CSS y Bun.",
+    "developerLabel": "Desarrollador",
     "privacyTitle": "Privacidad",
     "privacy": "Sin cookies, sin rastreo, sin analíticas. El juego solo guarda tu sesión y tus preferencias (tema, idioma, sonido) en tu dispositivo, y todas las fuentes se sirven desde este sitio: tus datos nunca se envían a terceros."
   },
