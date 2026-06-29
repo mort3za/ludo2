@@ -1,27 +1,59 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <style>
-    .top   { fill: #3a4d30; }
-    .right { fill: #28361f; }
-    .left  { fill: #16230f; }
-    .pip   { fill: #f3f6ec; }
-    @media (prefers-color-scheme: dark) {
-      .top   { fill: #ffffff; }
-      .right { fill: #e0e5d5; }
-      .left  { fill: #c5ccb6; }
-      .pip   { fill: #16230f; }
-    }
-  </style>
-  <!-- isometric cube: top rhombus + left & right parallelograms -->
-  <polygon class="left"  points="4,11 16,18 16,30 4,23" />
-  <polygon class="right" points="16,18 28,11 28,23 16,30" />
-  <polygon class="top"   points="16,4 28,11 16,18 4,11" />
-  <!-- top face: 1 pip -->
-  <circle class="pip" cx="16" cy="11" r="1.6" />
-  <!-- left face: 2 pips -->
-  <circle class="pip" cx="7.36" cy="16.32" r="1.5" />
-  <circle class="pip" cx="12.64" cy="24.68" r="1.5" />
-  <!-- right face: 3 pips -->
-  <circle class="pip" cx="19" cy="19.25" r="1.5" />
-  <circle class="pip" cx="22" cy="20.5" r="1.5" />
-  <circle class="pip" cx="25" cy="21.75" r="1.5" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <style>
+      @media (prefers-color-scheme: dark) {
+        svg { filter: brightness(1.55) saturate(1.1); }
+      }
+    </style>
+
+    <!-- Soft drop shadow -->
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4.8" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+
+    <!-- Top face: bright green, lit from upper-left -->
+    <linearGradient id="gT" x1="32" y1="20" x2="100" y2="68" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#82CC58"/>
+      <stop offset="100%" stop-color="#3B6E24"/>
+    </linearGradient>
+
+    <!-- Left face: deep shadow side -->
+    <linearGradient id="gL" x1="16" y1="48" x2="60" y2="116" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#2C531C"/>
+      <stop offset="100%" stop-color="#12240A"/>
+    </linearGradient>
+
+    <!-- Right face: mid-lit side -->
+    <linearGradient id="gR" x1="72" y1="44" x2="112" y2="108" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#4A8030"/>
+      <stop offset="100%" stop-color="#274D18"/>
+    </linearGradient>
+
+    <!-- Specular gloss: teardrop highlight on top face -->
+    <radialGradient id="gl" cx="46" cy="30" r="42" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#fff" stop-opacity="0.55"/>
+      <stop offset="50%"  stop-color="#fff" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Die body -->
+  <g filter="url(#sh)">
+    <polygon fill="url(#gL)" points="16,44 64,72 64,120 16,92"/>
+    <polygon fill="url(#gR)" points="64,72 112,44 112,92 64,120"/>
+    <polygon fill="url(#gT)" points="64,16 112,44 64,72 16,44"/>
+    <!-- Gloss sheen on top face -->
+    <polygon fill="url(#gl)" points="64,16 112,44 64,72 16,44"/>
+  </g>
+
+  <!-- Pips: crisp white circles -->
+  <!-- Top face: 1 pip -->
+  <circle fill="#fff" fill-opacity="0.96" cx="64"   cy="44"   r="6.2"/>
+  <!-- Left face: 2 pips -->
+  <circle fill="#fff" fill-opacity="0.88" cx="29.6" cy="66"   r="5.8"/>
+  <circle fill="#fff" fill-opacity="0.88" cx="50.4" cy="98"   r="5.8"/>
+  <!-- Right face: 3 pips -->
+  <circle fill="#fff" fill-opacity="0.88" cx="78"   cy="76.8" r="5.8"/>
+  <circle fill="#fff" fill-opacity="0.88" cx="88"   cy="82.4" r="5.8"/>
+  <circle fill="#fff" fill-opacity="0.88" cx="98"   cy="88"   r="5.8"/>
 </svg>
