@@ -84,8 +84,8 @@ const {
       playSound(msg.standings[0] === mySeat.value ? "win" : "gameOver");
       if (gameState.value) {
         gameResultStore.setResult(gameState.value);
+        vueRouter.push({ name: "post-game", params: { roomId: props.roomId } });
       }
-      vueRouter.push({ name: "post-game", params: { roomId: props.roomId } });
     }
   },
   () => playSound("tokenStep"),
@@ -298,7 +298,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <main class="min-h-screen flex flex-col items-center p-2 sm:p-4">
+  <main class="flex-1 flex flex-col items-center p-2 sm:p-4">
     <CaptureToast :color="capturedColor" />
 
     <ReconnectBanner v-if="ws" :status="ws.status.value" />

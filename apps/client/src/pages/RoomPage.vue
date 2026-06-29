@@ -148,7 +148,7 @@ const canAddBot = computed(
 </script>
 
 <template>
-  <main class="flex items-center justify-center">
+  <main class="flex-1 flex items-center justify-center py-4">
     <ReconnectBanner v-if="ws" :status="ws.status.value" />
 
     <DCard v-if="connecting && !joined" class="p-8 w-full max-w-sm">

@@ -41,7 +41,7 @@ onMounted(() => {
   if (!session.token) return;
   ws = createWsConnection(props.roomId, session.token);
   ws.onMessage((msg) => {
-    if (msg.type === "state") {
+    if (msg.type === "state" && msg.state.status !== "finished") {
       router.push({ name: "match", params: { roomId: props.roomId } });
     }
   });
@@ -53,7 +53,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <main class="min-h-screen flex flex-col items-center justify-center p-4">
+  <main class="flex-1 flex flex-col items-center justify-center p-4">
     <PostGameStandings
       v-if="gameResult.state"
       :state="gameResult.state"
