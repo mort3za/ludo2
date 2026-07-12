@@ -259,7 +259,7 @@ function onMove(tokenId: string) {
 
 // Dev-only: jump the live game to a named test scenario (see server debug-scenarios.ts).
 const isDev = import.meta.env.DEV;
-const debugScenarios = ["home-stretch", "home-jump", "move-over-opponents"];
+const debugScenarios = ["home-stretch", "home-jump", "move-over-opponents", "win-now"];
 function onDebugScenario(scenario: string) {
   ws?.send({ type: "debug_set_state", scenario });
 }

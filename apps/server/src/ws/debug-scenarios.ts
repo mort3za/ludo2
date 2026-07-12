@@ -188,11 +188,57 @@ const moveOverOpponents: DebugScenario = (state, requesterSeat) => {
   };
 };
 
+/**
+ * End-game repro: the requester is one legal move from winning outright, so
+ * completing it drives the finished → post-game flow (used to test the post-game
+ * screen and rematch). Three of the requester's tokens already sit in the home
+ * column (H2..H4); the fourth waits on the home-entry square so the forced roll
+ * of 1 lands it on the last empty home cell (H1), completing the set.
+ *
+ * Every other active seat is vacated so the requester is the sole survivor: their
+ * finishing move ends the whole game with them as the winner (standings[0]). In
+ * real Ludo a lone finisher doesn't end a multi-player game — play continues
+ * until only one seat remains — so this collapses it to a one-move win purely for
+ * testing, regardless of how many bots are in the game.
+ */
+const winNow: DebugScenario = (state, requesterSeat) => {
+  const seat = state.seats.find((s) => s.index === requesterSeat);
+  if (!seat) return state;
+
+  const S = state.seats.length;
+  const entryParsed = parseCell(entrySquare(requesterSeat, S));
+  const entryIdx = entryParsed.kind === "track" ? entryParsed.index : 0;
+
+  const others = state.tokens.filter((t) => t.color !== seat.color);
+  const myTokens: Token[] = [
+    { id: `${requesterSeat}-1`, color: seat.color, cell: track(entryIdx) },
+    { id: `${requesterSeat}-2`, color: seat.color, cell: home(requesterSeat, 2) },
+    { id: `${requesterSeat}-3`, color: seat.color, cell: home(requesterSeat, 3) },
+    { id: `${requesterSeat}-4`, color: seat.color, cell: home(requesterSeat, 4) },
+  ];
+
+  const seats = state.seats.map((s) =>
+    s.state === "active" && s.index !== requesterSeat ? { ...s, state: "vacant" as const } : s,
+  );
+
+  return {
+    ...state,
+    seats,
+    tokens: [...others, ...myTokens],
+    standings: [],
+    activeSeat: requesterSeat,
+    status: "moving",
+    diceValue: 1,
+    consecutiveSixes: 0,
+  };
+};
+
 /** Registry of available dev scenarios, keyed by the name sent from the client. */
 export const DEBUG_SCENARIOS: Record<string, DebugScenario> = {
   "home-stretch": homeStretch,
   "home-jump": homeJump,
   "move-over-opponents": moveOverOpponents,
+  "win-now": winNow,
 };
 
 /** Apply a named scenario, or return `null` if the name is unknown. */

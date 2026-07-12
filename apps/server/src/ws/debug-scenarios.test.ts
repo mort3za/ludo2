@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { home, legalMoves } from "@ludo/shared";
 import { makeState, seat, tok } from "../test/make-state.js";
 import { applyDebugScenario } from "./debug-scenarios.js";
+import { createGameSession, handleMove } from "../rooms/game-session.js";
 
 describe("applyDebugScenario", () => {
   it("returns null for an unknown scenario", () => {
@@ -84,6 +85,52 @@ describe("applyDebugScenario", () => {
     it("pushes red one cell ahead of the approach token so it cannot trade hits", () => {
       const next = applyDebugScenario(base, "home-jump", 1)!;
       expect(next.tokens.filter((t) => t.color === "red")).toEqual([tok("2-1", "red", "T/1")]);
+    });
+  });
+
+  describe("win-now", () => {
+    const base = makeState({
+      seats: [seat(1, "blue"), seat(2, "red")],
+      tokens: [tok("2-1", "red", "T/5")],
+      activeSeat: 2,
+      status: "rolling",
+      diceValue: null,
+    });
+
+    it("sets the requester one move from finishing and forces a 1", () => {
+      const next = applyDebugScenario(base, "win-now", 1)!;
+      const homeCells = next.tokens
+        .filter((t) => t.color === "blue" && t.cell.startsWith("H/"))
+        .map((t) => t.cell)
+        .sort();
+      expect(homeCells).toEqual([home(1, 2), home(1, 3), home(1, 4)]);
+      expect(next.activeSeat).toBe(1);
+      expect(next.status).toBe("moving");
+      expect(next.diceValue).toBe(1);
+      expect(next.standings).toEqual([]);
+    });
+
+    it("vacates every other active seat so the requester is the sole survivor", () => {
+      const next = applyDebugScenario(base, "win-now", 1)!;
+      expect(next.seats.find((s) => s.index === 1)!.state).toBe("active");
+      expect(next.seats.find((s) => s.index === 2)!.state).toBe("vacant");
+    });
+
+    it("offers exactly one legal move — landing the last token home", () => {
+      const next = applyDebugScenario(base, "win-now", 1)!;
+      const blue = next.tokens.filter((t) => t.color === "blue");
+      const moves = legalMoves(blue, next.diceValue!, 1, next.seats.length, next.tokens);
+      expect(moves).toHaveLength(1);
+      expect(moves[0]!.to).toBe(home(1, 1));
+    });
+
+    it("finishes the game with the requester as the winner when the move is applied", () => {
+      const next = applyDebugScenario(base, "win-now", 1)!;
+      const session = createGameSession(next);
+      const msgs = handleMove(session, "1-1");
+      expect(session.state.status).toBe("finished");
+      expect(session.state.standings[0]).toBe(1);
+      expect(msgs.some((m) => m.type === "finished")).toBe(true);
     });
   });
 });
