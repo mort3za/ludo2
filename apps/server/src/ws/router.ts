@@ -148,6 +148,15 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
       if (room && room.phase === "playing") {
         rooms.set(roomId, endGame(room, Date.now()));
       }
+      // Snapshot the *final* state (standings/winner) before flagging the game
+      // completed, so the result can be served for the whole post-game window
+      // even after a server restart — not just from the ephemeral in-memory
+      // session. Ordering matters: the snapshot upsert marks the row "playing",
+      // then completeGame flips it to "completed".
+      const finishedRoom = rooms.get(roomId);
+      if (finishedRoom) {
+        deps.persistGame?.(roomId, session.state.gameId, serializeGame(finishedRoom, session));
+      }
       deps.completeGame?.(session.state.gameId);
       return;
     }

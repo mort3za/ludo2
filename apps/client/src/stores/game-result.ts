@@ -6,9 +6,9 @@ export const useGameResultStore = defineStore("gameResult", () => {
   const state = ref<GameState | null>(null);
   const endedAt = ref<number>(0);
 
-  function setResult(gameState: GameState) {
+  function setResult(gameState: GameState, endedAtMs: number = Date.now()) {
     state.value = gameState;
-    endedAt.value = Date.now();
+    endedAt.value = endedAtMs;
   }
 
   function clear() {

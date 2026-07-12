@@ -85,6 +85,7 @@
   "postgame": {
     "youWon": "You won!",
     "gameOver": "Game Over",
+    "loading": "Loading results…",
     "noData": "No game data available.",
     "rematch": "Rematch",
     "rematchExpired": "Rematch window expired",

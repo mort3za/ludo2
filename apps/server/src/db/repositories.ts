@@ -1,4 +1,4 @@
-import { eq, lt, and, isNotNull } from "drizzle-orm";
+import { eq, lt, and, isNotNull, desc } from "drizzle-orm";
 import { games, moveLog, players, rooms } from "./schema.js";
 import type { Db } from "./connection.js";
 import type { LogEntry } from "../game/snapshots/game-log.js";
@@ -82,6 +82,20 @@ export function saveGameSnapshot(db: Db, id: string, roomId: string, snapshot: s
     .insert(games)
     .values({ id, roomId, status: "playing", createdAt: now, snapshot })
     .onConflictDoUpdate({ target: games.id, set: { snapshot, status: "playing" } });
+}
+
+/**
+ * The most recently completed game for a room, if any — used to serve the
+ * post-game result (from its persisted snapshot) for the post-game window,
+ * independently of any live in-memory session.
+ */
+export function getLatestCompletedGame(db: Db, roomId: string) {
+  return db
+    .select()
+    .from(games)
+    .where(and(eq(games.roomId, roomId), eq(games.status, "completed")))
+    .orderBy(desc(games.completedAt))
+    .get();
 }
 
 /** Active games to restore on boot: those still flagged "playing" with a snapshot. */

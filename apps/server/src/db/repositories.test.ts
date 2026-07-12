@@ -11,6 +11,8 @@ import {
   insertGame,
   getGame,
   completeGame,
+  saveGameSnapshot,
+  getLatestCompletedGame,
   appendLogEntry,
   getGameLog,
   purgeOldGames,
@@ -126,6 +128,32 @@ describe("repositories", () => {
       const game = getGame(db, "game-1");
       expect(game!.status).toBe("completed");
       expect(game!.completedAt).toEqual(new Date(5000));
+    });
+
+    it("returns the latest completed game for a room, with its snapshot", () => {
+      saveGameSnapshot(db, "game-1", "room-1", '{"state":"one"}', new Date(1000)).run();
+      completeGame(db, "game-1", new Date(2000)).run();
+      saveGameSnapshot(db, "game-2", "room-1", '{"state":"two"}', new Date(3000)).run();
+      completeGame(db, "game-2", new Date(4000)).run();
+
+      const latest = getLatestCompletedGame(db, "room-1");
+      expect(latest!.id).toBe("game-2");
+      expect(latest!.snapshot).toBe('{"state":"two"}');
+      expect(latest!.completedAt).toEqual(new Date(4000));
+    });
+
+    it("ignores in-progress games when finding the latest completed one", () => {
+      saveGameSnapshot(db, "done", "room-1", "{}", new Date(1000)).run();
+      completeGame(db, "done", new Date(2000)).run();
+      saveGameSnapshot(db, "playing", "room-1", "{}", new Date(3000)).run();
+
+      const latest = getLatestCompletedGame(db, "room-1");
+      expect(latest!.id).toBe("done");
+    });
+
+    it("returns undefined when a room has no completed game", () => {
+      insertGame(db, "active", "room-1", new Date(1000)).run();
+      expect(getLatestCompletedGame(db, "room-1")).toBeUndefined();
     });
   });
 

@@ -420,6 +420,25 @@ describe("WS router", () => {
       expect(room.gameEndedAt).not.toBeNull();
     });
 
+    it("persists the final (finished) snapshot so the result survives a restart", () => {
+      const { router, c1, persistGame } = setupWithDeps();
+      router.dispatch(c1, { type: "start" });
+      const session = router.getGameSession("room-1")!;
+      const gameId = session.state.gameId;
+      persistGame.mockClear();
+      session.state.activeSeat = session.state.seats.find((s) => s.playerId === "p1")!.index;
+      session.state.status = "finished";
+      session.state.standings = [session.state.activeSeat];
+      router.dispatch(c1, { type: "roll" });
+
+      // The last snapshot written carries the finished state (with standings),
+      // not the pre-final-move state, so it can be served for the post-game window.
+      expect(persistGame).toHaveBeenCalledWith("room-1", gameId, expect.any(String));
+      const lastCall = persistGame.mock.calls.at(-1)!;
+      const snapshot = JSON.parse(lastCall[2] as string) as { state: { status: string } };
+      expect(snapshot.state.status).toBe("finished");
+    });
+
     it("restoreSession re-registers a game so it can be played", () => {
       const mockRng = { random: () => 0.5, rollDie: () => 3 };
       const room = makeLobbyRoom(["p1", "p2"]);

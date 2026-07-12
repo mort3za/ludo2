@@ -1,5 +1,6 @@
 import { apiConfig } from "@/shared/config/api";
 import { useSessionStore } from "@/stores/session";
+import type { GameState } from "@ludo/shared";
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const session = useSessionStore();
@@ -44,4 +45,11 @@ export function createRoom(bots = 0) {
 
 export function getGameHistory(gameId: string) {
   return request<{ entries: unknown[] }>(`/games/${encodeURIComponent(gameId)}/history`);
+}
+
+/** Fetch a finished game's final state (available for the post-game window). */
+export function getGameResult(roomId: string) {
+  return request<{ state: GameState; endedAt: number }>(
+    `/rooms/${encodeURIComponent(roomId)}/result`,
+  );
 }

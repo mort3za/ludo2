@@ -1,9 +1,9 @@
 import { sql } from "drizzle-orm";
-import { MAX_SEATS } from "@ludo/shared";
+import { MAX_SEATS, TIMINGS, type GameState } from "@ludo/shared";
 import type { GuestAuth } from "../auth/guest-auth.js";
 import type { Db } from "../db/connection.js";
 import { logger } from "../lib/logger.js";
-import { insertRoom, getGame, getGameLog } from "../db/repositories.js";
+import { insertRoom, getGame, getGameLog, getLatestCompletedGame } from "../db/repositories.js";
 
 // Simple in-memory token bucket for rate limiting
 interface TokenBucket {
@@ -172,6 +172,38 @@ export function createHttpHandler(deps: HttpDeps) {
       const rows = getGameLog(db, gameId);
       const entries = rows.map((r: { entry: unknown }) => r.entry);
       return logResponse(Response.json({ entries }));
+    }
+
+    // --- Post-game Result ---
+    // Serve a finished game's final state (standings) from its persisted
+    // snapshot for the post-game window. Reads only from the DB, so the result
+    // survives page refreshes, shared links, and server restarts — independent
+    // of any live in-memory session.
+    const resultMatch = url.pathname.match(/^\/rooms\/([^/]+)\/result$/);
+    if (resultMatch && method === "GET") {
+      const identity = await extractAuth(req, auth);
+      if (!identity) {
+        return logResponse(Response.json({ error: "unauthorized" }, { status: 401 }));
+      }
+      const roomId = resultMatch[1]!;
+      const game = getLatestCompletedGame(db, roomId);
+      if (!game || !game.snapshot || !game.completedAt) {
+        return logResponse(Response.json({ error: "not-found" }, { status: 404 }));
+      }
+      const endedAt = game.completedAt.getTime();
+      if (Date.now() - endedAt > TIMINGS.postGameWindow) {
+        return logResponse(Response.json({ error: "expired" }, { status: 410 }));
+      }
+      let state: GameState | undefined;
+      try {
+        state = (JSON.parse(game.snapshot) as { state?: GameState }).state;
+      } catch {
+        state = undefined;
+      }
+      if (!state || state.status !== "finished") {
+        return logResponse(Response.json({ error: "not-found" }, { status: 404 }));
+      }
+      return logResponse(Response.json({ state, endedAt }));
     }
 
     return logResponse(new Response("Not Found", { status: 404 }));

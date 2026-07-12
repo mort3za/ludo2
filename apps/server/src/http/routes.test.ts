@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { TIMINGS } from "@ludo/shared";
 import { createHttpHandler } from "./routes.js";
 import { createGuestAuth, type GuestAuth } from "../auth/guest-auth.js";
 import { createDb, applySchema, type Db } from "../db/connection.js";
-import { insertGame, appendLogEntry } from "../db/repositories.js";
+import { insertGame, appendLogEntry, saveGameSnapshot, completeGame } from "../db/repositories.js";
 
 describe("HTTP routes", () => {
   let auth: GuestAuth;
@@ -171,6 +172,57 @@ describe("HTTP routes", () => {
 
     it("rejects missing auth", async () => {
       const res = await handler(new Request("http://localhost/games/g1/history"));
+      expect(res.status).toBe(401);
+    });
+  });
+
+  // --- Post-game Result ---
+  describe("GET /rooms/:id/result", () => {
+    function seedFinishedGame(roomId: string, completedAt: Date) {
+      const snapshot = JSON.stringify({
+        state: { gameId: "g1", status: "finished", standings: [1, 2] },
+      });
+      saveGameSnapshot(db, "g1", roomId, snapshot, new Date(1000)).run();
+      completeGame(db, "g1", completedAt).run();
+    }
+
+    it("returns the finished state within the post-game window", async () => {
+      seedFinishedGame("room-1", new Date(Date.now() - 60_000));
+      const token = await auth.issue("p1");
+      const res = await handler(
+        new Request("http://localhost/rooms/room-1/result", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      );
+      expect(res.status).toBe(200);
+      const body = (await res.json()) as { state: { status: string; standings: number[] } };
+      expect(body.state.status).toBe("finished");
+      expect(body.state.standings).toEqual([1, 2]);
+    });
+
+    it("returns 410 once the post-game window has elapsed", async () => {
+      seedFinishedGame("room-1", new Date(Date.now() - TIMINGS.postGameWindow - 1000));
+      const token = await auth.issue("p1");
+      const res = await handler(
+        new Request("http://localhost/rooms/room-1/result", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      );
+      expect(res.status).toBe(410);
+    });
+
+    it("returns 404 when the room has no completed game", async () => {
+      const token = await auth.issue("p1");
+      const res = await handler(
+        new Request("http://localhost/rooms/ghost/result", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      );
+      expect(res.status).toBe(404);
+    });
+
+    it("rejects missing auth", async () => {
+      const res = await handler(new Request("http://localhost/rooms/room-1/result"));
       expect(res.status).toBe(401);
     });
   });
