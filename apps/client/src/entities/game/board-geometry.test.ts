@@ -114,4 +114,23 @@ describe("computeBoardLayout", () => {
     const home1 = layout.homes[0]!.find((c) => c.id === "H/1/1")!;
     expect(dist(entry1, home1), "Seat 1 S=6 entry to home is adjacent").toBeLessThanOrEqual(2.5);
   });
+
+  it("places N-seat start squares on the outer edge next to the yard, not the center", () => {
+    for (const S of [5, 6, 8]) {
+      const layout = computeBoardLayout(S);
+      const R = 1.5 / Math.sin(Math.PI / S);
+      const distFromCenter = (id: string) => {
+        const c = layout.track.find((cell) => cell.id === id)!;
+        return Math.sqrt(c.x ** 2 + c.y ** 2);
+      };
+      for (let si = 1; si <= S; si++) {
+        // Start square must sit on the arm's outer return column next to the yard,
+        // not the innermost cell (distance ~R) beside the center.
+        expect(
+          distFromCenter(startSquare(si, S)),
+          `S=${S} seat ${si} start square is on the outer edge`,
+        ).toBeGreaterThan(R + 2);
+      }
+    }
+  });
 });

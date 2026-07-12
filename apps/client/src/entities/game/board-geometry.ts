@@ -149,10 +149,16 @@ export function computeBoardLayout(S: number): BoardLayout {
   // Inner radius: circumradius of a regular S-gon with side 3
   const R = 1.5 / Math.sin(Math.PI / S);
   const ARM_ROWS = Math.floor(CELLS_PER_ARM / 2);
+  // Rotate logical track IDs so T/1 (each seat's start/safe square) lands on the
+  // outer cell of the arm's right/inward-returning column next to the yard — a full
+  // lap before its entry square at the arm tip — matching the 4-seat cross layout.
+  // Without this, T/1 sat on the innermost left-column cell beside the center.
+  const startOffset = ARM_ROWS + 1;
 
   const track: CellPos[] = [];
   const homes: CellPos[][] = [];
   const yards: CellPos[][] = [];
+  const flatTrack: Array<Pick<CellPos, "x" | "y">> = [];
 
   for (let a = 0; a < S; a++) {
     const seat = a + 1;
@@ -164,43 +170,44 @@ export function computeBoardLayout(S: number): BoardLayout {
     const px = -Math.sin(θ);
     const py = Math.cos(θ);
 
-    const armStart = a * CELLS_PER_ARM; // 0-indexed base for this arm
+    const armTrack: Array<Pick<CellPos, "x" | "y">> = [];
 
     // Track cells per arm: left column outward → tip → right column inward.
     // This ordering makes the last cell of each arm geometrically adjacent to
     // the first cell of the next arm, and produces a clockwise overall circuit.
 
-    // Left column going outward (-px side, cells 1–ARM_ROWS)
+    // Left column going outward (-px side)
     for (let row = 0; row < ARM_ROWS; row++) {
-      track.push({
+      armTrack.push({
         x: (R + row) * dx - px,
         y: (R + row) * dy - py,
-        id: `T/${armStart + row + 1}`,
       });
     }
 
     // Tip cell: center column, outermost row
-    track.push({
+    armTrack.push({
       x: (R + ARM_ROWS - 1) * dx,
       y: (R + ARM_ROWS - 1) * dy,
-      id: `T/${armStart + ARM_ROWS + 1}`,
     });
 
-    // Right column going inward (+px side, cells ARM_ROWS+2–CELLS_PER_ARM)
+    // Right column going inward (+px side)
     for (let row = ARM_ROWS - 1; row >= 0; row--) {
-      track.push({
+      armTrack.push({
         x: (R + row) * dx + px,
         y: (R + row) * dy + py,
-        id: `T/${armStart + ARM_ROWS + 2 + (ARM_ROWS - 1 - row)}`,
       });
     }
 
-    // Home column (4 cells going outward from center)
+    flatTrack.push(...armTrack);
+
+    // Home column: outer cell (adjacent to the arm tip / entry square) inward to
+    // the center, so the final home cell H/x/4 sits next to the central goal —
+    // matching the 4-seat cross layout.
     const homeCol: CellPos[] = [];
     for (let i = 0; i < HOME_COLUMN_LENGTH; i++) {
       homeCol.push({
-        x: (R + i) * dx,
-        y: (R + i) * dy,
+        x: (R + HOME_COLUMN_LENGTH - 1 - i) * dx,
+        y: (R + HOME_COLUMN_LENGTH - 1 - i) * dy,
         id: `H/${seat}/${i + 1}`,
         seatIndex: seat,
       });
@@ -226,6 +233,18 @@ export function computeBoardLayout(S: number): BoardLayout {
       });
     }
     yards.push(yardCells);
+  }
+
+  // Assign logical track IDs to the flat clockwise circuit, rotated by startOffset
+  // so each seat's start square sits next to its yard rather than the center.
+  const trackLen = S * CELLS_PER_ARM;
+  for (let i = 0; i < trackLen; i++) {
+    const pos = flatTrack[(i + startOffset) % trackLen]!;
+    track.push({
+      x: pos.x,
+      y: pos.y,
+      id: `T/${i + 1}`,
+    });
   }
 
   // Compute viewBox from extents
