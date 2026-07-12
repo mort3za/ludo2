@@ -1,12 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
-import { handleReconnect, type GameSession, type ReconnectResult } from "./reconnect.js";
-import {
-  createGameLog,
-  appendEntry,
-  type LogEntry,
-  type GameSnapshot,
-} from "../game/snapshots/game-log.js";
-import type { PlayerColor, Token } from "@ludo/shared";
+import { describe, it, expect } from "vitest";
+import { handleReconnect, type GameSession } from "./reconnect.js";
+import { createGameLog, appendEntry, type GameSnapshot } from "../game/snapshots/game-log.js";
+import type { PlayerColor } from "@ludo/shared";
 
 function makeSnapshot(overrides: Partial<GameSnapshot> = {}): GameSnapshot {
   return {

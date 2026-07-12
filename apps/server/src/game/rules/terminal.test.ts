@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { checkTerminal, type TerminalResult } from "./terminal.js";
+import { checkTerminal } from "./terminal.js";
 import type { Token, PlayerColor, SeatState } from "@ludo/shared";
 
 function makeToken(id: string, cell: string, color: PlayerColor): Token {

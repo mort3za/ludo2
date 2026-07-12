@@ -1,7 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
-import { SERVER_PORT } from "../packages/shared/src/constants/network.ts";
-
-const serverOrigin = `http://127.0.0.1:${SERVER_PORT}`;
+import { test } from "@playwright/test";
 
 /**
  * E2E tests for timeout, kick, and spectator scenarios.
@@ -17,19 +14,8 @@ const serverOrigin = `http://127.0.0.1:${SERVER_PORT}`;
  * and will be enabled when the server supports short timeout overrides.
  */
 
-async function registerGuest(page: Page) {
-  const res = await page.request.post(`${serverOrigin}/auth/guest`, {});
-  const body = (await res.json()) as { token: string; playerId: string };
-  await page.goto("/");
-  await page.evaluate(({ token, playerId }) => {
-    localStorage.setItem("ludo_token", token);
-    localStorage.setItem("ludo_player", playerId);
-  }, body);
-  return body;
-}
-
 test.describe("timeout, kick, spectator", () => {
-  test.skip("player is kicked after 3 missed turns", async ({ browser }) => {
+  test.skip("player is kicked after 3 missed turns", async () => {
     // This test requires configurable short turn timeouts on the server.
     // When enabled:
     // 1. Create room with 2 players
@@ -40,14 +26,14 @@ test.describe("timeout, kick, spectator", () => {
     // 6. Remaining player continues
   });
 
-  test.skip("kicked player becomes spectator", async ({ browser }) => {
+  test.skip("kicked player becomes spectator", async () => {
     // When a player is kicked:
     // 1. They can still see the game state
     // 2. They cannot roll or make moves
     // 3. UI shows SpectatorBadge
   });
 
-  test.skip("timeout auto-rolls for inactive player", async ({ browser }) => {
+  test.skip("timeout auto-rolls for inactive player", async () => {
     // When turn timer expires:
     // 1. Server auto-rolls the dice
     // 2. If there are legal moves, server auto-picks (random or first)

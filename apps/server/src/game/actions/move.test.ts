@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { applyMove, type MoveResult } from "./move.js";
+import { applyMove } from "./move.js";
 import type { Token, PlayerColor } from "@ludo/shared";
 
 const S = 4;

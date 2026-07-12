@@ -1,8 +1,8 @@
-import type { GameState, ServerMessage, Token, Cell } from "@ludo/shared";
+import type { GameState, ServerMessage, Cell } from "@ludo/shared";
 import { DEFAULT_RULES, TIMINGS, parseCell, stepPath, startSquare } from "@ludo/shared";
 import { resolveRoll } from "../game/actions/roll.js";
 import { applyMove } from "../game/actions/move.js";
-import { legalMoves, type LegalMove } from "../game/validators/legal-moves.js";
+import { legalMoves } from "../game/validators/legal-moves.js";
 import { createCryptoRng, type Rng } from "../game/rng/rng.js";
 import { checkTerminal } from "../game/rules/terminal.js";
 import { updateStandings, isGameOver } from "../game/rules/standings.js";
@@ -313,7 +313,6 @@ export function handleTimeout(session: GameSession): ServerMessage[] {
       messages.push({ type: "kicked", seat: state.activeSeat });
 
       // Check terminal after kick
-      const activeCount = state.seats.filter((s) => s.state === "active").length;
       const remainingActive = state.seats.filter(
         (s) => s.state === "active" && !state.standings.includes(s.index),
       );

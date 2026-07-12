@@ -6,11 +6,9 @@ import {
   type LogEntry,
   type GameSnapshot,
 } from "./game-log.js";
-import { createSeededRng } from "../rng/rng.js";
 import { TOKENS_PER_PLAYER } from "@ludo/shared";
 import type { PlayerColor } from "@ludo/shared";
 
-const S = 4;
 const colors: PlayerColor[] = ["blue", "red", "green", "yellow"];
 
 function makeInitialSnapshot(): GameSnapshot {

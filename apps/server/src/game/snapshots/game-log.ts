@@ -1,5 +1,4 @@
 import type { Token, PlayerColor, SeatState, GameStatus } from "@ludo/shared";
-import { parseCell, yard } from "@ludo/shared";
 
 export interface SnapshotSeat {
   index: number;

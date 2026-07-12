@@ -59,8 +59,6 @@ describe("findBlocks", () => {
 });
 
 describe("isBlockedByOpponent", () => {
-  const S = 4;
-
   it("returns true when path passes through an opponent block", () => {
     // Moving blue from T/3, path includes T/4, T/5, T/6. Block at T/5 (red).
     const path = ["T/4", "T/5", "T/6"];

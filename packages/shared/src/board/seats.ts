@@ -5,7 +5,7 @@ import { track } from "./cell.js";
  * Start square for seat `si` in an `S`-seat game.
  * Formula: T/((si−1)×K+1)
  */
-export function startSquare(si: number, S: number): string {
+export function startSquare(si: number, _S: number): string {
   return track((si - 1) * CELLS_PER_ARM + 1);
 }
 

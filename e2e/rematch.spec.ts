@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test } from "@playwright/test";
 
 /**
  * E2E tests for rematch flow.
@@ -10,7 +10,7 @@ import { test, expect, type Page } from "@playwright/test";
  */
 
 test.describe("rematch", () => {
-  test.skip("rematch re-draws colors and re-seats players", async ({ browser }) => {
+  test.skip("rematch re-draws colors and re-seats players", async () => {
     // This test requires:
     // 1. A complete game (all tokens home, or all but one player kicked)
     // 2. Owner sends rematch within 60s window

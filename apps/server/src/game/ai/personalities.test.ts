@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { pickMove } from "./picker.js";
 import type { GameState, LegalMove, Token } from "@ludo/shared";
-import { makeState as buildState, tok as t, botDecisionState } from "../../test/make-state.js";
+import { makeState as buildState, tok as t } from "../../test/make-state.js";
 
 function makeState(tokens: Token[], activeSeat = 1, diceValue = 3): GameState {
   return buildState({ tokens, activeSeat, diceValue, status: "moving" });

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveRoll, type RollOutcome } from "./roll.js";
+import { resolveRoll } from "./roll.js";
 import { createSeededRng } from "../rng/rng.js";
 import { DEFAULT_RULES } from "@ludo/shared";
 

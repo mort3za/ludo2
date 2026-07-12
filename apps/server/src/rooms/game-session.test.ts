@@ -46,7 +46,7 @@ describe("handleMove — standings and finished", () => {
     });
 
     const session = createGameSession(state);
-    const msgs = handleMove(session, "1-4");
+    handleMove(session, "1-4");
 
     // Seat 1 should be in standings
     expect(session.state.standings).toContain(1);

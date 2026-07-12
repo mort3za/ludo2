@@ -1,19 +1,11 @@
 import { describe, it, expect } from "vitest";
-import {
-  autoPickToken,
-  handleMissedTurn,
-  applyKick,
-  type MissedTurnResult,
-  type KickResult,
-} from "./timeout.js";
+import { autoPickToken, handleMissedTurn, applyKick } from "./timeout.js";
 import type { Token, PlayerColor } from "@ludo/shared";
 import { TIMINGS } from "@ludo/shared";
 
 function makeToken(id: string, cell: string, color: PlayerColor): Token {
   return { id, color, cell };
 }
-
-const S = 4;
 
 describe("autoPickToken", () => {
   it("picks the lowest-numbered legal token by ID", () => {

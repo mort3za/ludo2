@@ -1,4 +1,4 @@
-import { CELLS_PER_ARM, HOME_COLUMN_LENGTH } from "../constants/board.js";
+import { HOME_COLUMN_LENGTH } from "../constants/board.js";
 import { parseCell } from "./cell.js";
 import { startSquare } from "./seats.js";
 

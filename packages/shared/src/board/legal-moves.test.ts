@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import { legalMoves } from "./legal-moves.js";
-import type { LegalMove } from "./legal-moves.js";
 import type { Token, PlayerColor } from "../index.js";
 
 const S = 4;

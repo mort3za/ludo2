@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createRouter, type WsClient, type RoomStore } from "./router.js";
-import type { ServerMessage, ClientMessage } from "@ludo/shared";
+import type { ServerMessage } from "@ludo/shared";
 import { createRoom, joinRoom, setReady, type Room } from "../rooms/room.js";
 import { initGame } from "../rooms/init-game.js";
 import { createGameSession } from "../rooms/game-session.js";

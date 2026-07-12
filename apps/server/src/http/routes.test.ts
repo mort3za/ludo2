@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { createHttpHandler, type HttpDeps } from "./routes.js";
+import { createHttpHandler } from "./routes.js";
 import { createGuestAuth, type GuestAuth } from "../auth/guest-auth.js";
 import { createDb, applySchema, type Db } from "../db/connection.js";
 import { insertGame, appendLogEntry } from "../db/repositories.js";

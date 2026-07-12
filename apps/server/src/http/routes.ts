@@ -3,7 +3,7 @@ import { MAX_SEATS } from "@ludo/shared";
 import type { GuestAuth } from "../auth/guest-auth.js";
 import type { Db } from "../db/connection.js";
 import { logger } from "../lib/logger.js";
-import { insertRoom, getRoom, getGame, getGameLog } from "../db/repositories.js";
+import { insertRoom, getGame, getGameLog } from "../db/repositories.js";
 
 // Simple in-memory token bucket for rate limiting
 interface TokenBucket {
@@ -80,7 +80,7 @@ export function createHttpHandler(deps: HttpDeps) {
         // Check DB connectivity with a simple query
         db.run(sql`SELECT 1`);
         return logResponse(Response.json({ ok: true }));
-      } catch (error) {
+      } catch {
         return logResponse(Response.json({ ok: false }, { status: 503 }));
       }
     }

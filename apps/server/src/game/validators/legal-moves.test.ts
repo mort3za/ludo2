@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { legalMoves, type LegalMove } from "./legal-moves.js";
+import { legalMoves } from "./legal-moves.js";
 import type { Token, PlayerColor } from "@ludo/shared";
 
 // Helper: 4-seat game (S=4, trackLen=44)
