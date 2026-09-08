@@ -39,102 +39,68 @@ function readMuted(): boolean {
 /** Shared mute state — one source of truth for the toggle and every play call. */
 const muted = ref(readMuted());
 
-/*
- * Playback goes through the Web Audio API, not one `<audio>` element per hit.
- * A media element is an expensive, platform-backed object: iOS Safari keeps
- * every one alive in its media-session registry, so cloning one per sound
- * leaked hundreds of them over a match and slowed the whole page to a crawl.
- * Here each file is decoded once into an `AudioBuffer` and each hit is a
- * throwaway source node, which overlaps natively and frees itself when done.
- */
-
-let context: AudioContext | null = null;
-const buffers = new Map<SoundName, AudioBuffer>();
-const pending = new Map<SoundName, Promise<AudioBuffer | null>>();
-/** One reusable output node per sound, so a hit allocates only its source. */
-const gains = new Map<SoundName, GainNode>();
-
 /**
- * Lazily create the shared context. iOS starts it suspended unless it was
- * created inside a user gesture, so the first real gesture resumes it — until
- * then source nodes play into a suspended graph and are simply inaudible.
+ * Playback reuses a small pool of `<audio>` elements per sound.
+ *
+ * Two constraints shape this. Cloning a fresh element per hit retains it
+ * forever — a match accumulated hundreds of live media elements, each a
+ * platform-backed media session, which is what made iPhones crawl after a few
+ * rounds. But the obvious alternative, Web Audio, is routed through iOS's
+ * ambient audio category and so is silenced by the ringer switch, whereas
+ * media-element playback is not. So: keep media elements, bound their number.
  */
-function getContext(): AudioContext | null {
-  if (context) return context;
-  if (typeof AudioContext === "undefined") return null;
+const POOL_LIMIT = 3;
 
-  context = new AudioContext();
-  const unlock = () => {
-    void context?.resume();
-    for (const type of ["pointerdown", "touchend", "keydown"]) {
-      globalThis.removeEventListener(type, unlock);
-    }
-  };
-  for (const type of ["pointerdown", "touchend", "keydown"]) {
-    globalThis.addEventListener(type, unlock);
-  }
-  return context;
+interface Pool {
+  els: HTMLAudioElement[];
+  /** Round-robin cursor, used only once the pool has reached its cap. */
+  next: number;
 }
 
-/** Fetch + decode one sound, once. Resolves to null if it can't be decoded. */
-function load(ctx: AudioContext, name: SoundName): Promise<AudioBuffer | null> {
-  let task = pending.get(name);
-  if (!task) {
-    task = fetch(SOUND_SRC[name])
-      .then((res) => res.arrayBuffer())
-      .then((data) => ctx.decodeAudioData(data))
-      .then((buffer) => {
-        buffers.set(name, buffer);
-        return buffer;
-      })
-      // A format this browser can't decode (Vorbis needs iOS 17+) — stay silent
-      // rather than retrying the fetch on every subsequent play.
-      .catch(() => null);
-    pending.set(name, task);
-  }
-  return task;
-}
+const pools = new Map<SoundName, Pool>();
 
-function gainFor(ctx: AudioContext, name: SoundName): GainNode {
-  let gain = gains.get(name);
-  if (!gain) {
-    gain = ctx.createGain();
-    gain.gain.value = VOLUME[name] ?? DEFAULT_VOLUME;
-    gain.connect(ctx.destination);
-    gains.set(name, gain);
-  }
-  return gain;
+function createElement(name: SoundName): HTMLAudioElement {
+  const el = new Audio(SOUND_SRC[name]);
+  el.preload = "auto";
+  el.volume = VOLUME[name] ?? DEFAULT_VOLUME;
+  return el;
 }
 
 /**
- * One hit. The source node is deliberately left without an `ended` listener:
- * the browser releases it once playback finishes and nothing references it, so
- * adding a handler just to disconnect would keep every hit (and its listener)
- * alive — the very thing this rewrite removes.
+ * An element to play `name` on. The pool grows only while hits genuinely
+ * overlap, so most sounds never own more than one element; rapid repeats like
+ * the per-cell step blip get up to `POOL_LIMIT` so they can still layer.
  */
-function emit(ctx: AudioContext, buffer: AudioBuffer, name: SoundName): void {
-  const source = ctx.createBufferSource();
-  source.buffer = buffer;
-  source.connect(gainFor(ctx, name));
-  source.start();
+function take(name: SoundName): HTMLAudioElement {
+  let pool = pools.get(name);
+  if (!pool) pools.set(name, (pool = { els: [], next: 0 }));
+
+  const idle = pool.els.find((el) => el.paused);
+  if (idle) return idle;
+
+  if (pool.els.length < POOL_LIMIT) {
+    const el = createElement(name);
+    pool.els.push(el);
+    return el;
+  }
+
+  // All of them are still playing — restart the least recently taken.
+  const el = pool.els[pool.next]!;
+  pool.next = (pool.next + 1) % pool.els.length;
+  return el;
 }
 
 /** Play a sound effect unless muted. No-op (and silent) if playback is blocked. */
 export function playSound(name: SoundName): void {
   if (muted.value) return;
-  const ctx = getContext();
-  if (!ctx) return;
-  if (ctx.state === "suspended") void ctx.resume();
-
-  const buffer = buffers.get(name);
-  if (buffer) {
-    emit(ctx, buffer, name);
-    return;
+  const el = take(name);
+  try {
+    el.currentTime = 0;
+  } catch {
+    /* not seekable until metadata arrives — it starts from 0 on its own */
   }
-  // First hit for this sound: decode, then play. Later hits are instant.
-  void load(ctx, name).then((decoded) => {
-    if (decoded && !muted.value) emit(ctx, decoded, name);
-  });
+  // Autoplay may reject without a prior user gesture in this document — ignore.
+  void el.play().catch(() => {});
 }
 
 export function useSound() {
