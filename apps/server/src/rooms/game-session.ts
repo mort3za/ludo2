@@ -48,8 +48,16 @@ export function createGameSession(state: GameState): GameSession {
 /** Max snapshots kept on the undo stack — bounds debug memory use. */
 const MAX_HISTORY = 100;
 
-/** Push a deep copy of the current state onto the undo stack. */
+/**
+ * Push a deep copy of the current state onto the undo stack.
+ *
+ * Dev-only, like the stack itself: the sole reader is the `debug_undo` handler,
+ * which is refused in production, so there the snapshots were written and never
+ * read. That is not free — this runs on every roll and every turn timeout, and
+ * each entry is a full clone of the game state held until the room dies.
+ */
 export function pushHistory(session: GameSession): void {
+  if (process.env["NODE_ENV"] === "production") return;
   session.history.push(structuredClone(session.state));
   if (session.history.length > MAX_HISTORY) session.history.shift();
 }
