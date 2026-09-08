@@ -2,6 +2,21 @@ import { apiConfig } from "@/shared/config/api";
 import { useSessionStore } from "@/stores/session";
 import type { GameState } from "@ludo/shared";
 
+/**
+ * A response the API refused. `status` lets callers separate a request the
+ * server actively rejected (4xx) from one it never answered properly (5xx,
+ * restarts), which need very different handling.
+ */
+export class ApiError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const session = useSessionStore();
   const headers = new Headers(options.headers);
@@ -15,7 +30,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${apiConfig.baseUrl}${path}`, { ...options, headers });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+    throw new ApiError(res.status, (body as { error?: string }).error ?? `HTTP ${res.status}`);
   }
   return res.json() as Promise<T>;
 }

@@ -4,7 +4,7 @@ import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { DButton, DCard } from "@/shared/ui";
 import { useSessionStore } from "@/stores/session";
-import { guestLogin, refreshToken } from "@/shared/api/client";
+import { ApiError, guestLogin, refreshToken } from "@/shared/api/client";
 import { createWsConnection, type WsConnection } from "@/shared/lib/ws";
 import { usePlayerName } from "@/shared/lib/use-player-name";
 import ReconnectBanner from "@/features/match/ReconnectBanner.vue";
@@ -103,13 +103,23 @@ async function restoreSession() {
   try {
     const auth = await refreshToken(session.token);
     session.login(auth.token, session.playerId);
-    connectWs();
-  } catch {
-    session.logout();
-    await joinAsGuest();
+  } catch (e) {
+    // Only a token the server actively rejects (401) is a dead identity. Every
+    // other failure — the server restarting during a deploy, a 5xx from the
+    // tunnel, a flaky network — is transient, and throwing the identity away
+    // there would rejoin a running match under a brand-new player id: the
+    // player loses their seat and lands in their own game as a spectator.
+    // The stored token stays valid for days, so keep it and let the WebSocket
+    // handshake be the judge.
+    if (e instanceof ApiError && e.status === 401) {
+      session.logout();
+      await joinAsGuest();
+      return;
+    }
   } finally {
     connecting.value = false;
   }
+  connectWs();
 }
 
 onMounted(() => {
