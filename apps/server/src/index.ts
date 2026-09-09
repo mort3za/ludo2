@@ -11,6 +11,7 @@ import {
 import { createRouter, type WsClient, type RoomStore } from "./ws/router.js";
 import { parseClientMessage } from "./ws/protocol.js";
 import { createHttpHandler } from "./http/routes.js";
+import { staticFileResponse } from "./http/static-files.js";
 import { createDb, applySchema } from "./db/connection.js";
 import {
   getRoom,
@@ -155,16 +156,23 @@ const server = Bun.serve<WsData>({
 
     // --- Static client (SPA) ---
     if (STATIC_ROOT && req.method === "GET" && !isApiPath(url.pathname)) {
+      const ifNoneMatch = req.headers.get("if-none-match");
       const rel = normalize(decodeURIComponent(url.pathname)).replace(/^(\.\.[/\\])+/, "");
       const candidate = resolve(STATIC_ROOT, "." + (rel.startsWith("/") ? rel : "/" + rel));
       if (candidate.startsWith(STATIC_ROOT) && !url.pathname.endsWith("/")) {
         const file = Bun.file(candidate);
-        if (await file.exists()) return new Response(file);
+        if (await file.exists()) return staticFileResponse(file, url.pathname, ifNoneMatch);
       }
-      // SPA fallback: serve index.html for client-side routes
-      return new Response(Bun.file(join(STATIC_ROOT, "index.html")), {
-        headers: { "content-type": "text/html; charset=utf-8" },
-      });
+      // SPA fallback: serve index.html for client-side routes. Its policy is
+      // index.html's, not the route's — always revalidated, so a release is
+      // picked up on the next navigation instead of being pinned by a cached
+      // copy pointing at the previous bundle.
+      return staticFileResponse(
+        Bun.file(join(STATIC_ROOT, "index.html")),
+        "/index.html",
+        ifNoneMatch,
+        { "content-type": "text/html; charset=utf-8" },
+      );
     }
 
     // Delegate all other HTTP requests to the handler
