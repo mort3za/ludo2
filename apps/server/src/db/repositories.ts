@@ -1,4 +1,4 @@
-import { eq, lt, and, isNotNull, desc } from "drizzle-orm";
+import { eq, lt, and, or, inArray, isNull, isNotNull, desc } from "drizzle-orm";
 import { games, moveLog, players, rooms } from "./schema.js";
 import type { Db } from "./connection.js";
 import type { LogEntry } from "../game/snapshots/game-log.js";
@@ -25,9 +25,14 @@ export function insertRoom(db: Db, id: string, boardSize: number, botCount: numb
     gameId: null,
     createdAt: now,
     gameEndedAt: null,
+    deletedAt: null,
   });
 }
 
+/**
+ * Fetch a room row, soft-deleted ones included — callers need to tell an expired
+ * link (row present, `deletedAt` set) apart from one that never existed.
+ */
 export function getRoom(db: Db, id: string) {
   return db.select().from(rooms).where(eq(rooms.id, id)).get();
 }
@@ -93,17 +98,21 @@ export function getLatestCompletedGame(db: Db, roomId: string) {
   return db
     .select()
     .from(games)
-    .where(and(eq(games.roomId, roomId), eq(games.status, "completed")))
+    .where(and(eq(games.roomId, roomId), eq(games.status, "completed"), isNull(games.deletedAt)))
     .orderBy(desc(games.completedAt))
     .get();
 }
 
-/** Active games to restore on boot: those still flagged "playing" with a snapshot. */
+/**
+ * Active games to restore on boot: those still flagged "playing" with a snapshot.
+ * Soft-deleted games are skipped — otherwise a game abandoned mid-play would be
+ * resurrected on every restart, outliving the match link it belongs to.
+ */
 export function getActiveGames(db: Db) {
   return db
     .select({ roomId: games.roomId, snapshot: games.snapshot })
     .from(games)
-    .where(eq(games.status, "playing"))
+    .where(and(eq(games.status, "playing"), isNull(games.deletedAt)))
     .all();
 }
 
@@ -123,14 +132,49 @@ export function getGameLog(db: Db, gameId: string) {
   return db.select().from(moveLog).where(eq(moveLog.gameId, gameId)).orderBy(moveLog.seq).all();
 }
 
-// --- Retention ---
+// --- Expiry (soft delete) ---
+
+/**
+ * Soft-delete every live room created before `cutoff` along with its games, and
+ * return the affected room ids so the caller can evict them from memory.
+ *
+ * Rows are marked, not removed: the id has to keep resolving so an expired link
+ * can be answered with "expired" rather than being silently recreated as a fresh
+ * lobby. The retention purge reclaims the rows for good later.
+ */
+export function softDeleteExpiredRooms(db: Db, cutoff: Date, now: Date): string[] {
+  const expired = db
+    .select({ id: rooms.id })
+    .from(rooms)
+    .where(and(isNull(rooms.deletedAt), lt(rooms.createdAt, cutoff)))
+    .all();
+  if (expired.length === 0) return [];
+
+  const ids = expired.map((r: { id: string }) => r.id);
+  db.update(rooms).set({ deletedAt: now }).where(inArray(rooms.id, ids)).run();
+  db.update(games)
+    .set({ deletedAt: now })
+    .where(and(isNull(games.deletedAt), inArray(games.roomId, ids)))
+    .run();
+
+  return ids;
+}
+
+// --- Retention (hard delete) ---
 
 export function purgeOldGames(db: Db, cutoff: Date) {
-  // Get games that completed before cutoff
+  // Games that finished — completed normally or soft-deleted with their room —
+  // before the cutoff. Their snapshots are the bulkiest rows we store, so they
+  // are reclaimed rather than kept indefinitely.
   const oldGames = db
     .select({ id: games.id })
     .from(games)
-    .where(and(isNotNull(games.completedAt), lt(games.completedAt, cutoff)))
+    .where(
+      or(
+        and(isNotNull(games.completedAt), lt(games.completedAt, cutoff)),
+        and(isNotNull(games.deletedAt), lt(games.deletedAt, cutoff)),
+      ),
+    )
     .all();
 
   for (const game of oldGames) {
@@ -139,4 +183,23 @@ export function purgeOldGames(db: Db, cutoff: Date) {
   }
 
   return oldGames.length;
+}
+
+/**
+ * Reclaim soft-deleted rooms that passed the retention cutoff. Their links then
+ * read as unknown rather than expired, which is accurate once the match is this
+ * far in the past — and it stops the table growing without bound.
+ */
+export function purgeSoftDeletedRooms(db: Db, cutoff: Date): number {
+  const stale = db
+    .select({ id: rooms.id })
+    .from(rooms)
+    .where(and(isNotNull(rooms.deletedAt), lt(rooms.deletedAt, cutoff)))
+    .all();
+
+  for (const room of stale) {
+    db.delete(rooms).where(eq(rooms.id, room.id)).run();
+  }
+
+  return stale.length;
 }

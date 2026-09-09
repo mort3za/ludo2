@@ -242,6 +242,16 @@ function onServerMessage(msg: ServerMessage) {
     vueRouter.push({ name: "room", params: { roomId: props.roomId } });
     return;
   }
+
+  // The match link ran out (or never existed). The room page owns that message,
+  // so hand off to it rather than duplicating the explanation here.
+  if (
+    msg.type === "error" &&
+    (msg.message === "room-expired" || msg.message === "room-not-found")
+  ) {
+    vueRouter.push({ name: "room", params: { roomId: props.roomId } });
+    return;
+  }
 }
 
 function onRoll() {

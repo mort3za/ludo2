@@ -9,6 +9,7 @@ import {
   endGame,
   requestRematch,
   isExpired,
+  isPastMatchLifetime,
   addBotMember,
   type Room,
   type RoomPhase,
@@ -343,6 +344,31 @@ describe("isExpired", () => {
     room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
     room = (startGame(room, "p1", "game-1") as { ok: true; room: Room }).room;
     expect(isExpired(room, 99999999999)).toBe(false);
+  });
+});
+
+describe("isPastMatchLifetime", () => {
+  it("is false within the lifetime", () => {
+    expect(isPastMatchLifetime(1000, 1000 + TIMINGS.matchLifetime - 1)).toBe(false);
+  });
+
+  it("is true once the lifetime elapses", () => {
+    expect(isPastMatchLifetime(1000, 1000 + TIMINGS.matchLifetime + 1)).toBe(true);
+  });
+
+  it("caps a room the phase windows never reclaim", () => {
+    // `isExpired` returns false for a "playing" room forever; the lifetime is
+    // the only thing that retires a game abandoned mid-turn.
+    let room = createRoom("room-1", S, 1000);
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
+    room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
+    room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
+    room = (startGame(room, "p1", "game-1") as { ok: true; room: Room }).room;
+
+    const later = 1000 + TIMINGS.matchLifetime + 1;
+    expect(isExpired(room, later)).toBe(false);
+    expect(isPastMatchLifetime(room.createdAt, later)).toBe(true);
   });
 });
 

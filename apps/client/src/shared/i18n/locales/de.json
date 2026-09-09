@@ -30,6 +30,9 @@
   },
   "room": {
     "joining": "Raum wird betreten…",
+    "expired": "Dieser Match-Link ist abgelaufen",
+    "notFound": "Dieser Match-Link ist ungültig",
+    "expiredHint": "Match-Links bleiben 24 Stunden spielbar. Starte ein neues Spiel, um wieder zu spielen.",
     "title": "Spiel einrichten",
     "sharePrompt": "Teile diesen Link, um Spieler einzuladen:",
     "roomId": "Raum-ID:",

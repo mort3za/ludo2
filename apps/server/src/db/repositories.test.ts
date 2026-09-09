@@ -15,7 +15,10 @@ import {
   getLatestCompletedGame,
   appendLogEntry,
   getGameLog,
+  getActiveGames,
+  softDeleteExpiredRooms,
   purgeOldGames,
+  purgeSoftDeletedRooms,
 } from "./repositories.js";
 
 describe("repositories", () => {
@@ -182,6 +185,69 @@ describe("repositories", () => {
     });
   });
 
+  describe("match expiry (soft delete)", () => {
+    it("soft-deletes rooms created before the cutoff and returns their ids", () => {
+      insertRoom(db, "old-room", 4, 0, new Date(1000)).run();
+      insertRoom(db, "fresh-room", 4, 0, new Date(9000)).run();
+
+      const expired = softDeleteExpiredRooms(db, new Date(5000), new Date(9999));
+
+      expect(expired).toEqual(["old-room"]);
+      expect(getRoom(db, "old-room")!.deletedAt).toEqual(new Date(9999));
+      expect(getRoom(db, "fresh-room")!.deletedAt).toBeNull();
+    });
+
+    it("keeps the row so an expired link stays distinguishable from an unknown one", () => {
+      insertRoom(db, "old-room", 4, 0, new Date(1000)).run();
+      softDeleteExpiredRooms(db, new Date(5000), new Date(9999));
+
+      expect(getRoom(db, "old-room")).toBeDefined();
+      expect(getRoom(db, "never-existed")).toBeUndefined();
+    });
+
+    it("soft-deletes the games of an expired room", () => {
+      insertRoom(db, "old-room", 4, 0, new Date(1000)).run();
+      saveGameSnapshot(db, "game-1", "old-room", "{}", new Date(1000)).run();
+
+      softDeleteExpiredRooms(db, new Date(5000), new Date(9999));
+
+      expect(getGame(db, "game-1")!.deletedAt).toEqual(new Date(9999));
+    });
+
+    it("does not restore a soft-deleted game on boot", () => {
+      insertRoom(db, "old-room", 4, 0, new Date(1000)).run();
+      saveGameSnapshot(db, "abandoned", "old-room", "{}", new Date(1000)).run();
+      expect(getActiveGames(db)).toHaveLength(1);
+
+      softDeleteExpiredRooms(db, new Date(5000), new Date(9999));
+
+      expect(getActiveGames(db)).toEqual([]);
+    });
+
+    it("hides a soft-deleted game from the post-game result lookup", () => {
+      insertRoom(db, "old-room", 4, 0, new Date(1000)).run();
+      saveGameSnapshot(db, "game-1", "old-room", "{}", new Date(1000)).run();
+      completeGame(db, "game-1", new Date(2000)).run();
+
+      softDeleteExpiredRooms(db, new Date(5000), new Date(9999));
+
+      expect(getLatestCompletedGame(db, "old-room")).toBeUndefined();
+    });
+
+    it("is idempotent — an already-deleted room is not swept twice", () => {
+      insertRoom(db, "old-room", 4, 0, new Date(1000)).run();
+      softDeleteExpiredRooms(db, new Date(5000), new Date(9999));
+
+      expect(softDeleteExpiredRooms(db, new Date(5000), new Date(20000))).toEqual([]);
+      expect(getRoom(db, "old-room")!.deletedAt).toEqual(new Date(9999));
+    });
+
+    it("returns an empty list when nothing has expired", () => {
+      insertRoom(db, "fresh-room", 4, 0, new Date(9000)).run();
+      expect(softDeleteExpiredRooms(db, new Date(5000), new Date(9999))).toEqual([]);
+    });
+  });
+
   describe("retention", () => {
     it("purges games completed before cutoff", () => {
       insertGame(db, "old-game", "room-1", new Date(1000)).run();
@@ -209,6 +275,34 @@ describe("repositories", () => {
       const purged = purgeOldGames(db, new Date(99999));
       expect(purged).toBe(0);
       expect(getGame(db, "active-game")).toBeDefined();
+    });
+
+    it("purges soft-deleted games that never completed", () => {
+      insertRoom(db, "old-room", 4, 0, new Date(1000)).run();
+      saveGameSnapshot(db, "abandoned", "old-room", "{}", new Date(1000)).run();
+      appendLogEntry(db, "abandoned", 0, { type: "roll", seat: 1, value: 3 }).run();
+      softDeleteExpiredRooms(db, new Date(2000), new Date(3000));
+
+      expect(purgeOldGames(db, new Date(5000))).toBe(1);
+      expect(getGame(db, "abandoned")).toBeUndefined();
+      expect(getGameLog(db, "abandoned")).toEqual([]);
+    });
+
+    it("purges rooms soft-deleted before the cutoff only", () => {
+      insertRoom(db, "long-gone", 4, 0, new Date(1000)).run();
+      softDeleteExpiredRooms(db, new Date(2000), new Date(3000));
+      insertRoom(db, "recently-expired", 4, 0, new Date(4000)).run();
+      softDeleteExpiredRooms(db, new Date(5000), new Date(8000));
+
+      expect(purgeSoftDeletedRooms(db, new Date(6000))).toBe(1);
+      expect(getRoom(db, "long-gone")).toBeUndefined();
+      expect(getRoom(db, "recently-expired")).toBeDefined();
+    });
+
+    it("does not purge live rooms", () => {
+      insertRoom(db, "live-room", 4, 0, new Date(1000)).run();
+      expect(purgeSoftDeletedRooms(db, new Date(99999))).toBe(0);
+      expect(getRoom(db, "live-room")).toBeDefined();
     });
   });
 });

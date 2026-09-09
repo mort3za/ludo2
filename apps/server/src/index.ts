@@ -5,6 +5,7 @@ import {
   joinAsSpectator,
   addBotMember,
   isExpired,
+  isPastMatchLifetime,
   type Room,
 } from "./rooms/room.js";
 import { createRouter, type WsClient, type RoomStore } from "./ws/router.js";
@@ -14,6 +15,8 @@ import { createDb, applySchema } from "./db/connection.js";
 import {
   getRoom,
   purgeOldGames,
+  purgeSoftDeletedRooms,
+  softDeleteExpiredRooms,
   updateRoomOptions,
   saveGameSnapshot,
   completeGame,
@@ -21,7 +24,7 @@ import {
   getActiveGames,
 } from "./db/repositories.js";
 import { deserializeGame } from "./rooms/game-persistence.js";
-import { SERVER_PORT, TIMINGS, MAX_SEATS, type ServerMessage } from "@ludo/shared";
+import { SERVER_PORT, TIMINGS, type ServerMessage } from "@ludo/shared";
 import { logger } from "./lib/logger.js";
 import type { ServerWebSocket } from "bun";
 import { join, resolve, normalize } from "node:path";
@@ -30,8 +33,6 @@ import { join, resolve, normalize } from "node:path";
 const PORT = Number(process.env["PORT"] ?? SERVER_PORT);
 const DEFAULT_JWT_SECRET = "dev-secret-change-in-production-32ch";
 const JWT_SECRET = process.env["JWT_SECRET"] ?? DEFAULT_JWT_SECRET;
-// Lobby capacity; the rendered board size is derived from the actual players at game start.
-const ROOM_CAPACITY = MAX_SEATS;
 
 // Optional: serve the built client (SPA) so the server is the single origin.
 // Unset in dev (Vite serves the client); set to the client dist dir in production.
@@ -62,6 +63,38 @@ const router = createRouter(rooms, {
     saveGameSnapshot(db, gameId, roomId, snapshot, new Date()).run(),
   completeGame: (gameId) => completeGame(db, gameId, new Date()).run(),
 });
+
+/**
+ * Enforce the absolute match lifetime: soft-delete rooms (and their games) whose
+ * link has outlived TIMINGS.matchLifetime, then evict them from memory so their
+ * turn timers and bot schedules stop.
+ *
+ * This is what makes a shared link actually stop working. The phase-window sweep
+ * below can't do it: it only reclaims idle lobbies and elapsed post-game windows,
+ * and never a "playing" room — so a game abandoned mid-turn would otherwise live
+ * in memory (and be restored from its snapshot on every boot) forever.
+ */
+function sweepExpiredMatches(now: number): void {
+  const expiredIds = softDeleteExpiredRooms(
+    db,
+    new Date(now - TIMINGS.matchLifetime),
+    new Date(now),
+  );
+  for (const roomId of expiredIds) {
+    if (!rooms.has(roomId)) continue;
+    // Tell anyone still connected why the room vanished, before it does.
+    router.broadcast(roomId, { type: "error", message: "room-expired" });
+    rooms.delete(roomId);
+    router.forgetRoom(roomId);
+  }
+  if (expiredIds.length > 0) {
+    logger.info("Expired matches past their lifetime", { count: expiredIds.length });
+  }
+}
+
+// Retire stale matches before restoring anything, so an expired room can never
+// come back from a snapshot written before its link ran out.
+sweepExpiredMatches(Date.now());
 
 // Restore games that were in progress before a restart so players can resume
 // where they left off (requires a file-backed DB_PATH; :memory: starts empty).
@@ -144,23 +177,35 @@ const server = Bun.serve<WsData>({
       // Track this connection for graceful shutdown
       wsConnections.add(ws);
 
-      // Ensure room exists in memory; read config from DB if persisted there.
+      // A match link only resolves while its room is live. Without this check a
+      // socket to /ws/<anything> would conjure a fresh lobby on the spot, so every
+      // URL — including ones that never existed, and ones long past their
+      // lifetime — behaved like a valid match forever.
+      const dbRoom = getRoom(db, roomId);
+      const unavailable = !dbRoom
+        ? "room-not-found"
+        : dbRoom.deletedAt !== null || isPastMatchLifetime(dbRoom.createdAt.getTime(), Date.now())
+          ? "room-expired"
+          : null;
+      if (unavailable) {
+        ws.send(JSON.stringify({ type: "error", message: unavailable } satisfies ServerMessage));
+        wsConnections.delete(ws);
+        ws.close();
+        return;
+      }
+
+      // Ensure room exists in memory, seeded from its persisted config.
       if (!rooms.has(roomId)) {
-        const dbRoom = getRoom(db, roomId);
-        const size = dbRoom?.boardSize ?? ROOM_CAPACITY;
-        const botCount = dbRoom?.botCount ?? 0;
-        let room: Room = createRoom(roomId, size, Date.now());
-        if (dbRoom) {
-          // Restore lobby-chosen options so they survive a server restart.
-          room.options = {
-            wallEnabled: dbRoom.wallEnabled,
-            autoMoveEnabled: dbRoom.autoMoveEnabled,
-            timerEnabled: dbRoom.timerEnabled,
-            startGuardEnabled: dbRoom.startGuardEnabled,
-            consecutiveSixLimitEnabled: dbRoom.consecutiveSixLimitEnabled,
-          };
-        }
-        for (let i = 0; i < botCount; i++) {
+        let room: Room = createRoom(roomId, dbRoom.boardSize, Date.now());
+        // Restore lobby-chosen options so they survive a server restart.
+        room.options = {
+          wallEnabled: dbRoom.wallEnabled,
+          autoMoveEnabled: dbRoom.autoMoveEnabled,
+          timerEnabled: dbRoom.timerEnabled,
+          startGuardEnabled: dbRoom.startGuardEnabled,
+          consecutiveSixLimitEnabled: dbRoom.consecutiveSixLimitEnabled,
+        };
+        for (let i = 0; i < dbRoom.botCount; i++) {
           const result = addBotMember(room);
           if (result.ok) room = result.room;
         }
@@ -253,13 +298,14 @@ const server = Bun.serve<WsData>({
 
 logger.info("Server started", { port: server.port });
 
-// Schedule daily game retention purge
+// Schedule daily retention purge: hard-delete what expiry already retired.
 const purgeIntervalMs = 24 * 60 * 60 * 1000; // 24 hours
 let purgeInterval = setInterval(() => {
   const cutoff = new Date(Date.now() - TIMINGS.gameRetention);
-  const result = purgeOldGames(db, cutoff);
-  if (result.changes > 0) {
-    logger.info("Purged old games", { count: result.changes });
+  const games = purgeOldGames(db, cutoff);
+  const purgedRooms = purgeSoftDeletedRooms(db, cutoff);
+  if (games > 0 || purgedRooms > 0) {
+    logger.info("Purged retired records", { games, rooms: purgedRooms });
   }
 }, purgeIntervalMs);
 
@@ -267,6 +313,11 @@ let purgeInterval = setInterval(() => {
 const expireIntervalMs = 60 * 1000; // 1 minute
 let expireInterval = setInterval(() => {
   const now = Date.now();
+
+  // Absolute lifetime first: it applies to every phase and ignores whether
+  // anyone is connected, so it also catches rooms the phase windows below skip.
+  sweepExpiredMatches(now);
+
   let expiredCount = 0;
   for (const [roomId, room] of rooms) {
     // A room is reclaimed only once everybody has left — i.e. no client is

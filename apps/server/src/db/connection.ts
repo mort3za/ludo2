@@ -62,7 +62,8 @@ export function applySchema(db: Db) {
     phase TEXT NOT NULL,
     game_id TEXT,
     created_at INTEGER NOT NULL,
-    game_ended_at INTEGER
+    game_ended_at INTEGER,
+    deleted_at INTEGER
   )`);
   // Migrate pre-existing file databases that lack the option columns.
   addColumnIfMissing(db, "rooms", "wall_enabled", "INTEGER NOT NULL DEFAULT 0");
@@ -70,16 +71,19 @@ export function applySchema(db: Db) {
   addColumnIfMissing(db, "rooms", "timer_enabled", "INTEGER NOT NULL DEFAULT 1");
   addColumnIfMissing(db, "rooms", "start_guard_enabled", "INTEGER NOT NULL DEFAULT 1");
   addColumnIfMissing(db, "rooms", "consecutive_six_limit_enabled", "INTEGER NOT NULL DEFAULT 0");
+  addColumnIfMissing(db, "rooms", "deleted_at", "INTEGER");
   db.run(sql`CREATE TABLE IF NOT EXISTS games (
     id TEXT PRIMARY KEY,
     room_id TEXT NOT NULL,
     status TEXT NOT NULL,
     created_at INTEGER NOT NULL,
     completed_at INTEGER,
-    snapshot TEXT
+    snapshot TEXT,
+    deleted_at INTEGER
   )`);
   // Migrate pre-existing file databases that lack the snapshot column.
   addColumnIfMissing(db, "games", "snapshot", "TEXT");
+  addColumnIfMissing(db, "games", "deleted_at", "INTEGER");
   db.run(sql`CREATE TABLE IF NOT EXISTS move_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     game_id TEXT NOT NULL,

@@ -312,3 +312,12 @@ export function isExpired(room: Room, now: number): boolean {
       return false;
   }
 }
+
+/**
+ * Whether a match link has outlived TIMINGS.matchLifetime. Unlike `isExpired`
+ * this ignores phase and connections: it is an absolute cap on how long a link
+ * stays shareable, and the only thing that reclaims a room abandoned mid-game.
+ */
+export function isPastMatchLifetime(createdAt: number, now: number): boolean {
+  return now > createdAt + TIMINGS.matchLifetime;
+}

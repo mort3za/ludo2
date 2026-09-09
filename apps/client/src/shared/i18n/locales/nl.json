@@ -30,6 +30,9 @@
   },
   "room": {
     "joining": "Bezig met deelnemen aan kamer…",
+    "expired": "Deze matchlink is verlopen",
+    "notFound": "Deze matchlink is niet geldig",
+    "expiredHint": "Matchlinks blijven 24 uur speelbaar. Start een nieuw spel om weer te spelen.",
     "title": "Spel instellen",
     "sharePrompt": "Deel deze link om spelers uit te nodigen:",
     "roomId": "Kamer-ID:",

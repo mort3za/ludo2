@@ -30,6 +30,9 @@
   },
   "room": {
     "joining": "Uniéndose a la sala…",
+    "expired": "Este enlace de partida ha caducado",
+    "notFound": "Este enlace de partida no es válido",
+    "expiredHint": "Los enlaces de partida duran 24 horas. Empieza una nueva partida para volver a jugar.",
     "title": "Configurar la partida",
     "sharePrompt": "Comparte este enlace para invitar jugadores:",
     "roomId": "ID de la sala:",

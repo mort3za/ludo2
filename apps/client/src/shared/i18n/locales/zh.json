@@ -30,6 +30,9 @@
   },
   "room": {
     "joining": "正在加入房间…",
+    "expired": "该对局链接已过期",
+    "notFound": "该对局链接无效",
+    "expiredHint": "对局链接可用 24 小时。开始新游戏即可再玩一局。",
     "title": "设置游戏",
     "sharePrompt": "分享此链接以邀请玩家：",
     "roomId": "房间 ID：",

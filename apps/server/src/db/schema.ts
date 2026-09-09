@@ -22,6 +22,10 @@ export const rooms = sqliteTable("rooms", {
   gameId: text("game_id"),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
   gameEndedAt: integer("game_ended_at", { mode: "timestamp_ms" }),
+  // Soft delete: set once the room outlives TIMINGS.matchLifetime. The row is
+  // kept so an expired link can be answered with "expired" instead of being
+  // silently recreated as a fresh lobby.
+  deletedAt: integer("deleted_at", { mode: "timestamp_ms" }),
 });
 
 export const games = sqliteTable("games", {
@@ -33,6 +37,10 @@ export const games = sqliteTable("games", {
   // Full in-progress game state (JSON) so a game survives a server restart.
   // Written on every state change; cleared when the game finishes.
   snapshot: text("snapshot"),
+  // Soft delete: set when the owning room is soft-deleted. Keeps an abandoned
+  // "playing" game from being restored on every boot, while the retention purge
+  // reclaims the row (and its bulky snapshot) later.
+  deletedAt: integer("deleted_at", { mode: "timestamp_ms" }),
 });
 
 export const moveLog = sqliteTable("move_log", {

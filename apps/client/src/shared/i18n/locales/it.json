@@ -30,6 +30,9 @@
   },
   "room": {
     "joining": "Accesso alla stanza…",
+    "expired": "Questo link della partita è scaduto",
+    "notFound": "Questo link della partita non è valido",
+    "expiredHint": "I link delle partite restano attivi per 24 ore. Inizia una nuova partita per giocare di nuovo.",
     "title": "Imposta la partita",
     "sharePrompt": "Condividi questo link per invitare i giocatori:",
     "roomId": "ID stanza:",

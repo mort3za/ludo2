@@ -30,6 +30,9 @@
   },
   "room": {
     "joining": "Odaya katılınıyor…",
+    "expired": "Bu maç bağlantısının süresi doldu",
+    "notFound": "Bu maç bağlantısı geçerli değil",
+    "expiredHint": "Maç bağlantıları 24 saat geçerlidir. Yeniden oynamak için yeni bir oyun başlatın.",
     "title": "Oyunu ayarla",
     "sharePrompt": "Oyuncuları davet etmek için bu bağlantıyı paylaş:",
     "roomId": "Oda kimliği:",

@@ -36,6 +36,9 @@
   },
   "room": {
     "joining": "Joining room…",
+    "expired": "This match link has expired",
+    "notFound": "This match link is not valid",
+    "expiredHint": "Match links stay playable for 24 hours. Start a new game to play again.",
     "title": "Setup the Game",
     "sharePrompt": "Share this link to invite players:",
     "roomId": "Room ID:",

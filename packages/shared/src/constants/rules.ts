@@ -26,5 +26,10 @@ export const TIMINGS = {
   // and rematch on the same link before it's reclaimed.
   postGameWindow: 15 * 60_000,
   idleRoomExpiry: 15 * 60_000,
+  // Absolute lifetime of a match link, measured from room creation. Once it
+  // elapses the room is soft-deleted and the link stops resolving, whatever
+  // phase it was in — the backstop for rooms the windows above never reclaim
+  // (a "playing" room is never idle-expired).
+  matchLifetime: 24 * 60 * 60_000,
   gameRetention: 24 * 60 * 60_000,
 } as const;

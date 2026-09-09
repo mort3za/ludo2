@@ -30,6 +30,9 @@
   },
   "room": {
     "joining": "Connexion à la salle…",
+    "expired": "Ce lien de partie a expiré",
+    "notFound": "Ce lien de partie n’est pas valide",
+    "expiredHint": "Les liens de partie restent actifs 24 heures. Lance une nouvelle partie pour rejouer.",
     "title": "Configurer la partie",
     "sharePrompt": "Partagez ce lien pour inviter des joueurs :",
     "roomId": "ID de la salle :",

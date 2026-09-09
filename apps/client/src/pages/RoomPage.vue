@@ -30,6 +30,8 @@ const gameStarted = ref(false);
 const joined = ref(false);
 const joinError = ref("");
 const connecting = ref(false);
+/** Set when the server says this link no longer resolves to a playable room. */
+const roomGone = ref<"expired" | "not-found" | null>(null);
 
 const myReady = computed(
   () => players.value.find((p) => p.playerId === session.playerId)?.ready ?? false,
@@ -64,6 +66,15 @@ function handleMessage(msg: ServerMessage) {
   } else if (msg.type === "state") {
     gameStarted.value = true;
     router.push({ name: "match", params: { roomId: props.roomId } });
+  } else if (
+    msg.type === "error" &&
+    (msg.message === "room-expired" || msg.message === "room-not-found")
+  ) {
+    // The link is past its lifetime or was never a room. Close the socket so the
+    // reconnect backoff doesn't retry a link that can never come back, and say
+    // what happened instead of leaving a "Joining…" spinner up.
+    roomGone.value = msg.message === "room-expired" ? "expired" : "not-found";
+    ws?.close();
   }
 }
 
@@ -159,9 +170,21 @@ const canAddBot = computed(
 
 <template>
   <main class="flex-1 flex items-center justify-center py-4">
-    <ReconnectBanner v-if="ws" :status="ws.status.value" />
+    <ReconnectBanner v-if="ws && !roomGone" :status="ws.status.value" />
 
-    <DCard v-if="connecting && !joined" class="p-8 w-full max-w-sm">
+    <DCard v-if="roomGone" class="p-8 w-full max-w-sm" data-testid="room-gone">
+      <p class="text-body-sm text-text-primary font-sans text-center mb-2">
+        {{ roomGone === "expired" ? t("room.expired") : t("room.notFound") }}
+      </p>
+      <p class="text-caption text-text-muted font-sans text-center mb-6">
+        {{ t("room.expiredHint") }}
+      </p>
+      <DButton class="w-full" data-testid="room-gone-play" @click="router.push({ name: 'home' })">
+        {{ t("common.play") }}
+      </DButton>
+    </DCard>
+
+    <DCard v-else-if="connecting && !joined" class="p-8 w-full max-w-sm">
       <p class="text-body-sm text-text-muted font-sans text-center">{{ t("room.joining") }}</p>
     </DCard>
 
