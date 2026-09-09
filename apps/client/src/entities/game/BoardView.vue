@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { computeBoardLayout, playerColorHex, type CellPos } from "./board-geometry";
-import { HOME_COLUMN_LENGTH, findBlocks, parseCell, startSquare } from "@ludo/shared";
+import { HOME_COLUMN_LENGTH, TIMINGS, findBlocks, parseCell, startSquare } from "@ludo/shared";
 import type { Seat, Token } from "@ludo/shared";
 
 const props = defineProps<{
@@ -163,7 +163,7 @@ const startSquareColors = computed(() => {
 <template>
   <svg
     :viewBox="layout.viewBox"
-    :style="{ transform: `rotate(${rotation}deg)` }"
+    :style="{ transform: `rotate(${rotation}deg)`, '--token-step-ms': `${TIMINGS.tokenStep}ms` }"
     class="bg-frost w-full h-full rounded-lg transition-transform duration-500"
     xmlns="http://www.w3.org/2000/svg"
   >
@@ -171,7 +171,7 @@ const startSquareColors = computed(() => {
       Static board layers (track, homes, yards, safe stars) depend only on
       board size and seat colors — never on token positions. Memoize the whole
       group so a token hop (which mutates token.cell and re-renders this
-      component every ~220ms) doesn't re-diff ~76 unchanging SVG nodes.
+      component once per token step) doesn't re-diff ~76 unchanging SVG nodes.
     -->
     <g v-memo="[boardSize, seatColorMap, rotation]">
       <!-- Track cells -->
@@ -301,9 +301,15 @@ const startSquareColors = computed(() => {
 </template>
 
 <style scoped>
-/* Token position transition — animates the GPU-composited transform only. */
+/*
+ * Token position transition — animates the GPU-composited transform only.
+ * Duration comes from TIMINGS.tokenStep (the same value that paces the step
+ * timers) and easing is linear: a multi-cell move is a chain of equal-length
+ * hops, so constant speed makes them read as one continuous glide instead of
+ * accelerating and braking once per cell.
+ */
 .token-pos {
-  transition: transform 300ms ease;
+  transition: transform var(--token-step-ms) linear;
 }
 
 /* Promote only the actively-moving token to its own layer, not all 16. */

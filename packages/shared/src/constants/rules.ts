@@ -20,6 +20,14 @@ export const TIMINGS = {
   diceReveal: 800,
   diceShow: 800,
   turnPass: 500,
+  /**
+   * Time a token spends travelling one cell. Single source of truth: it is
+   * both the delay between path steps and the CSS transition duration in
+   * BoardView, so consecutive hops chain seamlessly into one glide. If the
+   * transition were longer than the step delay, every hop would be cut off
+   * mid-flight and the token would visibly trail its real cell.
+   */
+  tokenStep: 220,
   turnTimeout: 30_000,
   kickAfterMisses: 3,
   // How long a finished game's room stays alive so players can view the result

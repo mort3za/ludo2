@@ -4,8 +4,8 @@ import { TIMINGS, DEFAULT_GAME_OPTIONS } from "@ludo/shared";
 import { useGameAnimation } from "./use-game-animation";
 
 const FIRST_STEP_DELAY_MS = 16;
-const STEP_INTERVAL_MS = 220;
-const TOKEN_TRANSITION_MS = 300;
+const STEP_INTERVAL_MS = TIMINGS.tokenStep;
+const TOKEN_TRANSITION_MS = TIMINGS.tokenStep;
 const TURN_PASS_MS = TIMINGS.turnPass;
 
 function makeState(overrides: Partial<GameState> = {}): GameState {

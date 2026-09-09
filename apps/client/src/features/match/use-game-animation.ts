@@ -61,9 +61,13 @@ export function useGameAnimation(
   const DICE_SHOW_MS = TIMINGS.diceShow;
   const TURN_PASS_MS = TIMINGS.turnPass;
 
-  /** Delay between per-cell steps. Must roughly match the BoardView token CSS transition. */
-  const STEP_INTERVAL_MS = 220;
-  const TOKEN_TRANSITION_MS = 300;
+  /**
+   * Delay between per-cell steps, and the duration of the BoardView token CSS
+   * transition — the same number by construction (see TIMINGS.tokenStep), so
+   * each hop lands exactly as the next one starts.
+   */
+  const STEP_INTERVAL_MS = TIMINGS.tokenStep;
+  const TOKEN_TRANSITION_MS = TIMINGS.tokenStep;
   /**
    * Hold the token at its current cell for one animation frame before the
    * first cell change. Without this, the DOM reorder from `stackingTokenId`
