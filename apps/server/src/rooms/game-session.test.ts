@@ -479,6 +479,8 @@ describe("turn timing", () => {
     const session = createGameSession(state);
     session.lastRollAt = Date.now();
 
+    // Move 400ms into the dice hold, so only the rest of it should be added.
+    const elapsedSinceRollMs = 400;
     vi.setSystemTime(new Date("2026-05-25T00:00:01.400Z"));
 
     const msgs = handleMove(session, "1-1");
@@ -486,7 +488,10 @@ describe("turn timing", () => {
 
     expect(turnMsg).toBeDefined();
     if (turnMsg && turnMsg.type === "turn") {
-      expect(turnMsg.deadline).toBe(Date.now() + TIMINGS.turnTimeout + 1200 + TIMINGS.turnPass);
+      const remainingHoldMs = TIMINGS.diceReveal + TIMINGS.diceShow - elapsedSinceRollMs;
+      expect(turnMsg.deadline).toBe(
+        Date.now() + TIMINGS.turnTimeout + remainingHoldMs + TIMINGS.turnPass,
+      );
     }
 
     vi.useRealTimers();

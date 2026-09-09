@@ -18,7 +18,12 @@ export const DEFAULT_RULES = {
 /** Timing defaults (milliseconds unless noted) */
 export const TIMINGS = {
   diceReveal: 800,
-  diceShow: 800,
+  /**
+   * Hold after the dice has already settled on its value. Pure dead time — no
+   * animation is attached to it — and it gates the "moved" message, so every
+   * extra millisecond here is a millisecond the token sits still after a roll.
+   */
+  diceShow: 300,
   turnPass: 500,
   /**
    * Time a token spends travelling one cell. Single source of truth: it is
@@ -27,7 +32,7 @@ export const TIMINGS = {
    * transition were longer than the step delay, every hop would be cut off
    * mid-flight and the token would visibly trail its real cell.
    */
-  tokenStep: 220,
+  tokenStep: 140,
   turnTimeout: 30_000,
   kickAfterMisses: 3,
   // How long a finished game's room stays alive so players can view the result
