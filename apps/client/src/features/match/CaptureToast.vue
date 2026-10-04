@@ -4,7 +4,8 @@ import { useI18n } from "vue-i18n";
 import type { PlayerColor } from "@ludo/shared";
 
 const props = defineProps<{
-  color?: PlayerColor;
+  /** A new object per capture, so the same color captured twice still re-shows. */
+  capture?: { color: PlayerColor };
 }>();
 
 const { t } = useI18n();
@@ -12,14 +13,14 @@ const { t } = useI18n();
 const isVisible = ref(false);
 let dismissTimer: ReturnType<typeof setTimeout> | null = null;
 
-const displayName = computed(() => (props.color ? t(`colors.${props.color}`) : ""));
+const displayName = computed(() => (props.capture ? t(`colors.${props.capture.color}`) : ""));
 
 watch(
-  () => props.color,
-  (newColor) => {
+  () => props.capture,
+  (newCapture) => {
     if (dismissTimer) clearTimeout(dismissTimer);
 
-    if (newColor) {
+    if (newCapture) {
       isVisible.value = true;
       dismissTimer = setTimeout(() => {
         isVisible.value = false;

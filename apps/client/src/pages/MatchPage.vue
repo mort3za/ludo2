@@ -23,7 +23,7 @@ const { t } = useI18n();
 const vueRouter = useRouter();
 const session = useSessionStore();
 const gameResultStore = useGameResultStore();
-const capturedColor = ref<PlayerColor | undefined>(undefined);
+const lastCapture = ref<{ color: PlayerColor } | undefined>(undefined);
 const seatConnectionState = ref<Map<number, boolean>>(new Map());
 const {
   gameState,
@@ -72,7 +72,7 @@ const {
     if (msg.type === "captured" && gameState.value) {
       const token = gameState.value.tokens.find((t) => t.id === msg.tokenId);
       if (token) {
-        capturedColor.value = token.color;
+        lastCapture.value = { color: token.color };
         // The attacker is the active player; they hear a victory cue, while
         // the captured player and everyone else hear the sad one.
         const isAttacker = mySeat.value !== null && mySeat.value === gameState.value.activeSeat;
@@ -309,7 +309,7 @@ onUnmounted(() => {
 
 <template>
   <main class="flex-1 flex flex-col items-center p-2 sm:p-4">
-    <CaptureToast :color="capturedColor" />
+    <CaptureToast :capture="lastCapture" />
 
     <ReconnectBanner v-if="ws" :status="ws.status.value" />
 
