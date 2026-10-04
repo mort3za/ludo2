@@ -56,6 +56,9 @@ function copyLink() {
 }
 
 let ws: WsConnection | null = null;
+// Set on unmount: the auth calls before connectWs() are awaited, and a socket
+// opened after the page is gone would never be closed.
+let unmounted = false;
 
 function handleMessage(msg: ServerMessage) {
   if (msg.type === "lobby") {
@@ -79,6 +82,7 @@ function handleMessage(msg: ServerMessage) {
 }
 
 function connectWs() {
+  if (unmounted) return;
   ws = createWsConnection(props.roomId, session.token!);
   ws.onMessage(handleMessage);
   joined.value = true;
@@ -138,6 +142,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  unmounted = true;
   ws?.close();
 });
 
