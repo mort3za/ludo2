@@ -443,15 +443,27 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
 
   function removeClient(client: WsClient): void {
     clients.delete(client);
-    // Mark as disconnected
+    // A player can briefly hold two sockets (a reconnect that opens before the
+    // old socket's close arrives, or a second tab) — they stay connected until
+    // their last socket closes.
+    if (hasOpenSocket(client.roomId, client.playerId)) return;
     const connected = connectedPlayers.get(client.roomId);
     if (connected) {
       connected.delete(client.playerId);
     }
   }
 
+  function hasOpenSocket(roomId: string, playerId: string): boolean {
+    for (const c of clients) {
+      if (c.roomId === roomId && c.playerId === playerId) return true;
+    }
+    return false;
+  }
+
   function handleClose(client: WsClient): void {
     removeClient(client);
+    // Still connected through another socket: nothing changed for the others.
+    if (hasOpenSocket(client.roomId, client.playerId)) return;
     const room = rooms.get(client.roomId);
     if (!room) return;
 

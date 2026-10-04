@@ -176,6 +176,43 @@ describe("WS router", () => {
     });
   });
 
+  describe("player with two sockets", () => {
+    it("stays connected while another socket of the same player is open", () => {
+      const room = makeLobbyRoom(["p1"]);
+      rooms.set("room-1", room);
+      const router = createRouter(rooms);
+      const oldSocket = makeMockClient("p1");
+      const newSocket = makeMockClient("p1");
+      router.addClient(oldSocket);
+      // Reconnect: the new socket opens before the server sees the old one close.
+      router.addClient(newSocket);
+
+      router.handleClose(oldSocket);
+
+      expect(router.hasConnectedPlayers("room-1")).toBe(true);
+    });
+
+    it("does not announce a seat as away when the player still has a live socket", () => {
+      let room = makeLobbyRoom(["p1", "p2"]);
+      room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
+      room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
+      rooms.set("room-1", room);
+      const router = createRouter(rooms);
+      const oldSocket = makeMockClient("p1");
+      const newSocket = makeMockClient("p1");
+      const c2 = makeMockClient("p2");
+      router.addClient(oldSocket);
+      router.addClient(c2);
+      router.dispatch(oldSocket, { type: "start" });
+      router.addClient(newSocket);
+
+      router.handleClose(oldSocket);
+
+      const sent = (c2.send as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[0]);
+      expect(sent.some((m) => m.type === "presence" && m.connected === false)).toBe(false);
+    });
+  });
+
   describe("getGameSession", () => {
     it("returns undefined when no game is active", () => {
       const room = makeLobbyRoom(["p1", "p2"]);
