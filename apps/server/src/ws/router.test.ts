@@ -506,6 +506,21 @@ describe("WS router", () => {
       expect(session.seatMisses.get(humanSeat)).toBe(1);
     });
 
+    it("lets the bot play after a human's turn times out", () => {
+      const { session, humanSeat } = startTimedGame("bot");
+      const botSeat = session.state.seats.find((s) => s.isBot)!.index;
+      // The bot's roll has no legal move (all tokens in the yard), so its turn
+      // passes straight back to the human.
+      session.forcedRolls.set(botSeat, 2);
+
+      vi.advanceTimersByTime(session.turnDeadline - Date.now() + 1);
+      expect(session.seatMisses.get(humanSeat)).toBe(1);
+      expect(session.state.activeSeat).toBe(botSeat);
+
+      vi.advanceTimersByTime(5_000);
+      expect(session.state.activeSeat).toBe(humanSeat);
+    });
+
     it("keeps one deadline for the whole turn: rolling does not restart it", () => {
       const { router, c1, session, humanSeat } = startTimedGame("human");
       const color = session.state.seats.find((s) => s.index === humanSeat)!.color;

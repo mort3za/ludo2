@@ -96,11 +96,8 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
           if (!session || (session.state.status as string) === "finished") return;
           const msgs = handleTimeout(session);
           for (const msg of msgs) broadcast(roomId, msg);
-          // If the game isn't finished, a new turn was emitted which schedules next timeout
-          if ((session.state.status as string) !== "finished") {
-            scheduleTurnTimeout(roomId);
-          }
-          persistOrCleanup(roomId, session);
+          // A new turn was emitted: arm its timer, or drive the bot that now has it.
+          scheduleOrClear(roomId, session);
         },
         Math.max(0, current.turnDeadline - Date.now()),
       ),
