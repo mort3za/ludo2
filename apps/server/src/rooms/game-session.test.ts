@@ -129,6 +129,41 @@ describe("handleMove — standings and finished", () => {
     expect(turnMsg).toBeDefined();
   });
 
+  it("passes the turn on when a seat finishes with a 6 (no bonus roll)", () => {
+    // 3-seat game: seat 1 finishes with a 6 — the bonus roll must not go to a
+    // seat that has no tokens left to move.
+    const seats: Seat[] = [
+      { index: 1, state: "active", color: "blue", playerId: "p1", isBot: false },
+      { index: 2, state: "active", color: "red", playerId: "p2", isBot: false },
+      { index: 3, state: "active", color: "green", playerId: "p3", isBot: false },
+    ];
+    const tokens: Token[] = [
+      homeToken(1, 1, "blue"),
+      homeToken(1, 2, "blue"),
+      homeToken(1, 3, "blue"),
+      // T/31 + 6 steps on a 33-cell track → T/32, T/33 (entry), H/1/1..H/1/4.
+      { id: "1-4", color: "blue", cell: "T/31" },
+      { id: "2-1", color: "red", cell: "Y/2/1" },
+      { id: "3-1", color: "green", cell: "Y/3/1" },
+    ];
+
+    const state = makeState({
+      seats,
+      tokens,
+      activeSeat: 1,
+      status: "moving",
+      diceValue: 6,
+      consecutiveSixes: 1,
+    });
+
+    const session = createGameSession(state);
+    const msgs = handleMove(session, "1-4");
+
+    expect(session.state.standings).toEqual([1]);
+    expect(session.state.activeSeat).toBe(2);
+    expect(msgs.find((m) => m.type === "turn")).toMatchObject({ seat: 2 });
+  });
+
   it("skips finished seats in turn advancement", () => {
     // 3-seat game, seat 1 already finished, seat 2 moves
     const seats: Seat[] = [

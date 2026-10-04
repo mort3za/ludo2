@@ -242,8 +242,12 @@ export function handleMove(session: GameSession, tokenId: string): ServerMessage
     return messages;
   }
 
-  // Check for extra turn (rolled a 6 and no forfeit)
-  const hadExtraTurn = state.diceValue === 6 && state.consecutiveSixes > 0;
+  // Check for extra turn (rolled a 6 and no forfeit). A seat that just finished
+  // has nothing left to move, so its bonus roll is dropped.
+  const hadExtraTurn =
+    state.diceValue === 6 &&
+    state.consecutiveSixes > 0 &&
+    !state.standings.includes(state.activeSeat);
   if (hadExtraTurn) {
     state.status = "rolling";
     state.diceValue = null;
