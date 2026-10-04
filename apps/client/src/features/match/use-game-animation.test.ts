@@ -34,6 +34,17 @@ describe("useGameAnimation", () => {
     vi.useRealTimers();
   });
 
+  it("removes a kicked seat's tokens and marks the seat vacant", () => {
+    const { gameState, handleMessage } = useGameAnimation();
+    handleMessage({ type: "state", state: makeState() });
+
+    handleMessage({ type: "kicked", seat: 2 });
+
+    // Mirrors the server's applyKick: every token of the kicked color is gone.
+    expect(gameState.value!.tokens.map((t) => t.id)).toEqual(["b1"]);
+    expect(gameState.value!.seats.find((s) => s.index === 2)!.state).toBe("vacant");
+  });
+
   it("bumps rollNonce only on real rolls — a reconnect resync never requests a spin", () => {
     const applied = vi.fn();
     const { lastRolledValue, rollNonce, handleMessage } = useGameAnimation(applied);

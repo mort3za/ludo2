@@ -314,11 +314,18 @@ export function useGameAnimation(
         emitAppliedMessage(msg);
         break;
 
-      case "kicked":
-        // Seat kicked — next "state" or "turn" will update
+      case "kicked": {
+        // Mirror the server's applyKick: the seat turns vacant and all of its
+        // tokens leave the board. No "state" follows, only the next "turn".
         clearStackingPriority();
+        const seat = gameState.value?.seats.find((s) => s.index === msg.seat);
+        if (gameState.value && seat) {
+          seat.state = "vacant";
+          gameState.value.tokens = gameState.value.tokens.filter((t) => t.color !== seat.color);
+        }
         emitAppliedMessage(msg);
         break;
+      }
 
       case "error":
         // Errors handled by caller
