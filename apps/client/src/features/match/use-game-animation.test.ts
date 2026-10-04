@@ -34,6 +34,16 @@ describe("useGameAnimation", () => {
     vi.useRealTimers();
   });
 
+  it("passes presence messages on to the page", () => {
+    const applied = vi.fn();
+    const { handleMessage } = useGameAnimation(applied);
+    handleMessage({ type: "state", state: makeState() });
+
+    handleMessage({ type: "presence", seat: 2, connected: false });
+
+    expect(applied).toHaveBeenLastCalledWith({ type: "presence", seat: 2, connected: false });
+  });
+
   it("removes a kicked seat's tokens and marks the seat vacant", () => {
     const { gameState, handleMessage } = useGameAnimation();
     handleMessage({ type: "state", state: makeState() });

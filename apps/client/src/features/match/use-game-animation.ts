@@ -337,6 +337,11 @@ export function useGameAnimation(
         clearStackingPriority();
         emitAppliedMessage(msg);
         break;
+
+      case "presence":
+        // No game-state change — the page tracks who is connected.
+        emitAppliedMessage(msg);
+        break;
     }
   }
 
