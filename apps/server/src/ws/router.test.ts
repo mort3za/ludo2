@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createRouter, type WsClient, type RoomStore } from "./router.js";
 import type { ServerMessage } from "@ludo/shared";
-import { createRoom, joinRoom, setReady, type Room } from "../rooms/room.js";
+import { addBotMember, createRoom, joinRoom, setReady, type Room } from "../rooms/room.js";
 import { initGame } from "../rooms/init-game.js";
 import { createGameSession } from "../rooms/game-session.js";
 
@@ -447,6 +447,86 @@ describe("WS router", () => {
       const router = createRouter(rooms);
       router.restoreSession("room-1", session);
       expect(router.getGameSession("room-1")).toBe(session);
+    });
+  });
+
+  describe("turn timer (production)", () => {
+    beforeEach(() => {
+      vi.stubEnv("NODE_ENV", "production");
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+      vi.unstubAllEnvs();
+    });
+
+    /** Start a timed game where human p1 plays against a bot or human p2. */
+    function startTimedGame(opponent: "bot" | "human") {
+      let room = makeLobbyRoom(opponent === "bot" ? ["p1"] : ["p1", "p2"]);
+      if (opponent === "bot") {
+        room = (addBotMember(room, () => "aggressor") as { ok: true; room: Room }).room;
+      }
+      for (const m of room.members.values()) {
+        if (m.kind === "human") {
+          room = (setReady(room, m.playerId, true) as { ok: true; room: Room }).room;
+        }
+      }
+      room = { ...room, options: { ...room.options, timerEnabled: true } };
+      rooms.set("room-1", room);
+      const router = createRouter(rooms);
+      const c1 = makeMockClient("p1");
+      router.addClient(c1);
+      router.dispatch(c1, { type: "start" });
+      const session = router.getGameSession("room-1")!;
+      const humanSeat = session.state.seats.find((s) => s.playerId === "p1")!.index;
+      expect(session.state.activeSeat).toBe(humanSeat);
+      return { router, c1, session, humanSeat };
+    }
+
+    it("gives the human the full shown clock after a bot turn", () => {
+      const { router, c1, session, humanSeat } = startTimedGame("bot");
+      const botSeat = session.state.seats.find((s) => s.isBot)!.index;
+      // No roll has a legal move (all tokens in the yard): human → bot → human.
+      session.forcedRolls.set(humanSeat, 3);
+      session.forcedRolls.set(botSeat, 2);
+      router.dispatch(c1, { type: "roll" });
+      expect(session.state.activeSeat).toBe(botSeat);
+
+      // Let the bot play its turn; the turn comes back to the human.
+      vi.advanceTimersByTime(5_000);
+      expect(session.state.activeSeat).toBe(humanSeat);
+
+      // Just before the deadline the human shows: no timeout yet.
+      vi.advanceTimersByTime(session.turnDeadline - Date.now() - 1);
+      expect(session.state.activeSeat).toBe(humanSeat);
+      expect(session.seatMisses.get(humanSeat) ?? 0).toBe(0);
+
+      // Once the deadline passes, the turn times out.
+      vi.advanceTimersByTime(2);
+      expect(session.seatMisses.get(humanSeat)).toBe(1);
+    });
+
+    it("keeps one deadline for the whole turn: rolling does not restart it", () => {
+      const { router, c1, session, humanSeat } = startTimedGame("human");
+      const color = session.state.seats.find((s) => s.index === humanSeat)!.color;
+      // Two track tokens → a roll of 3 leaves a choice, so the turn waits in "moving".
+      session.state.tokens = session.state.tokens.map((t, i) =>
+        t.color === color && i % 4 === 0 ? { ...t, cell: "T/5" } : t,
+      );
+      session.state.tokens = session.state.tokens.map((t, i) =>
+        t.color === color && i % 4 === 1 ? { ...t, cell: "T/8" } : t,
+      );
+      session.forcedRolls.set(humanSeat, 3);
+      const deadline = session.turnDeadline;
+
+      vi.advanceTimersByTime(20_000);
+      router.dispatch(c1, { type: "roll" });
+      expect(session.state.status).toBe("moving");
+
+      // The deadline shown to clients did not change, so the server must
+      // expire the turn at that same moment — not 30s after the roll.
+      vi.advanceTimersByTime(deadline - Date.now() + 1);
+      expect(session.seatMisses.get(humanSeat)).toBe(1);
     });
   });
 });

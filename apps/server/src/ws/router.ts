@@ -1,5 +1,4 @@
 import type { ClientMessage, ServerMessage, GameOptions } from "@ludo/shared";
-import { TIMINGS } from "@ludo/shared";
 import { logger } from "../lib/logger.js";
 import {
   setReady,
@@ -77,24 +76,34 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
 
   const isProduction = process.env["NODE_ENV"] === "production";
 
+  /**
+   * Arm the server timer to fire at the turn deadline the clients were shown
+   * (`session.turnDeadline`), so both clocks always agree. Bot turns are not
+   * timed — the bot driver re-arms the timer once the turn reaches a human.
+   */
   function scheduleTurnTimeout(roomId: string) {
     if (!isProduction) return;
     clearTurnTimeout(roomId);
     const current = gameSessions.get(roomId);
-    if (current && !current.state.options.timerEnabled) return;
+    if (!current || !current.state.options.timerEnabled || current.turnDeadline === 0) return;
+    const active = current.state.seats.find((s) => s.index === current.state.activeSeat);
+    if (active?.isBot) return;
     turnTimers.set(
       roomId,
-      setTimeout(() => {
-        const session = gameSessions.get(roomId);
-        if (!session || (session.state.status as string) === "finished") return;
-        const msgs = handleTimeout(session);
-        for (const msg of msgs) broadcast(roomId, msg);
-        // If the game isn't finished, a new turn was emitted which schedules next timeout
-        if ((session.state.status as string) !== "finished") {
-          scheduleTurnTimeout(roomId);
-        }
-        persistOrCleanup(roomId, session);
-      }, TIMINGS.turnTimeout),
+      setTimeout(
+        () => {
+          const session = gameSessions.get(roomId);
+          if (!session || (session.state.status as string) === "finished") return;
+          const msgs = handleTimeout(session);
+          for (const msg of msgs) broadcast(roomId, msg);
+          // If the game isn't finished, a new turn was emitted which schedules next timeout
+          if ((session.state.status as string) !== "finished") {
+            scheduleTurnTimeout(roomId);
+          }
+          persistOrCleanup(roomId, session);
+        },
+        Math.max(0, current.turnDeadline - Date.now()),
+      ),
     );
   }
 
@@ -109,6 +118,9 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
   function scheduleBotIfNeeded(roomId: string, session: GameSession): void {
     scheduleBotTurn(session, (msgs) => {
       for (const msg of msgs) broadcast(roomId, msg);
+      // The turn may have passed to a human: start their clock.
+      if (session.state.status !== "finished") scheduleTurnTimeout(roomId);
+      else clearTurnTimeout(roomId);
       // Bot turns mutate state directly — persist so a restart doesn't replay them.
       persistOrCleanup(roomId, session);
     });
