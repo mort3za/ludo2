@@ -13,13 +13,17 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
-/** Occupied seats sorted by standings position (1st, 2nd, etc.); empty seats excluded. */
+/**
+ * Occupied seats sorted by standings position (1st, 2nd, etc.); empty seats
+ * excluded. Seats never placed (kicked) share the place after the last placed one.
+ */
 const rankedSeats = computed(() => {
   const result: { seat: Seat; rank: number }[] = [];
+  const unplacedRank = props.state.standings.length + 1;
   for (const seat of props.state.seats) {
     if (seat.state === "empty") continue;
     const rank = props.state.standings.indexOf(seat.index);
-    result.push({ seat, rank: rank >= 0 ? rank + 1 : props.state.seats.length });
+    result.push({ seat, rank: rank >= 0 ? rank + 1 : unplacedRank });
   }
   return result.sort((a, b) => a.rank - b.rank);
 });
