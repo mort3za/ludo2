@@ -349,7 +349,7 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
         // Re-send the authoritative state to the requester only.
         const session = gameSessions.get(client.roomId);
         if (!session || session.state.status === "finished") break;
-        client.send({ type: "state", state: session.state });
+        client.send({ type: "state", state: session.state, deadline: session.turnDeadline });
         // Mirror the reconnect path: a turn message is only safe while awaiting a
         // roll — sending one mid-move would force the client back to "rolling".
         if (session.state.status === "rolling") {

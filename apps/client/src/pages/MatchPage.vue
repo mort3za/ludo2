@@ -48,6 +48,11 @@ const {
       }
     }
 
+    // A reconnect/resync mid-move gets no "turn", only the state's deadline.
+    if (msg.type === "state" && msg.deadline !== undefined) {
+      deadline.value = msg.deadline;
+    }
+
     if (msg.type === "turn") {
       deadline.value = msg.deadline;
       // A distinct soft cue when it becomes our turn, so it's recognizable

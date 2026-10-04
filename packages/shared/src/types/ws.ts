@@ -40,7 +40,15 @@ export type ServerMessage =
       capacity: number;
       options: GameOptions;
     }
-  | { type: "state"; state: GameState }
+  | {
+      type: "state";
+      state: GameState;
+      /**
+       * Live turn deadline (epoch ms, 0 = no timer), sent on reconnect/resync.
+       * Mid-move no "turn" follows, so this is how the client keeps its countdown.
+       */
+      deadline?: number;
+    }
   | { type: "rolled"; seat: number; value: number }
   | { type: "moved"; tokenId: string; to: Cell; path: Cell[] }
   | { type: "captured"; tokenId: string; to: Cell }

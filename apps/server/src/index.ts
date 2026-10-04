@@ -260,7 +260,7 @@ const server = Bun.serve<WsData>({
       // Re-emit game state for reconnecting players and spectators
       const session = router.getGameSession(roomId);
       if (session && session.state.status !== "finished") {
-        client.send({ type: "state", state: session.state });
+        client.send({ type: "state", state: session.state, deadline: session.turnDeadline });
         // Only send a turn message when the game is awaiting a roll — the
         // state message already carries the full status (including "moving"),
         // and a spurious turn message would force the client back to "rolling",

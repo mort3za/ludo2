@@ -291,6 +291,21 @@ describe("WS router", () => {
       }
     });
 
+    it("carries the live deadline in the state message mid-move", () => {
+      // Mid-move no turn message is sent, so the state message is the only
+      // way a rejoining client learns how long the turn still runs.
+      const { router, c1, session } = setupTimedGame();
+      session.state.status = "moving";
+      session.state.diceValue = 3;
+      (c1.send as ReturnType<typeof vi.fn>).mockClear();
+
+      router.dispatch(c1, { type: "resync" });
+
+      const stateMsg = sentMessages(c1).find((m) => m.type === "state");
+      expect(stateMsg).toMatchObject({ type: "state", deadline: session.turnDeadline });
+      expect(session.turnDeadline).toBeGreaterThan(0);
+    });
+
     it("re-sends an unchanged authoritative state across all fields", () => {
       const { router, c1, session } = setupTimedGame();
       // Put the session in a representative mid-game state.
