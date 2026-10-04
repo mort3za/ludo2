@@ -63,7 +63,7 @@ function handleMessage(msg: ServerMessage) {
     ownerId.value = msg.ownerId;
     capacity.value = msg.capacity;
     options.value = msg.options;
-  } else if (msg.type === "state") {
+  } else if (msg.type === "state" && msg.state.status !== "finished") {
     gameStarted.value = true;
     router.push({ name: "match", params: { roomId: props.roomId } });
   } else if (

@@ -63,6 +63,8 @@ export interface Router {
   /** Drop a removed room's internal bookkeeping (connection/session tracking). */
   forgetRoom: (roomId: string) => void;
   getGameSession: (roomId: string) => GameSession | undefined;
+  /** Send a (re)connecting client the game state (and turn/result) it needs. */
+  sendGameSnapshot: (client: WsClient) => GameSession | undefined;
   /** Re-register a game restored from persistence and resume its timers/bots. */
   restoreSession: (roomId: string, session: GameSession) => void;
 }
@@ -347,20 +349,7 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
         // Client detected a desync (e.g. a dropped turn message, or timers
         // throttled while its tab was backgrounded) and asked for the truth.
         // Re-send the authoritative state to the requester only.
-        const session = gameSessions.get(client.roomId);
-        if (!session || session.state.status === "finished") break;
-        client.send({ type: "state", state: session.state, deadline: session.turnDeadline });
-        // Mirror the reconnect path: a turn message is only safe while awaiting a
-        // roll — sending one mid-move would force the client back to "rolling".
-        if (session.state.status === "rolling") {
-          client.send({
-            type: "turn",
-            seat: session.state.activeSeat,
-            // Replay the live turn's deadline (not a fresh one) so a resync never
-            // extends the clock past the still-running server timer.
-            deadline: session.turnDeadline,
-          });
-        }
+        sendGameSnapshot(client);
         break;
       }
 
@@ -423,6 +412,28 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
         handleDebugSetDice(debugCtx, client, message.seat, message.value);
         break;
     }
+  }
+
+  /**
+   * Bring one (re)connecting client in line with the authoritative game.
+   * Shared by reconnect and resync. Returns the session, if any.
+   */
+  function sendGameSnapshot(client: WsClient): GameSession | undefined {
+    const session = gameSessions.get(client.roomId);
+    if (!session) return undefined;
+    client.send({ type: "state", state: session.state, deadline: session.turnDeadline });
+    if (session.state.status === "finished") {
+      // The client may have missed the "finished" broadcast (dropped socket,
+      // locked phone): replay it so it can leave the board for the result.
+      client.send({ type: "finished", standings: session.state.standings });
+    } else if (session.state.status === "rolling") {
+      // A turn message is only safe while awaiting a roll — sending one
+      // mid-move would force the client back to "rolling", causing the next
+      // roll attempt to be rejected with "not-rolling". Replay the live turn's
+      // deadline (not a fresh one) so the clock never extends past the server's.
+      client.send({ type: "turn", seat: session.state.activeSeat, deadline: session.turnDeadline });
+    }
+    return session;
   }
 
   function broadcast(roomId: string, msg: ServerMessage): void {
@@ -497,6 +508,7 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
     hasConnectedPlayers,
     forgetRoom,
     getGameSession,
+    sendGameSnapshot,
     restoreSession,
   };
 

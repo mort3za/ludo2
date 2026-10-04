@@ -279,11 +279,16 @@ describe("WS router", () => {
       expect(calls.some((call) => call[0]?.type === "turn")).toBe(false);
     });
 
-    it("does nothing when the game has finished", () => {
+    it("sends the final state and the result when the game has finished", () => {
+      // A client that missed the "finished" broadcast (dropped socket, locked
+      // phone) must still learn the game is over, or it stays on a dead board.
       const { router, c1, session } = setupRunningGame();
       session.state.status = "finished";
+      session.state.standings = [1, 3];
       router.dispatch(c1, { type: "resync" });
-      expect(c1.send).not.toHaveBeenCalled();
+      const sent = (c1.send as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[0]);
+      expect(sent.map((m) => m.type)).toEqual(["state", "finished"]);
+      expect(sent[1]).toEqual({ type: "finished", standings: [1, 3] });
     });
   });
 
