@@ -73,7 +73,9 @@
   },
   "connection": {
     "reconnecting": "Getrennt — Verbindung wird wiederhergestellt…",
-    "connecting": "Verbindung wird hergestellt…"
+    "connecting": "Verbindung wird hergestellt…",
+    "lost": "Verbindung verloren.",
+    "reload": "Neu laden"
   },
   "postgame": {
     "youWon": "Du hast gewonnen!",

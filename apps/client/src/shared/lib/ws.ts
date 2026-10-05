@@ -3,7 +3,11 @@ import { apiConfig } from "@/shared/config/api";
 import { getPlayerName } from "@/shared/lib/use-player-name";
 import type { ClientMessage, ServerMessage } from "@ludo/shared";
 
-export type WsStatus = "connecting" | "connected" | "disconnected";
+/**
+ * "disconnected" = between reconnect attempts; "failed" = the attempts ran out
+ * and only coming back online / to the tab (or a reload) will try again.
+ */
+export type WsStatus = "connecting" | "connected" | "disconnected" | "failed";
 
 export interface WsConnection {
   status: Ref<WsStatus>;
@@ -56,16 +60,19 @@ export function createWsConnection(roomId: string, token: string): WsConnection 
     socket.onclose = () => {
       if (ws !== socket) return;
       status.value = "disconnected";
-      if (!intentionalClose && reconnectAttempt < MAX_RECONNECT_ATTEMPTS) {
-        const delay = RECONNECT_DELAYS[Math.min(reconnectAttempt, RECONNECT_DELAYS.length - 1)]!;
-        reconnectAttempt++;
-        reconnectTimer = setTimeout(() => {
-          reconnectTimer = null;
-          if (ws === socket) {
-            connect();
-          }
-        }, delay);
+      if (intentionalClose) return;
+      if (reconnectAttempt >= MAX_RECONNECT_ATTEMPTS) {
+        status.value = "failed";
+        return;
       }
+      const delay = RECONNECT_DELAYS[Math.min(reconnectAttempt, RECONNECT_DELAYS.length - 1)]!;
+      reconnectAttempt++;
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
+        if (ws === socket) {
+          connect();
+        }
+      }, delay);
     };
 
     socket.onerror = () => {
@@ -73,6 +80,19 @@ export function createWsConnection(roomId: string, token: string): WsConnection 
       // onclose will fire after onerror
     };
   }
+
+  /**
+   * After giving up, a returning network or a tab brought back to the front is
+   * the likely moment the server is reachable again: start a fresh round.
+   */
+  function retryAfterFailure() {
+    if (intentionalClose || status.value !== "failed") return;
+    if (document.visibilityState === "hidden") return;
+    reconnectAttempt = 0;
+    connect();
+  }
+  window.addEventListener("online", retryAfterFailure);
+  document.addEventListener("visibilitychange", retryAfterFailure);
 
   connect();
 
@@ -88,6 +108,8 @@ export function createWsConnection(roomId: string, token: string): WsConnection 
     },
     close() {
       intentionalClose = true;
+      window.removeEventListener("online", retryAfterFailure);
+      document.removeEventListener("visibilitychange", retryAfterFailure);
       if (reconnectTimer !== null) {
         clearTimeout(reconnectTimer);
         reconnectTimer = null;

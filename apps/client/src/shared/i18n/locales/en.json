@@ -83,7 +83,9 @@
   },
   "connection": {
     "reconnecting": "Disconnected — reconnecting…",
-    "connecting": "Connecting…"
+    "connecting": "Connecting…",
+    "lost": "Connection lost.",
+    "reload": "Reload"
   },
   "postgame": {
     "youWon": "You won!",

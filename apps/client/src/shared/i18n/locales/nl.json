@@ -73,7 +73,9 @@
   },
   "connection": {
     "reconnecting": "Verbinding verbroken — opnieuw verbinden…",
-    "connecting": "Verbinden…"
+    "connecting": "Verbinden…",
+    "lost": "Verbinding verbroken.",
+    "reload": "Opnieuw laden"
   },
   "postgame": {
     "youWon": "Je hebt gewonnen!",

@@ -7,14 +7,26 @@ defineProps<{
 }>();
 
 const { t } = useI18n();
+
+function reload() {
+  globalThis.location.reload();
+}
 </script>
 
 <template>
   <div
-    v-if="status === 'disconnected' || status === 'connecting'"
-    class="fixed top-0 inset-x-0 z-50 flex items-center justify-center py-2 text-caption font-sans"
-    :class="status === 'disconnected' ? 'bg-danger text-on-danger' : 'bg-warning text-on-warning'"
+    v-if="status !== 'connected'"
+    class="fixed top-0 inset-x-0 z-50 flex items-center justify-center gap-3 py-2 text-caption font-sans"
+    :class="status === 'connecting' ? 'bg-warning text-on-warning' : 'bg-danger text-on-danger'"
   >
-    {{ status === "disconnected" ? t("connection.reconnecting") : t("connection.connecting") }}
+    <template v-if="status === 'failed'">
+      <span>{{ t("connection.lost") }}</span>
+      <button type="button" class="font-medium underline" @click="reload">
+        {{ t("connection.reload") }}
+      </button>
+    </template>
+    <template v-else>
+      {{ status === "disconnected" ? t("connection.reconnecting") : t("connection.connecting") }}
+    </template>
   </div>
 </template>

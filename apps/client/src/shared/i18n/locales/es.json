@@ -73,7 +73,9 @@
   },
   "connection": {
     "reconnecting": "Desconectado: reconectando…",
-    "connecting": "Conectando…"
+    "connecting": "Conectando…",
+    "lost": "Conexión perdida.",
+    "reload": "Recargar"
   },
   "postgame": {
     "youWon": "¡Has ganado!",

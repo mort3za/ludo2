@@ -73,7 +73,9 @@
   },
   "connection": {
     "reconnecting": "انقطع الاتصال — إعادة الاتصال…",
-    "connecting": "جارٍ الاتصال…"
+    "connecting": "جارٍ الاتصال…",
+    "lost": "انقطع الاتصال.",
+    "reload": "إعادة التحميل"
   },
   "postgame": {
     "youWon": "لقد فزت!",

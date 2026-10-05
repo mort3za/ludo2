@@ -73,7 +73,9 @@
   },
   "connection": {
     "reconnecting": "切断されました — 再接続中…",
-    "connecting": "接続中…"
+    "connecting": "接続中…",
+    "lost": "接続が切れました。",
+    "reload": "再読み込み"
   },
   "postgame": {
     "youWon": "勝利しました！",

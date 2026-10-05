@@ -73,7 +73,9 @@
   },
   "connection": {
     "reconnecting": "Bağlantı kesildi — yeniden bağlanılıyor…",
-    "connecting": "Bağlanılıyor…"
+    "connecting": "Bağlanılıyor…",
+    "lost": "Bağlantı koptu.",
+    "reload": "Yeniden yükle"
   },
   "postgame": {
     "youWon": "Kazandın!",

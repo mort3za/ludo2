@@ -81,7 +81,9 @@
   },
   "connection": {
     "reconnecting": "قطع شد — در حال اتصال مجدد…",
-    "connecting": "در حال اتصال…"
+    "connecting": "در حال اتصال…",
+    "lost": "اتصال قطع شد.",
+    "reload": "بارگذاری دوباره"
   },
   "postgame": {
     "youWon": "شما بردید!",

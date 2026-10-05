@@ -59,6 +59,61 @@ describe("createWsConnection", () => {
     });
   });
 
+  /** Fail the first socket and every reconnect attempt until the client gives up. */
+  function exhaustReconnects() {
+    MockWebSocket.instances[0]!.disconnect();
+    for (let i = 0; i < 25; i++) {
+      vi.advanceTimersByTime(15_000);
+      MockWebSocket.instances.at(-1)!.disconnect();
+    }
+  }
+
+  it("reports a failed connection once it stops retrying, not 'disconnected'", async () => {
+    const connection = createWsConnection("room-1", "token-1");
+    exhaustReconnects();
+    const socketsBefore = MockWebSocket.instances.length;
+
+    vi.advanceTimersByTime(60_000);
+    expect(MockWebSocket.instances.length).toBe(socketsBefore); // really gave up
+    expect(connection.status.value).toBe("failed");
+    connection.close();
+  });
+
+  it("tries again when the network comes back after giving up", () => {
+    const connection = createWsConnection("room-1", "token-1");
+    exhaustReconnects();
+    const socketsBefore = MockWebSocket.instances.length;
+
+    window.dispatchEvent(new Event("online"));
+
+    expect(MockWebSocket.instances.length).toBe(socketsBefore + 1);
+    expect(connection.status.value).toBe("connecting");
+    connection.close();
+  });
+
+  it("tries again when the tab becomes visible after giving up", () => {
+    const connection = createWsConnection("room-1", "token-1");
+    exhaustReconnects();
+    const socketsBefore = MockWebSocket.instances.length;
+
+    document.dispatchEvent(new Event("visibilitychange"));
+
+    expect(MockWebSocket.instances.length).toBe(socketsBefore + 1);
+    connection.close();
+  });
+
+  it("does not reconnect on network/visibility events after an intentional close", () => {
+    const connection = createWsConnection("room-1", "token-1");
+    exhaustReconnects();
+    connection.close();
+    const socketsBefore = MockWebSocket.instances.length;
+
+    window.dispatchEvent(new Event("online"));
+    document.dispatchEvent(new Event("visibilitychange"));
+
+    expect(MockWebSocket.instances.length).toBe(socketsBefore);
+  });
+
   it("ignores stale socket close events after a reconnect succeeds", async () => {
     const connection = createWsConnection("room-1", "token-1");
 

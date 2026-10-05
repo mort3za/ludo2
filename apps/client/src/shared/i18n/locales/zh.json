@@ -73,7 +73,9 @@
   },
   "connection": {
     "reconnecting": "已断开——正在重新连接…",
-    "connecting": "连接中…"
+    "connecting": "连接中…",
+    "lost": "连接已断开。",
+    "reload": "重新加载"
   },
   "postgame": {
     "youWon": "你赢了！",
