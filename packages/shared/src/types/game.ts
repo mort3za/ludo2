@@ -27,7 +27,8 @@ export interface Seat {
 export interface GameOptions {
   /**
    * When true, two same-color tokens on a track cell form a wall: opponents
-   * can neither pass over it nor capture those tokens. Default off.
+   * can neither pass over it nor land on it. Default off. Either way a cell
+   * with two or more opponent tokens is never captured — only a lone token is.
    */
   wallEnabled: boolean;
   /**
