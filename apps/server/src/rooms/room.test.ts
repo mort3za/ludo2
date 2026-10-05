@@ -8,6 +8,7 @@ import {
   startGame,
   endGame,
   requestRematch,
+  returnToLobby,
   isExpired,
   isPastMatchLifetime,
   addBotMember,
@@ -300,6 +301,54 @@ describe("requestRematch", () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error).toBe("not-owner");
+  });
+});
+
+describe("returnToLobby", () => {
+  function finishedRoom(): Room {
+    let room = createRoom("r1", S, 1000);
+    room = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    room = (joinRoom(room, "p2") as { ok: true; room: Room }).room;
+    room = (addBotMember(room, () => "aggressor") as { ok: true; room: Room }).room;
+    for (const pid of ["p1", "p2"])
+      room = (setReady(room, pid, true) as { ok: true; room: Room }).room;
+    room = (startGame(room, "p1", "g1") as { ok: true; room: Room }).room;
+    return endGame(room, 5000);
+  }
+
+  it("lets any member move a finished room back to the lobby", () => {
+    const result = returnToLobby(finishedRoom(), "p2", 9000);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.room.phase).toBe("lobby");
+    // The lobby idle clock restarts, so the sweep doesn't reclaim it at once.
+    expect(result.room.createdAt).toBe(9000);
+    expect(isExpired(result.room, 9000 + TIMINGS.idleRoomExpiry - 1)).toBe(false);
+    expect(result.room.gameId).toBeNull();
+    expect(result.room.gameEndedAt).toBeNull();
+    expect([...result.room.members.keys()]).toEqual(["p1", "p2", "bot:1"]);
+    expect(result.room.ownerId).toBe("p1");
+  });
+
+  it("clears human readiness but keeps bots ready so the room can start again", () => {
+    const result = returnToLobby(finishedRoom(), "p1", 9000);
+    if (!result.ok) throw new Error(result.error);
+    expect(result.room.members.get("p1")!.ready).toBe(false);
+    expect(result.room.members.get("p2")!.ready).toBe(false);
+    expect(result.room.members.get("bot:1")!.ready).toBe(true);
+  });
+
+  it("only works from the post-game phase", () => {
+    const room = createRoom("r1", S, 1000);
+    const joined = (joinRoom(room, "p1") as { ok: true; room: Room }).room;
+    expect(returnToLobby(joined, "p1", 9000)).toEqual({ ok: false, error: "not-in-post-game" });
+  });
+
+  it("rejects someone who is not a member", () => {
+    expect(returnToLobby(finishedRoom(), "stranger", 9000)).toEqual({
+      ok: false,
+      error: "not-in-room",
+    });
   });
 });
 

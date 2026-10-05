@@ -438,6 +438,63 @@ describe("WS router", () => {
   });
 
   // Server-restart resilience: in-progress games are persisted and restored.
+  describe("back to lobby", () => {
+    function finishedGame() {
+      let room = makeLobbyRoom(["p1", "p2"]);
+      room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
+      room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
+      rooms.set("room-1", room);
+      const router = createRouter(rooms);
+      const c1 = makeMockClient("p1");
+      const c2 = makeMockClient("p2");
+      router.addClient(c1);
+      router.addClient(c2);
+      router.dispatch(c1, { type: "start" });
+      const session = router.getGameSession("room-1")!;
+      // Finish the game the same way the persistence tests do.
+      session.state.activeSeat = session.state.seats.find((s) => s.playerId === "p1")!.index;
+      session.state.status = "finished";
+      router.dispatch(c1, { type: "roll" });
+      expect(rooms.get("room-1")!.phase).toBe("post-game");
+      return { router, c1, c2 };
+    }
+
+    it("returns a finished room to a working lobby for everyone", () => {
+      const { router, c1, c2 } = finishedGame();
+      (c1.send as ReturnType<typeof vi.fn>).mockClear();
+
+      router.dispatch(c2, { type: "back_to_lobby" });
+
+      expect(rooms.get("room-1")!.phase).toBe("lobby");
+      expect(router.getGameSession("room-1")).toBeUndefined();
+      const sent = (c1.send as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[0]);
+      expect(sent.some((m) => m.type === "lobby")).toBe(true);
+
+      // The lobby really works: everyone readies and the owner starts a new game.
+      router.dispatch(c1, { type: "ready" });
+      router.dispatch(c2, { type: "ready" });
+      router.dispatch(c1, { type: "start" });
+      expect(rooms.get("room-1")!.phase).toBe("playing");
+      expect(router.getGameSession("room-1")!.state.status).toBe("rolling");
+    });
+
+    it("is refused while the game is still running", () => {
+      let room = makeLobbyRoom(["p1", "p2"]);
+      room = (setReady(room, "p1", true) as { ok: true; room: Room }).room;
+      room = (setReady(room, "p2", true) as { ok: true; room: Room }).room;
+      rooms.set("room-1", room);
+      const router = createRouter(rooms);
+      const c1 = makeMockClient("p1");
+      router.addClient(c1);
+      router.dispatch(c1, { type: "start" });
+
+      router.dispatch(c1, { type: "back_to_lobby" });
+
+      expect(rooms.get("room-1")!.phase).toBe("playing");
+      expect(c1.send).toHaveBeenCalledWith({ type: "error", message: "not-in-post-game" });
+    });
+  });
+
   describe("game persistence", () => {
     function setupWithDeps() {
       let room = makeLobbyRoom(["p1", "p2"]);

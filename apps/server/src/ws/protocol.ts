@@ -10,6 +10,7 @@ const SIMPLE_TYPES = new Set([
   "roll",
   "resync",
   "rematch",
+  "back_to_lobby",
   "add_bot",
   "debug_undo",
 ]);

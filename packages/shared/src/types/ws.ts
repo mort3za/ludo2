@@ -9,6 +9,8 @@ export type ClientMessage =
   /** Request a fresh authoritative state — recovers the client from any desync. */
   | { type: "resync" }
   | { type: "rematch" }
+  /** Post-game: move the room back to its lobby for everyone (same members). */
+  | { type: "back_to_lobby" }
   | { type: "add_bot" }
   | { type: "remove_player"; playerId: string }
   /** Lobby-only, owner-only: set the game options for the upcoming game. */

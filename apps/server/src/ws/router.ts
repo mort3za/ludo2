@@ -7,6 +7,7 @@ import {
   startGame,
   addBotMember,
   removeMember,
+  returnToLobby,
   renameMember,
   endGame,
   type Room,
@@ -374,6 +375,21 @@ export function createRouter(rooms: RoomStore, deps: RouterDeps = {}): Router {
         } else {
           client.send({ type: "error", message: result.error });
         }
+        break;
+      }
+
+      case "back_to_lobby": {
+        const result = returnToLobby(room, client.playerId, Date.now());
+        if (!result.ok) {
+          client.send({ type: "error", message: result.error });
+          break;
+        }
+        rooms.set(client.roomId, result.room);
+        // The finished game is over for good (its result stays persisted);
+        // drop it so the lobby starts clean.
+        clearTurnTimeout(client.roomId);
+        gameSessions.delete(client.roomId);
+        broadcastLobby(client.roomId, result.room);
         break;
       }
 

@@ -302,6 +302,39 @@ export function requestRematch(room: Room, requesterId: string): Result<{ room: 
   };
 }
 
+/**
+ * Move a finished room back to its lobby, for everyone. Any member may do it:
+ * the room keeps its members and owner, humans must ready up again, and bots
+ * stay ready (they are always ready, or the room could never start). The lobby
+ * idle clock restarts at `now`, as for a freshly created room.
+ */
+export function returnToLobby(
+  room: Room,
+  requesterId: string,
+  now: number,
+): Result<{ room: Room }> {
+  if (room.phase !== "post-game") return { ok: false, error: "not-in-post-game" };
+  if (!room.members.has(requesterId)) return { ok: false, error: "not-in-room" };
+
+  const members = cloneMembers(room.members);
+  for (const member of members.values()) {
+    if (member.kind === "human") member.ready = false;
+  }
+
+  return {
+    ok: true,
+    room: {
+      ...room,
+      members,
+      spectators: cloneSpectators(room.spectators),
+      phase: "lobby",
+      gameId: null,
+      gameEndedAt: null,
+      createdAt: now,
+    },
+  };
+}
+
 export function isExpired(room: Room, now: number): boolean {
   switch (room.phase) {
     case "lobby":

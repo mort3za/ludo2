@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, shallowRef } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useSessionStore } from "@/stores/session";
@@ -31,16 +31,27 @@ const rematchAvailable = computed(() => {
   return Date.now() < gameResult.endedAt + TIMINGS.postGameWindow;
 });
 
-let ws: WsConnection | null = null;
+const ws = shallowRef<WsConnection | null>(null);
 let unmounted = false;
 
-function goToLobby() {
+// Sending back_to_lobby needs an open socket (ws.send drops it otherwise), and
+// a lost click would land the player in a lobby the server still keeps closed.
+const canReturnToLobby = computed(() => ws.value?.status.value === "connected");
+
+function openLobby() {
   gameResult.clear();
   router.push({ name: "room", params: { roomId: props.roomId } });
 }
 
+/** Move the room back to its lobby for everyone, then go there. */
+function goToLobby() {
+  if (!canReturnToLobby.value) return;
+  ws.value?.send({ type: "back_to_lobby" });
+  openLobby();
+}
+
 function sendRematch() {
-  ws?.send({ type: "rematch" });
+  ws.value?.send({ type: "rematch" });
 }
 
 onMounted(async () => {
@@ -66,17 +77,19 @@ onMounted(async () => {
   // WebSocket that would never be closed.
   if (unmounted) return;
 
-  ws = createWsConnection(props.roomId, session.token);
-  ws.onMessage((msg) => {
+  ws.value = createWsConnection(props.roomId, session.token);
+  ws.value.onMessage((msg) => {
     if (msg.type === "state" && msg.state.status !== "finished") {
       router.push({ name: "match", params: { roomId: props.roomId } });
     }
+    // Someone moved the room back to its lobby: follow it there.
+    if (msg.type === "lobby") openLobby();
   });
 });
 
 onUnmounted(() => {
   unmounted = true;
-  ws?.close();
+  ws.value?.close();
 });
 </script>
 
@@ -101,7 +114,7 @@ onUnmounted(() => {
       <p v-else-if="isOwner" class="text-caption text-text-muted text-center font-sans">
         {{ t("postgame.rematchExpired") }}
       </p>
-      <DButton variant="ghost" class="w-full" @click="goToLobby">
+      <DButton variant="ghost" class="w-full" :disabled="!canReturnToLobby" @click="goToLobby">
         {{ t("postgame.backToLobby") }}
       </DButton>
     </div>
