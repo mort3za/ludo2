@@ -334,7 +334,7 @@ Game continues until one of these terminal conditions:
 ### 11.6 Post-game window
 
 - After a game ends (all standings decided, or game aborted per §11.5), the room remains open for **60 seconds**.
-- During this window: chat is open, final standings and stats are displayed, and the **owner** (§7) may trigger a **rematch** — a new game with the **same room configuration** (same `S`, same rules); colors are re-drawn per §10.8. Currently-seated players are auto-seated; players who quit during the previous game are not re-included.
+- During this window: chat is open, final standings and stats are displayed, and the **owner** (§7) may trigger a **rematch** — a new game with the **same room configuration** (same `S`, same rules); colors are re-drawn per §10.8. Every room member is auto-seated again — including players who were kicked (§8.2) during the previous game; a kick only vacates the seat for that one game.
 - A rematch immediately replaces the post-game window with a fresh game.
 - After 60 seconds with no rematch, the room is closed automatically. The owner may also close the room manually at any time.
 
@@ -365,4 +365,5 @@ Game continues until one of these terminal conditions:
 - **Home column entry (§5.7):** entry square is `T/((si−1) × K)` (with seat-1 wrap to `T/(S × K)`); token traverses `S × K − 1` track squares from start to entry, then steps to `H/si/1`. _(2026-05-02)_
 - **Room owner & rematch (§7 / §11.6):** the room creator is the **owner** — starts game, triggers rematch, closes room. Rematch re-uses same config; colors re-drawn. Owner-succession on disconnect/quit is `[OPEN]`. _(2026-05-02)_
 - **Room creation & joining (§7):** any user can create a room (link-only, no public browser). Users join via link until cap `S` is reached. All human players mark ready; bots are always ready; owner triggers start. _(2026-05-02)_
+- **Rematch roster (§11.6):** a rematch re-seats every room member, including players kicked during the previous game — a kick vacates the seat for that game only. _(2026-10-06)_
 - **Notation (§2 / §5.2 / §10):** seat count = `S` (not `N`). Seats are **1-indexed** (`1..S`). Dice value = `drv`. Seat index = `si`. Board minimum `S = 4` (geometric symmetry). _(2026-05-02)_
