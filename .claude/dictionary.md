@@ -17,23 +17,23 @@ Canonical definitions for terms used across the codebase and design docs. When c
 
 ## Tokens & movement
 
-| Term             | Definition                                                                                                                                  |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Token**        | A player's game piece. Each seat has exactly 4 tokens. A token is always on exactly one cell.                                               |
-| **Deploy**       | Moving a token from the yard onto the seat's start square. Requires rolling a 6.                                                            |
-| **Capture**      | Landing on a track square occupied by exactly one opponent token, sending it back to its yard. Does not apply on safe squares or to blocks. |
-| **Block**        | Two or more same-color tokens on the same track square. Opponents cannot land on, pass through, or capture a block.                         |
-| **Pass through** | A move whose path (not just landing square) crosses a given cell. Blocks make pass-through illegal for opponents.                           |
+| Term             | Definition                                                                                                                                                |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Token**        | A player's game piece. Each seat has exactly 4 tokens. A token is always on exactly one cell.                                                             |
+| **Deploy**       | Moving a token from the yard onto the seat's start square. Requires rolling a 6.                                                                          |
+| **Capture**      | Landing on a track square occupied by exactly one opponent token, sending it back to its yard. Applies on start squares too; never to two or more tokens. |
+| **Block**        | With walls on (`wallEnabled`): two or more same-color tokens on one track square; opponents cannot land on or pass through it. Never captured either way. |
+| **Pass through** | A move whose path (not just landing square) crosses a given cell. Blocks make pass-through illegal for opponents.                                         |
 
 ## Board zones
 
 | Term             | Definition                                                                                                                                           |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Yard**         | A seat's off-board holding area with `M=4` slots (`Y/<seat>/1..4`). Tokens start here and return here when captured.                                 |
-| **Start square** | The track square where a token deploys from the yard: `T/((si−1)×K+1)` for seat `si`. Also a safe square.                                            |
+| **Start square** | The track square where a token deploys from the yard: `T/((si−1)×K+1)` for seat `si`. Not safe: a lone token here can be captured.                   |
 | **Entry square** | The last track square before a token turns into its home column: `T/((si−1)×K)` (seat 1 wraps to `T/(S×K)`).                                         |
 | **Home column**  | A seat's private column of `L=4` capacity-1 squares (`H/<seat>/1..4`). Forward-only, no captures, no stacking. A token enters from the entry square. |
-| **Safe square**  | A start square. Tokens on safe squares cannot be captured. Multiple colors may co-occupy a safe square.                                              |
+| **Safe square**  | Not used — the game has no safe squares (start squares were safe in an earlier proposal).                                                            |
 
 ## Players & rooms
 
