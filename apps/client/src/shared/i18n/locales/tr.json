@@ -108,7 +108,7 @@
   },
   "about": {
     "title": "Hakkında",
-    "description": "Ludo 2, klasik masa oyunu Ludo'nun 4 ila 8 oyuncuyu destekleyen gerçek zamanlı çok oyunculu bir uygulamasıdır.",
+    "description": "Ludo 2, klasik masa oyunu Ludo'nun 2 ila 8 oyuncuyu destekleyen gerçek zamanlı çok oyunculu bir uygulamasıdır.",
     "versionLabel": "Sürüm",
     "developerLabel": "Geliştirici",
     "privacyTitle": "Gizlilik",
@@ -116,7 +116,7 @@
   },
   "howto": {
     "title": "Nasıl oynanır",
-    "intro": "Ludo 2, 4 ila 8 oyuncu için sıra tabanlı bir yarış oyunudur. Her oyuncu dört taşı yönetir ve onları ortak bir parkur boyunca dolaştırarak kendi ev sütununa sokmayı amaçlar. Tüm kurallar sunucu tarafından uygulanır; istemci yalnızca eşitlenmiş oyun durumunu gösterir.",
+    "intro": "Ludo 2, 2 ila 8 oyuncu için sıra tabanlı bir yarış oyunudur. Her oyuncu dört taşı yönetir ve onları ortak bir parkur boyunca dolaştırarak kendi ev sütununa sokmayı amaçlar. Tüm kurallar sunucu tarafından uygulanır; istemci yalnızca eşitlenmiş oyun durumunu gösterir.",
     "sections": {
       "objective": {
         "title": "1. Amaç",
@@ -127,7 +127,7 @@
       "setup": {
         "title": "2. Kurulum",
         "items": [
-          "Bir maç 4 ila 8 oyuncu arasında oynanır.",
+          "Bir maç 2 ila 8 oyuncu arasında oynanır.",
           "Her oyuncuya bir renk atanır ve dört taşı yönetir.",
           "Tüm taşlar, parkurun dışında, sahibinin başlangıcında başlar.",
           "Oturma ve sıra düzeni oyun başlayınca sabitlenir."
@@ -154,7 +154,7 @@
         "title": "5. Yakalama",
         "items": [
           "Tek bir rakip taşın bulunduğu bir parkur karesine konmak, o taşı başlangıcına geri gönderir.",
-          "Her oyuncunun başlangıç karesi güvenli karedir; güvenli karede duran bir taş yakalanamaz.",
+          "Başlangıç kareleri güvenli değildir: başlangıç karesindeki tek bir taş da alınabilir.",
           "Ev sütununun içindeki taşlar yakalanamaz."
         ]
       },
@@ -162,7 +162,7 @@
         "title": "6. Altı atmak",
         "items": [
           "Altı atmak sana ek bir sıra kazandırır.",
-          "Üst üste üç altı atmak sırayı yakar: üçüncü altı geçersiz sayılır ve sıra sonraki oyuncuya geçer."
+          "O altı son taşını eve getirirse ek tur verilmez."
         ]
       },
       "winning": {
@@ -175,9 +175,11 @@
       "options": {
         "title": "8. İsteğe bağlı kurallar",
         "items": [
-          "Duvarlar: etkinleştirildiğinde, aynı karedeki iki taşın bir duvar oluşturur ve rakiplerin geçmesini veya yakalamasını engeller.",
+          "Duvarlar: etkinleştirildiğinde, aynı karedeki iki taşın rakiplerin geçemeyeceği ve üzerine gelemeyeceği bir duvar oluşturur.",
           "Otomatik hamle: etkinleştirildiğinde, yalnızca tek geçerli hamlesi olan bir sıra otomatik oynanır.",
-          "Tur zamanlayıcısı: etkinleştirildiğinde, her tur 30 saniyeyle sınırlanır; üç turu kaçıran oyuncu oyundan çıkarılır."
+          "Tur zamanlayıcısı: etkinleştirildiğinde her tur en fazla 30 saniye sürer; kaçırılan tur atlanır ve art arda üç tur kaçıran oyuncu oyundan çıkarılır.",
+          "Başlangıç koruması: etkinleştirildiğinde, kendi taşlarından biri hâlâ başlangıç karende dururken yeni bir taş çıkaramazsın.",
+          "Üç altı sınırı: etkinleştirildiğinde art arda üç altı atmak turu kaybettirir; üçüncü altı geçersiz sayılır ve sıra sonraki oyuncuya geçer."
         ]
       }
     }

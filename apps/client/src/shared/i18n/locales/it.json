@@ -108,7 +108,7 @@
   },
   "about": {
     "title": "Informazioni",
-    "description": "Ludo 2 è un'implementazione multigiocatore in tempo reale del classico gioco da tavolo Ludo, per 4 a 8 giocatori.",
+    "description": "Ludo 2 è un'implementazione multigiocatore in tempo reale del classico gioco da tavolo Ludo, da 2 a 8 giocatori.",
     "versionLabel": "Versione",
     "developerLabel": "Sviluppatore",
     "privacyTitle": "Privacy",
@@ -116,7 +116,7 @@
   },
   "howto": {
     "title": "Come si gioca",
-    "intro": "Ludo 2 è un gioco di corsa a turni per 4 a 8 giocatori. Ogni giocatore comanda quattro pedine e cerca di muoverle lungo un percorso condiviso fino alla propria colonna di arrivo. Tutte le regole sono applicate dal server; il client mostra soltanto lo stato di gioco sincronizzato.",
+    "intro": "Ludo 2 è un gioco di corsa a turni da 2 a 8 giocatori. Ogni giocatore comanda quattro pedine e cerca di muoverle lungo un percorso condiviso fino alla propria colonna di arrivo. Tutte le regole sono applicate dal server; il client mostra soltanto lo stato di gioco sincronizzato.",
     "sections": {
       "objective": {
         "title": "1. Obiettivo",
@@ -127,7 +127,7 @@
       "setup": {
         "title": "2. Preparazione",
         "items": [
-          "Una partita si gioca tra 4 e 8 giocatori.",
+          "Una partita si gioca tra 2 e 8 giocatori.",
           "A ogni giocatore viene assegnato un colore e controlla quattro pedine.",
           "Tutte le pedine partono nella base del proprietario, fuori dal percorso.",
           "Posti e ordine dei turni sono fissati una volta iniziata la partita."
@@ -154,7 +154,7 @@
         "title": "5. Catturare",
         "items": [
           "Atterrare su una casella del percorso occupata da una singola pedina avversaria rimanda quella pedina alla sua base.",
-          "La casella di partenza di ogni giocatore è una casella sicura; una pedina ferma su una casella sicura non può essere catturata.",
+          "Le caselle di partenza non sono sicure: anche una pedina da sola su una casella di partenza può essere catturata.",
           "Le pedine all'interno di una colonna di arrivo non possono essere catturate."
         ]
       },
@@ -162,7 +162,7 @@
         "title": "6. Tirare un sei",
         "items": [
           "Tirare un sei ti concede un turno aggiuntivo.",
-          "Tirare tre sei di fila fa perdere il turno: il terzo sei è annullato e il gioco passa al giocatore successivo."
+          "Se quel sei porta a casa la tua ultima pedina, non c'è un turno aggiuntivo."
         ]
       },
       "winning": {
@@ -175,9 +175,11 @@
       "options": {
         "title": "8. Regole opzionali",
         "items": [
-          "Muri: quando attivo, due delle tue pedine sulla stessa casella formano un muro che impedisce agli avversari di passare o catturare.",
+          "Muri: se attivo, due tue pedine sulla stessa casella formano un muro che gli avversari non possono né superare né occupare.",
           "Mossa automatica: quando attiva, un turno con una sola mossa valida viene giocato automaticamente.",
-          "Timer del turno: quando attivo, ogni turno è limitato a 30 secondi; un giocatore che salta tre turni viene rimosso dalla partita."
+          "Timer del turno: se attivo, ogni turno dura al massimo 30 secondi; un turno perso viene saltato e chi perde tre turni di fila viene rimosso dalla partita.",
+          "Protezione della partenza: se attiva, non puoi far uscire una nuova pedina finché una delle tue pedine è ancora sulla tua casella di partenza.",
+          "Limite dei tre sei: se attivo, tirare tre sei di fila fa perdere il turno; il terzo sei non vale e il gioco passa al giocatore successivo."
         ]
       }
     }

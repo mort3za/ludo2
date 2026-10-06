@@ -108,7 +108,7 @@
   },
   "about": {
     "title": "À propos",
-    "description": "Ludo 2 est une implémentation multijoueur en temps réel du jeu de plateau classique Petits Chevaux, pour 4 à 8 joueurs.",
+    "description": "Ludo 2 est une implémentation multijoueur en temps réel du jeu de plateau classique Petits Chevaux, pour 2 à 8 joueurs.",
     "versionLabel": "Version",
     "developerLabel": "Développeur",
     "privacyTitle": "Confidentialité",
@@ -116,7 +116,7 @@
   },
   "howto": {
     "title": "Comment jouer",
-    "intro": "Ludo 2 est un jeu de course au tour par tour pour 4 à 8 joueurs. Chaque joueur commande quatre pions et cherche à les faire avancer sur un parcours commun jusqu'à sa colonne d'arrivée. Toutes les règles sont appliquées par le serveur ; le client ne fait qu'afficher l'état de jeu synchronisé.",
+    "intro": "Ludo 2 est un jeu de course au tour par tour pour 2 à 8 joueurs. Chaque joueur commande quatre pions et cherche à les faire avancer sur un parcours commun jusqu'à sa colonne d'arrivée. Toutes les règles sont appliquées par le serveur ; le client ne fait qu'afficher l'état de jeu synchronisé.",
     "sections": {
       "objective": {
         "title": "1. Objectif",
@@ -127,7 +127,7 @@
       "setup": {
         "title": "2. Mise en place",
         "items": [
-          "Une partie se joue entre 4 et 8 joueurs.",
+          "Une partie se joue entre 2 et 8 joueurs.",
           "Chaque joueur reçoit une couleur et contrôle quatre pions.",
           "Tous les pions commencent dans la base de leur propriétaire, hors du parcours.",
           "Les sièges et l'ordre des tours sont fixés dès le début de la partie."
@@ -154,7 +154,7 @@
         "title": "5. Capturer",
         "items": [
           "Atterrir sur une case du parcours occupée par un seul pion adverse renvoie ce pion à sa base.",
-          "La case de départ de chaque joueur est une case sûre ; un pion posé sur une case sûre ne peut pas être capturé.",
+          "Les cases de départ ne sont pas sûres : un pion seul sur une case de départ peut aussi être capturé.",
           "Les pions situés dans une colonne d'arrivée ne peuvent pas être capturés."
         ]
       },
@@ -162,7 +162,7 @@
         "title": "6. Faire un six",
         "items": [
           "Faire un six vous accorde un tour supplémentaire.",
-          "Faire trois six d'affilée fait perdre le tour : le troisième six est annulé et le jeu passe au joueur suivant."
+          "Si ce six amène votre dernier pion à l'arrivée, il n'y a pas de tour supplémentaire."
         ]
       },
       "winning": {
@@ -175,9 +175,11 @@
       "options": {
         "title": "8. Règles optionnelles",
         "items": [
-          "Murs : lorsqu'ils sont activés, deux de vos pions sur la même case forment un mur qui empêche les adversaires de passer ou de capturer.",
+          "Murs : si activé, deux de vos pions sur la même case forment un mur que les adversaires ne peuvent ni franchir ni occuper.",
           "Déplacement automatique : lorsqu'il est activé, un tour ne comportant qu'un seul coup valide est joué automatiquement.",
-          "Minuteur de tour : lorsqu'il est activé, chaque tour est limité à 30 secondes ; un joueur qui manque trois tours est retiré de la partie."
+          "Minuteur de tour : si activé, chaque tour est limité à 30 secondes ; un tour manqué est sauté, et un joueur qui manque trois tours d'affilée est retiré de la partie.",
+          "Protection du départ : si activé, vous ne pouvez pas sortir un nouveau pion tant qu'un de vos pions se trouve encore sur votre case de départ.",
+          "Limite des trois six : si activé, faire trois six d'affilée fait perdre le tour ; le troisième six est annulé et la main passe au joueur suivant."
         ]
       }
     }

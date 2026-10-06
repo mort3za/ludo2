@@ -108,7 +108,7 @@
   },
   "about": {
     "title": "Acerca de",
-    "description": "Ludo 2 es una implementación multijugador en tiempo real del clásico juego de mesa Parchís, para 4 a 8 jugadores.",
+    "description": "Ludo 2 es una implementación multijugador en tiempo real del clásico juego de mesa Parchís, para 2 a 8 jugadores.",
     "versionLabel": "Versión",
     "developerLabel": "Desarrollador",
     "privacyTitle": "Privacidad",
@@ -116,7 +116,7 @@
   },
   "howto": {
     "title": "Cómo jugar",
-    "intro": "Ludo 2 es un juego de carreras por turnos para 4 a 8 jugadores. Cada jugador comanda cuatro fichas y trata de moverlas por un recorrido compartido hasta su columna de meta. Todas las reglas las aplica el servidor; el cliente solo muestra el estado sincronizado del juego.",
+    "intro": "Ludo 2 es un juego de carreras por turnos para 2 a 8 jugadores. Cada jugador comanda cuatro fichas y trata de moverlas por un recorrido compartido hasta su columna de meta. Todas las reglas las aplica el servidor; el cliente solo muestra el estado sincronizado del juego.",
     "sections": {
       "objective": {
         "title": "1. Objetivo",
@@ -127,7 +127,7 @@
       "setup": {
         "title": "2. Preparación",
         "items": [
-          "Una partida se juega entre 4 y 8 jugadores.",
+          "Una partida se juega entre 2 y 8 jugadores.",
           "A cada jugador se le asigna un color y controla cuatro fichas.",
           "Todas las fichas comienzan en la base de su dueño, fuera del recorrido.",
           "Los asientos y el orden de turnos quedan fijos al comenzar la partida."
@@ -154,7 +154,7 @@
         "title": "5. Capturar",
         "items": [
           "Caer en una casilla del recorrido ocupada por una sola ficha rival envía a esa ficha de vuelta a su base.",
-          "La casilla de salida de cada jugador es una casilla segura; una ficha en una casilla segura no puede ser capturada.",
+          "Las casillas de salida no son seguras: una ficha sola en una casilla de salida también puede ser capturada.",
           "Las fichas dentro de una columna de meta no pueden ser capturadas."
         ]
       },
@@ -162,7 +162,7 @@
         "title": "6. Sacar un seis",
         "items": [
           "Sacar un seis te concede un turno adicional.",
-          "Sacar tres seises seguidos anula el turno: el tercer seis no cuenta y el turno pasa al siguiente jugador."
+          "Si ese seis lleva tu última ficha a casa, no hay turno adicional."
         ]
       },
       "winning": {
@@ -175,9 +175,11 @@
       "options": {
         "title": "8. Reglas opcionales",
         "items": [
-          "Muros: cuando está activado, dos de tus fichas en la misma casilla forman un muro que impide que los oponentes pasen o capturen.",
+          "Muros: si está activado, dos fichas tuyas en la misma casilla forman un muro que los rivales no pueden atravesar ni ocupar.",
           "Movimiento automático: cuando está activado, un turno con un solo movimiento válido se juega automáticamente.",
-          "Temporizador de turno: cuando está activado, cada turno se limita a 30 segundos; un jugador que pierde tres turnos es expulsado de la partida."
+          "Temporizador de turno: si está activado, cada turno dura como máximo 30 segundos; un turno perdido se salta, y quien pierde tres turnos seguidos queda eliminado de la partida.",
+          "Protección de salida: si está activado, no puedes sacar una ficha nueva mientras una de tus fichas siga en tu casilla de salida.",
+          "Límite de tres seises: si está activado, sacar tres seises seguidos hace perder el turno; el tercer seis no cuenta y el juego pasa al siguiente jugador."
         ]
       }
     }

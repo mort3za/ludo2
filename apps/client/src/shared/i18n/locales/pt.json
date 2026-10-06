@@ -108,7 +108,7 @@
   },
   "about": {
     "title": "Sobre",
-    "description": "Ludo 2 é uma implementação multijogador em tempo real do clássico jogo de tabuleiro Ludo, para 4 a 8 jogadores.",
+    "description": "Ludo 2 é uma implementação multijogador em tempo real do clássico jogo de tabuleiro Ludo, para 2 a 8 jogadores.",
     "versionLabel": "Versão",
     "developerLabel": "Desenvolvedor",
     "privacyTitle": "Privacidade",
@@ -116,7 +116,7 @@
   },
   "howto": {
     "title": "Como jogar",
-    "intro": "Ludo 2 é um jogo de corrida por turnos para 4 a 8 jogadores. Cada jogador comanda quatro peças e procura movê-las por um percurso compartilhado até a sua coluna de chegada. Todas as regras são aplicadas pelo servidor; o cliente apenas exibe o estado de jogo sincronizado.",
+    "intro": "Ludo 2 é um jogo de corrida por turnos para 2 a 8 jogadores. Cada jogador comanda quatro peças e procura movê-las por um percurso compartilhado até a sua coluna de chegada. Todas as regras são aplicadas pelo servidor; o cliente apenas exibe o estado de jogo sincronizado.",
     "sections": {
       "objective": {
         "title": "1. Objetivo",
@@ -127,7 +127,7 @@
       "setup": {
         "title": "2. Preparação",
         "items": [
-          "Uma partida é jogada por 4 a 8 jogadores.",
+          "Uma partida é jogada por 2 a 8 jogadores.",
           "Cada jogador recebe uma cor e controla quatro peças.",
           "Todas as peças começam na base de seu dono, fora do percurso.",
           "Os assentos e a ordem dos turnos ficam fixos quando o jogo começa."
@@ -154,7 +154,7 @@
         "title": "5. Capturar",
         "items": [
           "Cair em uma casa do percurso ocupada por uma única peça adversária envia essa peça de volta à sua base.",
-          "A casa inicial de cada jogador é uma casa segura; uma peça parada em uma casa segura não pode ser capturada.",
+          "As casas de saída não são seguras: um peão sozinho numa casa de saída também pode ser capturado.",
           "As peças dentro de uma coluna de chegada não podem ser capturadas."
         ]
       },
@@ -162,7 +162,7 @@
         "title": "6. Tirar um seis",
         "items": [
           "Tirar um seis concede a você um turno adicional.",
-          "Tirar três seis seguidos perde o turno: o terceiro seis é anulado e a vez passa para o próximo jogador."
+          "Se esse seis levar o seu último peão para casa, não há turno adicional."
         ]
       },
       "winning": {
@@ -175,9 +175,11 @@
       "options": {
         "title": "8. Regras opcionais",
         "items": [
-          "Muros: quando ativado, duas de suas peças na mesma casa formam um muro que impede os adversários de passar ou capturar.",
+          "Muros: quando ativado, dois dos seus peões na mesma casa formam um muro que os adversários não podem atravessar nem ocupar.",
           "Movimento automático: quando ativado, um turno com apenas uma jogada válida é jogado automaticamente.",
-          "Cronômetro do turno: quando ativado, cada turno é limitado a 30 segundos; um jogador que perde três turnos é removido do jogo."
+          "Temporizador de turno: quando ativado, cada turno tem no máximo 30 segundos; um turno perdido é pulado, e quem perde três turnos seguidos é removido da partida.",
+          "Proteção da saída: quando ativada, você não pode tirar um novo peão enquanto um dos seus peões ainda estiver na sua casa de saída.",
+          "Limite de três seis: quando ativado, tirar três seis seguidos faz perder o turno; o terceiro seis é anulado e a vez passa ao próximo jogador."
         ]
       }
     }

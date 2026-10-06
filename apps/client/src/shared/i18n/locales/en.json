@@ -119,7 +119,7 @@
   },
   "about": {
     "title": "About",
-    "description": "Ludo 2 is a real-time multiplayer implementation of the classic board game Ludo, supporting 4 to 8 players.",
+    "description": "Ludo 2 is a real-time multiplayer implementation of the classic board game Ludo, supporting 2 to 8 players.",
     "versionLabel": "Version",
     "developerLabel": "Developer",
     "privacyTitle": "Privacy",
@@ -127,7 +127,7 @@
   },
   "howto": {
     "title": "How to Play",
-    "intro": "Ludo 2 is a turn-based race game for 4 to 8 players. Each player commands four tokens and aims to move them around a shared track and into their home column. All rules are enforced by the server; the client only displays the synchronized game state.",
+    "intro": "Ludo 2 is a turn-based race game for 2 to 8 players. Each player commands four tokens and aims to move them around a shared track and into their home column. All rules are enforced by the server; the client only displays the synchronized game state.",
     "sections": {
       "objective": {
         "title": "1. Objective",
@@ -138,7 +138,7 @@
       "setup": {
         "title": "2. Setup",
         "items": [
-          "A match is played by between 4 and 8 players.",
+          "A match is played by between 2 and 8 players.",
           "Each player is assigned a colour and controls four tokens.",
           "All tokens begin in their owner's base, off the track.",
           "Seating and turn order are fixed once the game begins."
@@ -165,7 +165,7 @@
         "title": "5. Capturing",
         "items": [
           "Landing on a track cell occupied by a single opponent token sends that token back to its base.",
-          "Each player's start square is a safe square; a token resting on a safe square cannot be captured.",
+          "Start squares are not safe: a single token standing on a start square can be captured too.",
           "Tokens inside a home column cannot be captured."
         ]
       },
@@ -173,7 +173,7 @@
         "title": "6. Rolling a Six",
         "items": [
           "Rolling a six grants you an additional turn.",
-          "Rolling three sixes in succession forfeits the turn: the third six is void and play passes to the next player."
+          "If that six brings your last token home, there is no extra turn."
         ]
       },
       "winning": {
@@ -186,9 +186,11 @@
       "options": {
         "title": "8. Optional Rules",
         "items": [
-          "Walls: when enabled, two of your tokens on the same cell form a wall that blocks opponents from passing or capturing.",
+          "Walls: when enabled, two of your tokens on the same cell form a wall that opponents can neither pass nor land on.",
           "Auto-move: when enabled, a turn with only one legal move is played automatically.",
-          "Turn timer: when enabled, each turn is capped at 30 seconds; a player who misses three turns is removed from the game."
+          "Turn timer: when enabled, each turn is capped at 30 seconds; a missed turn is skipped, and a player who misses three turns in a row is removed from the game.",
+          "Start guard: when enabled, you cannot bring a new token out while one of your own tokens is still on your start square.",
+          "Three-sixes limit: when enabled, rolling three sixes in a row forfeits the turn; the third six is void and play passes to the next player."
         ]
       }
     }
